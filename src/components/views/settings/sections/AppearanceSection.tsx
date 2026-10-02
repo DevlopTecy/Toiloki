@@ -3,24 +3,15 @@ import { Check, Sun, Moon, Monitor, RotateCcw } from 'lucide-react';
 import { useTheme } from '../../../../core/theme/ThemeContext';
 import { SettingsService, AppSettings } from '../../../../core/services/settings.service';
 import { deriveAccentPalette } from '../../../../core/theme/wcag-contrast';
+import { ACCENT_PRESETS } from '../../../../core/theme/theme.types';
 
 interface AppearanceSectionProps {
   settings: AppSettings;
   onUpdateSettings: (patch: Partial<AppSettings>) => void;
 }
 
-const ACCENT_PRESETS = [
-  { id: 'orange', name: 'Orange', lightHex: '#E8890C', darkHex: '#F5A524' },
-  { id: 'blue', name: 'Blue', lightHex: '#2563EB', darkHex: '#3B82F6' },
-  { id: 'teal', name: 'Teal', lightHex: '#0D9488', darkHex: '#14B8A6' },
-  { id: 'green', name: 'Green', lightHex: '#16A34A', darkHex: '#22C55E' },
-  { id: 'violet', name: 'Violet', lightHex: '#7C3AED', darkHex: '#8B5CF6' },
-  { id: 'pink', name: 'Pink', lightHex: '#DB2777', darkHex: '#EC4899' },
-  { id: 'red', name: 'Red', lightHex: '#DC2626', darkHex: '#EF4444' },
-  { id: 'neutral', name: 'Neutral', lightHex: '#525252', darkHex: '#737373' },
-];
-
 export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
+
   settings,
   onUpdateSettings,
 }) => {
@@ -104,7 +95,10 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           <button
             type="button"
             className={`segmented-item ${themeMode === 'light' ? 'is-active' : ''}`}
-            onClick={() => setThemeMode('light')}
+            onClick={() => {
+              setThemeMode('light');
+              onUpdateSettings({ theme: 'light' });
+            }}
           >
             <Sun size={14} />
             <span>Light</span>
@@ -112,7 +106,10 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           <button
             type="button"
             className={`segmented-item ${themeMode === 'dark' ? 'is-active' : ''}`}
-            onClick={() => setThemeMode('dark')}
+            onClick={() => {
+              setThemeMode('dark');
+              onUpdateSettings({ theme: 'dark' });
+            }}
           >
             <Moon size={14} />
             <span>Dark</span>
@@ -120,11 +117,15 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           <button
             type="button"
             className={`segmented-item ${themeMode === 'system' ? 'is-active' : ''}`}
-            onClick={() => setThemeMode('system')}
+            onClick={() => {
+              setThemeMode('system');
+              onUpdateSettings({ theme: 'system' });
+            }}
           >
             <Monitor size={14} />
             <span>System</span>
           </button>
+
         </div>
       </div>
 

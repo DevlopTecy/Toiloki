@@ -50,8 +50,9 @@ export const StickyFooterBar: React.FC<StickyFooterBarProps> = ({
         </Button>
         <Button variant="primary" size="sm" onClick={onApply}>
           <Check size={13} style={{ marginRight: '6px' }} />
-          Apply changes
+          Save changes
         </Button>
+
       </div>
     </div>
   );

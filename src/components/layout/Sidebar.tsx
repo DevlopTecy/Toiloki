@@ -12,9 +12,6 @@ import {
   Star,
   Clock,
   Settings,
-  Sun,
-  Moon,
-  Monitor,
   PanelLeftClose,
   PanelLeftOpen,
   CheckCircle2,
@@ -22,11 +19,10 @@ import {
 import { WorkspaceId } from '../../core/types/workspace';
 import { WORKSPACES } from '../../core/registry/app-registry';
 import { SettingsService } from '../../core/services/settings.service';
-import { useTheme } from '../../core/theme/ThemeContext';
-import { ThemeMode } from '../../core/theme/theme.types';
 import './Sidebar.css';
 
 export type ActiveNav = 'home' | WorkspaceId | 'favorites' | 'history' | 'settings';
+
 
 interface SidebarProps {
   activeNav: ActiveNav;
@@ -67,8 +63,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const { themeMode, setThemeMode } = useTheme();
-
   // Calculate utility statistics per workspace from WORKSPACES
   const workspaceUtilityData: Record<string, { total: number; ready: number; beta: number; soon: number }> = React.useMemo(() => {
     const data: Record<string, { total: number; ready: number; beta: number; soon: number }> = {};
@@ -99,30 +93,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'files', label: 'Files & Archives', icon: FolderArchive, badgeClass: 'badge-files' },
   ] as const;
 
-  const cycleTheme = () => {
-    let nextTheme: ThemeMode = 'dark';
-    if (themeMode === 'dark') {
-      nextTheme = 'light';
-    } else if (themeMode === 'light') {
-      nextTheme = 'system';
-    } else {
-      nextTheme = 'dark';
-    }
-    setThemeMode(nextTheme);
-    SettingsService.saveSettings({ theme: nextTheme });
-  };
-
-  const getThemeIcon = () => {
-    if (themeMode === 'light') return <Sun size={13} />;
-    if (themeMode === 'system') return <Monitor size={13} />;
-    return <Moon size={13} />;
-  };
-
-  const getThemeLabel = () => {
-    if (themeMode === 'light') return 'Light';
-    if (themeMode === 'system') return 'System';
-    return 'Dark';
-  };
 
   const sidebarRef = React.useRef<HTMLElement>(null);
   const [indicatorY, setIndicatorY] = useState<number>(-1);
@@ -239,48 +209,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      {/* ─── Bottom Status & Controls ─── */}
+      {/* ─── Bottom Settings Button ─── */}
       <div className="sidebar-bottom">
-        {!isCollapsed && (
-          <div className="sidebar-privacy-status">
-            <span className="privacy-dot" />
-            <span className="privacy-text">Offline • files stay on your device</span>
-          </div>
-        )}
-
-        {!isCollapsed && (
-          <div className="sidebar-storage-card">
-            <div className="storage-row">
-              <span className="storage-label">Local Cache</span>
-              <span className="storage-val">0 B (Safe)</span>
-            </div>
-            <div className="storage-track">
-              <div className="storage-bar" style={{ transform: 'scaleX(0.08)' }} />
-            </div>
-          </div>
-        )}
-
-        <div className="sidebar-bottom-controls">
-          <button
-            data-nav="settings"
-            className={`sidebar-bottom-btn ${activeNav === 'settings' ? 'active' : ''}`}
-            onClick={() => onSelectNav('settings')}
-            title="Settings"
-          >
-            <Settings size={14} />
-            {!isCollapsed && <span>Settings</span>}
-          </button>
-
-          <button
-            className="sidebar-bottom-btn theme-toggle-btn"
-            onClick={cycleTheme}
-            title={`Current theme: ${getThemeLabel()} (Click to cycle)`}
-          >
-            {getThemeIcon()}
-            {!isCollapsed && <span>{getThemeLabel()}</span>}
-          </button>
-        </div>
+        <button
+          data-nav="settings"
+          className={`sidebar-bottom-btn single-settings-btn ${activeNav === 'settings' ? 'active' : ''}`}
+          onClick={() => onSelectNav('settings')}
+          title="Settings"
+        >
+          <Settings size={15} />
+          {!isCollapsed && <span className="sidebar-btn-label">Settings</span>}
+        </button>
       </div>
+
     </aside>
   );
 };

@@ -220,131 +220,54 @@
   margin: 10px 6px;
 }
 
-/* ─── Bottom Area ─── */
+/* ─── Bottom Area: Single Settings Button ─── */
 .sidebar-bottom {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid var(--border);
 }
 
-/* Cache Bar: 4px, track --border, fill --accent (animates scaleX over 400ms ease-out) */
-.sidebar-storage-card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-}
-
-.storage-row {
+.single-settings-btn {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-}
-
-.storage-label {
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 11px;
-}
-
-.storage-val {
-  color: var(--text-2);
-  font-family: var(--font-sans);
-  font-size: 11px;
-}
-
-.storage-track {
+  justify-content: flex-start;
+  gap: 10px;
   width: 100%;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.storage-bar {
-  height: 100%;
-  width: 100%;
-  transform-origin: left center;
-  background: var(--accent);
-  border-radius: 2px;
-  transition: transform 400ms var(--ease-out);
-}
-
-/* ─── Privacy Status Line (Only shown here) ─── */
-.sidebar-privacy-status {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 6px 8px 6px;
-  font-size: 11.5px;
-  color: var(--text-muted);
-}
-
-.sidebar-privacy-status .privacy-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--success);
-  flex-shrink: 0;
-}
-
-.sidebar-privacy-status .privacy-text {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sidebar-bottom-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.sidebar-bottom-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 8px;
+  height: 34px;
+  padding: 0 10px;
   background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-2);
-  font-size: 12px;
+  font-size: 12.5px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 150ms ease;
+  user-select: none;
 }
 
-.sidebar-bottom-btn:hover {
+.single-settings-btn:hover {
   background-color: var(--surface-hover);
   color: var(--text);
-  border-color: var(--border);
+  border-color: var(--border-hover, var(--border));
 }
 
-.sidebar-bottom-btn.active {
+.single-settings-btn.active {
   background-color: var(--accent-soft);
   color: var(--text);
-  border-color: var(--border);
+  border-color: var(--accent);
 }
 
-.app-sidebar.collapsed .sidebar-bottom-controls {
-  flex-direction: column;
+.app-sidebar.collapsed .sidebar-bottom {
+  align-items: center;
 }
 
-.app-sidebar.collapsed .sidebar-bottom-btn {
-  width: 34px;
-  height: 30px;
+.app-sidebar.collapsed .single-settings-btn {
+  width: 36px;
+  height: 36px;
   padding: 0;
+  justify-content: center;
 }
+

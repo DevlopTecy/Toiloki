@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { AppTheme, ThemeMode, ThemeTokens, ThemeBackground, ThemeButtons } from './theme.types';
+import { AppTheme, ThemeMode, ThemeTokens, ThemeBackground, ThemeButtons, ACCENT_PRESETS } from './theme.types';
 import { BUILTIN_THEMES } from './theme-presets';
 import { SettingsService, AppSettings } from '../services/settings.service';
 import { validateThemeJson } from './theme.validator';
+import { deriveAccentPalette } from './wcag-contrast';
 import { useToast } from '../context/ToastContext';
+
 
 interface ThemeContextType {
   themeMode: ThemeMode;
@@ -127,6 +129,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 
   // Apply CSS variables dynamically to the document root
+  const [appSettings, setAppSettings] = useState<AppSettings>(() => SettingsService.getSettings());
+
+  useEffect(() => {
+    return SettingsService.subscribe((updated) => {
+      setAppSettings(updated);
+    });
+  }, []);
+
+  // Apply CSS variables dynamically to the document root
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
@@ -138,7 +149,67 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     const rawTokens = currentTheme.tokens[resolvedMode] || currentTheme.tokens.dark;
-    const tokens: ThemeTokens = { ...rawTokens, ...(tokenPatch || {}) };
+
+    // Synthesize setting overrides (accent color, corners, fonts)
+    const settingsOverrides: Partial<ThemeTokens> = {};
+
+    // 1. Accent color override
+    if (appSettings.accentColor) {
+      const preset = ACCENT_PRESETS.find((p) => p.id === appSettings.accentColor);
+      const targetHex = appSettings.accentColor === 'custom'
+        ? (appSettings.customAccentHex || (resolvedMode === 'dark' ? '#F5A524' : '#E8890C'))
+        : (preset ? (resolvedMode === 'dark' ? preset.darkHex : preset.lightHex) : appSettings.customAccentHex);
+
+      if (targetHex) {
+        const derived = deriveAccentPalette(targetHex, resolvedMode === 'dark');
+        settingsOverrides.accent = derived.accent;
+        settingsOverrides.accentHover = derived.accentHover;
+        settingsOverrides.accentActive = derived.accentActive;
+        settingsOverrides.accentSoft = derived.accentSoft;
+        settingsOverrides.focusRing = `0 0 0 2px ${derived.accent}`;
+        settingsOverrides.onAccent = derived.onAccent;
+      }
+    }
+
+    // 2. Corner radius override
+    if (appSettings.cornerStyle) {
+      if (appSettings.cornerStyle === 'sharp') {
+        settingsOverrides.radiusScale = 'sharp';
+        settingsOverrides.radiusXs = '1px';
+        settingsOverrides.radiusSm = '3px';
+        settingsOverrides.radiusMd = '4px';
+        settingsOverrides.radiusLg = '6px';
+        settingsOverrides.radiusDropzone = '8px';
+      } else if (appSettings.cornerStyle === 'round') {
+        settingsOverrides.radiusScale = 'round';
+        settingsOverrides.radiusXs = '6px';
+        settingsOverrides.radiusSm = '10px';
+        settingsOverrides.radiusMd = '14px';
+        settingsOverrides.radiusLg = '18px';
+        settingsOverrides.radiusDropzone = '22px';
+      } else {
+        settingsOverrides.radiusScale = 'default';
+        settingsOverrides.radiusXs = '4px';
+        settingsOverrides.radiusSm = '6px';
+        settingsOverrides.radiusMd = '8px';
+        settingsOverrides.radiusLg = '12px';
+        settingsOverrides.radiusDropzone = '16px';
+      }
+    }
+
+    // 3. Fonts override
+    if (appSettings.interfaceFont) {
+      settingsOverrides.fontSans = `${appSettings.interfaceFont}, system-ui, sans-serif`;
+    }
+    if (appSettings.monoFont) {
+      settingsOverrides.fontMono = `${appSettings.monoFont}, monospace`;
+    }
+
+    const tokens: ThemeTokens = {
+      ...rawTokens,
+      ...settingsOverrides,
+      ...(tokenPatch || {}),
+    };
 
     // Translucent theme safety fallback: if user prefers reduced transparency, enforce opacity 1.0 and 0px blur
     const isTranslucent = currentTheme.id === 'translucent-11';
@@ -266,9 +337,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const effectiveCardStyle = (currentTheme.id === 'high-contrast')
       ? 'flat'
-      : (currentTheme.buttons?.cardStyle || SettingsService.getSettings().buttonCardStyle || 'flat');
+      : (currentTheme.buttons?.cardStyle || appSettings.buttonCardStyle || 'flat');
     document.documentElement.setAttribute('data-card-style', effectiveCardStyle);
-  }, [currentTheme, resolvedMode, themeMode, tokenPatch, prefersReducedTransparency]);
+  }, [currentTheme, resolvedMode, themeMode, tokenPatch, prefersReducedTransparency, appSettings]);
+
 
   // Mode change applies instantly per requirements
   const setThemeMode = useCallback((mode: ThemeMode) => {
@@ -423,11 +495,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       theme: 'system',
       density: 'compact',
       fontSize: 'medium',
+      fontSizeScale: '100%',
+      interfaceFont: 'Inter',
+      monoFont: 'JetBrains Mono',
+      monoFontSize: '13px',
       reduceMotion: 'auto',
       accentColor: 'orange',
+      customAccentHex: '#F5A524',
       cornerStyle: 'default',
     });
     showToast('Appearance restored to Default Clean', 'info');
+
   }, [showToast]);
 
   const resetSectionAppearance = useCallback(() => {

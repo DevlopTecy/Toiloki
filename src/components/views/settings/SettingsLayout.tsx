@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+
 import {
   Palette, Sparkles, MousePointer, Image, FolderOpen, Cpu,
   Clock, ShieldCheck, Wrench, Code, Search
@@ -42,6 +43,12 @@ export const SettingsLayout: React.FC = () => {
   const [settings, setSettings] = useState<AppSettings>(() => SettingsService.getSettings());
   const [pendingSettingsPatch, setPendingSettingsPatch] = useState<Partial<AppSettings>>({});
 
+  useEffect(() => {
+    return SettingsService.subscribe((updated) => {
+      setSettings(updated);
+    });
+  }, []);
+
   const effectiveSettings = useMemo(() => {
     return { ...settings, ...pendingSettingsPatch };
   }, [settings, pendingSettingsPatch]);
@@ -55,14 +62,13 @@ export const SettingsLayout: React.FC = () => {
 
   const handleApplyAll = () => {
     if (hasPendingSettings) {
-      const saved = SettingsService.saveSettings(pendingSettingsPatch);
-      setSettings(saved);
+      SettingsService.saveSettings(pendingSettingsPatch);
       setPendingSettingsPatch({});
     }
     if (hasUnsavedChanges) {
       applyChanges();
     }
-    showToast('Preferences and theme applied successfully', 'success');
+    showToast('Preferences and theme saved successfully', 'success');
   };
 
   const handleRevertAll = () => {
@@ -70,6 +76,7 @@ export const SettingsLayout: React.FC = () => {
     if (hasUnsavedChanges) {
       revertChanges();
     }
+    showToast('Reverted unsaved changes', 'info');
   };
 
   const handleResetAllDefaults = () => {
@@ -78,6 +85,7 @@ export const SettingsLayout: React.FC = () => {
     setPendingSettingsPatch({});
     showToast('All settings reset to defaults', 'info');
   };
+
 
   // Sections navigation definitions
   const NAV_ITEMS = [

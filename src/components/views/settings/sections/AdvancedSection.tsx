@@ -18,9 +18,18 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
   const [resetDone, setResetDone] = useState(false);
 
   const handleClearCache = () => {
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('toiloki_temp_') || k.startsWith('toiloki_cache_'))) {
+          localStorage.removeItem(k);
+        }
+      }
+    } catch {}
     setCacheCleared(true);
     setTimeout(() => setCacheCleared(false), 2000);
   };
+
 
   const handleResetDefaults = () => {
     if (window.confirm('Reset all application preferences to out-of-the-box defaults?')) {

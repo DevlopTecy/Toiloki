@@ -46,11 +46,16 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
     hasAnimatedHomeSession = true;
   }, []);
 
-  const settings = SettingsService.getSettings();
+  const [settings, setSettings] = React.useState(() => SettingsService.getSettings());
+  React.useEffect(() => {
+    return SettingsService.subscribe((updated) => setSettings(updated));
+  }, []);
+
   const isHighContrast = activeTheme.id === 'high-contrast';
   const isImageStyle = !isHighContrast && (
     settings.buttonCardStyle === 'image' || activeTheme.buttons?.cardStyle === 'image'
   );
+
 
   // Real history records for Recent Activity
   const records = useMemo(() => {

@@ -12,19 +12,28 @@ export const PrivacySection: React.FC<PrivacySectionProps> = ({
   settings,
   onUpdateSettings,
 }) => {
-  const [allowCrashLogs, setAllowCrashLogs] = useState(false);
   const [clearedNotice, setClearedNotice] = useState<string | null>(null);
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
 
   const handleConfirmClear = () => {
     try {
-      localStorage.removeItem('toiloki_history');
-      localStorage.removeItem('toiloki_recent_activity');
-    } catch {}
-    setClearedNotice('Local cache and task history have been cleared.');
+      localStorage.removeItem('toiloki_history_v2');
+      localStorage.removeItem('toiloki_recent_utilities');
+      localStorage.removeItem('toiloki_favorites');
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('toiloki_last_utility_') || k.startsWith('toiloki_temp_'))) {
+          localStorage.removeItem(k);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to clear local data:', err);
+    }
+    setClearedNotice('Local cache, favorites, and task history have been cleared.');
     setIsConfirmingClear(false);
     setTimeout(() => setClearedNotice(null), 3000);
   };
+
 
   return (
     <div className="settings-section">
@@ -92,13 +101,14 @@ export const PrivacySection: React.FC<PrivacySectionProps> = ({
         <label className="settings-switch">
           <input
             type="checkbox"
-            checked={allowCrashLogs}
-            onChange={(e) => setAllowCrashLogs(e.target.checked)}
+            checked={settings.logLevel !== 'off'}
+            onChange={(e) => onUpdateSettings({ logLevel: e.target.checked ? 'info' : 'off' })}
           />
           <span className="settings-switch-label">
-            {allowCrashLogs ? 'Store crash logs locally' : 'Disabled'}
+            {settings.logLevel !== 'off' ? 'Store crash logs locally' : 'Disabled'}
           </span>
         </label>
+
       </div>
 
       {/* ─── 4. CLEAR LOCAL DATA & CACHE ─── */}

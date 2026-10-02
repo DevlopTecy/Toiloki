@@ -81,7 +81,33 @@ export const DEFAULT_SETTINGS: AppSettings = {
   consecutiveCrashes: 0,
 };
 
+export type SettingsListener = (settings: AppSettings) => void;
+const listeners = new Set<SettingsListener>();
+
 export class SettingsService {
+  /**
+   * Subscribe to settings updates
+   */
+  static subscribe(listener: SettingsListener): () => void {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  }
+
+  private static notifyListeners(settings: AppSettings): void {
+    listeners.forEach((fn) => {
+      try {
+        fn(settings);
+      } catch (err) {
+        console.error('Settings listener error:', err);
+      }
+    });
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('toiloki-settings-changed', { detail: settings }));
+    }
+  }
+
   /**
    * Load stored settings or default settings
    */
@@ -107,6 +133,7 @@ export class SettingsService {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       this.applyDomSettings(updated);
+      this.notifyListeners(updated);
     } catch (err) {
       console.error('Failed to save settings:', err);
     }
@@ -121,6 +148,7 @@ export class SettingsService {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SETTINGS));
       this.applyDomSettings(DEFAULT_SETTINGS);
+      this.notifyListeners(DEFAULT_SETTINGS);
     } catch (err) {
       console.error('Failed to reset settings:', err);
     }
@@ -140,6 +168,10 @@ export class SettingsService {
     document.documentElement.setAttribute('data-corner', settings.cornerStyle || 'default');
     document.documentElement.setAttribute('data-card-style', settings.buttonCardStyle || 'flat');
 
+    if (settings.fontSizeScale) {
+      document.documentElement.style.fontSize = settings.fontSizeScale;
+    }
+
     if (settings.safeMode) {
       document.documentElement.setAttribute('data-safe-mode', 'true');
     } else {
@@ -147,3 +179,4 @@ export class SettingsService {
     }
   }
 }
+

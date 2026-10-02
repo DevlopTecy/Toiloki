@@ -12,9 +12,35 @@ export const FilesSection: React.FC<FilesSectionProps> = ({
   settings,
   onUpdateSettings,
 }) => {
-  const handleBrowse = () => {
-    alert('Local system folder picker opened.');
+  const handleBrowse = async () => {
+    const toiloki = (window as any).toiloki;
+    if (toiloki?.dialog?.openFile) {
+      try {
+        const res = await toiloki.dialog.openFile({
+          title: 'Select Export Directory',
+          properties: ['openDirectory', 'createDirectory'],
+        });
+        if (!res.canceled && res.filePaths?.[0]) {
+          onUpdateSettings({ outputDir: res.filePaths[0] });
+        }
+        return;
+      } catch (err) {
+        console.error('Electron folder dialog error:', err);
+      }
+    }
+
+    if ('showDirectoryPicker' in window) {
+      try {
+        const dirHandle = await (window as any).showDirectoryPicker();
+        if (dirHandle?.name) {
+          onUpdateSettings({ outputDir: `/${dirHandle.name}` });
+        }
+      } catch (err: any) {
+        if (err.name !== 'AbortError') console.error('Directory picker error:', err);
+      }
+    }
   };
+
 
   const handleReset = () => {
     onUpdateSettings({
