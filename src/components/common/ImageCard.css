@@ -1,0 +1,144 @@
+/* ═══════════════════════════════════════════════════
+   ImageCard — Category & Module Launcher Card
+   Supports both 'flat' (Default) and 'image' Styles
+   ═══════════════════════════════════════════════════ */
+
+/* ─── IMAGE STYLE VARIANT ─── */
+.image-card-launcher {
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.image-card-launcher .image-surface-content {
+  padding: 24px; /* Padding 24px per spec */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.image-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+/* 56px rounded square (radius 14px), category gradient, white 24px icon */
+.image-card-icon-tile {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+  transition: transform var(--dur-fast, 120ms) var(--ease-standard, ease);
+}
+
+:root[data-theme='light'] .image-card-icon-tile {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.image-card-icon-tile svg {
+  width: 24px;
+  height: 24px;
+  stroke: #FFFFFF !important;
+  color: #FFFFFF !important;
+}
+
+/* Tool count badge on image card */
+.image-card-badge {
+  font-size: 11.5px;
+  font-family: var(--font-mono, monospace);
+  font-weight: 500;
+  color: var(--text-2);
+  background: rgba(var(--surface-rgb, 26, 26, 26), 0.65);
+  backdrop-filter: blur(8px);
+  padding: 3px 8px;
+  border-radius: var(--radius-full, 9999px);
+  border: 1px solid var(--border);
+}
+
+/* Card Body: Title 18px/600, Description 14px/400 (max 2 lines) */
+.image-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.image-card-title {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.image-card-desc {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-2);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Card Footer with 40px round chevron button */
+.image-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+/* 40px circular chevron button */
+.image-card-chevron-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--image-card-chevron-bg, rgba(255, 255, 255, 0.10));
+  border: 1px solid var(--image-card-chevron-border, rgba(255, 255, 255, 0.12));
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  pointer-events: none; /* Whole card is click target */
+  transition: background-color 150ms var(--ease-standard, ease);
+}
+
+.image-card-chevron-icon {
+  width: 18px;
+  height: 18px;
+  stroke: var(--text);
+  transition: transform 150ms var(--ease-standard, ease);
+}
+
+/* Chevron background goes to 16% and chevron nudges 2px right on card hover */
+.image-card-launcher:hover .image-card-chevron-btn {
+  background: var(--image-card-chevron-bg-hover, rgba(255, 255, 255, 0.16));
+}
+
+.image-card-launcher:hover .image-card-chevron-icon {
+  transform: translateX(2px);
+}
+
+:root[data-motion='on'] .image-card-launcher:hover .image-card-chevron-icon,
+@media (prefers-reduced-motion: reduce) {
+  .image-card-launcher:hover .image-card-chevron-icon {
+    transform: none !important;
+  }
+}

@@ -1,0 +1,73 @@
+/* ═══════════════════════════════════════════════════
+   EmptyState — Placeholder for empty views
+   ═══════════════════════════════════════════════════ */
+
+.empty-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 24px;
+  background: var(--bg-panel);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
+  gap: 12px;
+}
+
+.empty-state-box.compact {
+  padding: 20px 14px;
+  gap: 8px;
+}
+
+.empty-state-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: var(--accent-amber-subtle);
+  border: 1px solid var(--accent-amber-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-amber);
+}
+
+.empty-state-box.compact .empty-state-icon-wrapper {
+  width: 34px;
+  height: 34px;
+}
+
+.empty-state-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 320px;
+}
+
+.empty-state-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.empty-state-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.empty-state-btn {
+  margin-top: 4px;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  background: var(--accent-amber);
+  border: none;
+  color: var(--text-inverse);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.empty-state-btn:hover {
+  background: var(--accent-amber-hover);
+}

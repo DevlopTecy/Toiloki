@@ -1,0 +1,231 @@
+/* ═══════════════════════════════════════════════════
+   TOILOKI — Template C: Data Table / Viewer Tools
+   Sticky Header • Sans 13px • 40px Rows • 1px Dividers
+   ═══════════════════════════════════════════════════ */
+
+.toiloki-datatable-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-cards, 12px);
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+}
+
+/* ─── Toolbar: Filter Left, Columns Dropdown, Count Right ─── */
+.datatable-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.datatable-filter-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 280px;
+  width: 100%;
+}
+
+.datatable-search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.datatable-filter-input {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px 0 32px;
+  border-radius: var(--radius-controls, 8px);
+  border: 1px solid var(--border);
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.datatable-filter-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.datatable-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cols-dropdown-wrap {
+  position: relative;
+}
+
+.cols-trigger-btn {
+  gap: 4px;
+}
+
+.cols-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-controls, 8px);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 100;
+  min-width: 160px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.col-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.col-checkbox-label:hover {
+  background-color: var(--surface-hover);
+}
+
+.datatable-count-text {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ─── Table with Sticky Header ─── */
+.datatable-table-container {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--surface);
+}
+
+.toiloki-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.toiloki-table th {
+  position: sticky;
+  top: 0;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+  user-select: none;
+  z-index: 10;
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sort-arrow {
+  opacity: 0;
+  color: var(--text-muted);
+  transition: opacity var(--dur-fast) ease, transform 150ms var(--ease-standard);
+  transform: rotate(0deg);
+}
+
+.sort-arrow.is-desc {
+  transform: rotate(180deg);
+}
+
+.toiloki-table th:hover .sort-arrow,
+.sort-arrow.is-sorted {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.toiloki-table td {
+  height: 40px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text);
+  line-height: 40px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 100ms ease;
+}
+
+.toiloki-table tr:last-child td {
+  border-bottom: none;
+}
+
+.toiloki-table tbody tr:hover td {
+  background-color: var(--surface-hover);
+}
+
+.datatable-row-enter {
+  animation: workspaceEntrance var(--dur-base) var(--ease-out) forwards;
+}
+
+.toiloki-table td.text-right {
+  text-align: right;
+}
+
+.datatable-empty-cell {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 32px 16px !important;
+}
+
+/* ─── Footer Pagination ─── */
+.datatable-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  background-color: var(--surface);
+  flex-shrink: 0;
+}
+
+.pagination-info {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

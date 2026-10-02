@@ -1,0 +1,234 @@
+/* ═══════════════════════════════════════════════════
+   Preview Modal — File/Image/PDF Preview
+   ═══════════════════════════════════════════════════ */
+
+.preview-modal-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 70vh;
+}
+
+/* ─── Toolbar ─── */
+.preview-modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.zoom-indicator,
+.page-indicator {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  padding: 0 4px;
+}
+
+.small-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: var(--radius-sm);
+}
+
+.small-btn.active {
+  background: var(--accent-amber);
+  color: var(--text-inverse);
+  border-color: var(--accent-amber);
+}
+
+/* ─── Viewport ─── */
+.preview-viewport-scroll {
+  min-height: 320px;
+  max-height: 480px;
+  overflow: auto;
+  background: #0A0B0D;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+  position: relative;
+}
+
+[data-theme='light'] .preview-viewport-scroll {
+  background: #E2E8F0;
+}
+
+.image-canvas-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.image-canvas-wrapper.fit-width .preview-img {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+.image-canvas-wrapper.fit-page .preview-img {
+  max-height: 420px;
+  width: auto;
+}
+
+.preview-img {
+  max-width: 100%;
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-fast);
+}
+
+/* ─── PDF Sheet ─── */
+.pdf-canvas-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.preview-pdf-page {
+  max-width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+}
+
+.pdf-page-simulated-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.pdf-sheet {
+  width: 320px;
+  height: 450px;
+  background: #FFFFFF;
+  color: #1E293B;
+  border-radius: 3px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sheet-header {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: #64748B;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 6px;
+}
+
+.sheet-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sim-line {
+  background: #CBD5E1;
+  border-radius: 2px;
+  height: 8px;
+}
+
+.sim-line.title {
+  height: 14px;
+  width: 60%;
+  background: #94A3B8;
+  margin-bottom: 8px;
+}
+
+.sim-line.body {
+  width: 100%;
+}
+
+.sim-line.body.short {
+  width: 75%;
+}
+
+/* ─── Text / Code Preview ─── */
+.text-preview-container,
+.tree-preview-container {
+  width: 100%;
+}
+
+.text-preview-code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-primary);
+  background: transparent;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.55;
+}
+
+/* ─── Data Table ─── */
+.data-table-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.preview-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+
+.preview-data-table th {
+  background: var(--bg-raised);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+  padding: 7px 12px;
+  border: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.preview-data-table td {
+  padding: 6px 12px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.preview-data-table tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+[data-theme='light'] .preview-data-table tr:nth-child(even) td {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* ─── Footer ─── */
+.preview-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 4px;
+}
+
+.preview-meta-info {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}

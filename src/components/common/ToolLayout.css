@@ -1,0 +1,212 @@
+/* ═══════════════════════════════════════════════════
+   Tool Layout — Shared Tool Page Structure (3 Zones)
+   ═══════════════════════════════════════════════════ */
+
+.tool-layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg-app);
+}
+
+/* ─── Zone 1: Compact WorkspaceHeader now handles tool header ─── */
+.tool-header {
+  display: none !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   Zone 2: Main Workspace (32px padding, shared left edge)
+   ═══════════════════════════════════════════════════ */
+.tool-main-content {
+  flex: 1;
+  padding: 32px var(--content-padding-x, 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0;
+  width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════
+   Zone 3: Bottom Action Bar (Sticky / Anchored, Slides up 220ms ease-out)
+   ═══════════════════════════════════════════════════ */
+@keyframes actionBarSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.tool-actions-bar {
+  padding: 10px var(--content-padding-x);
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+  gap: 16px;
+  animation: actionBarSlideUp var(--dur-page) var(--ease-out) forwards;
+}
+
+.actions-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-summary-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+
+/* Center: 2px Amber Line Progress + ETA */
+.actions-bar-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1.5;
+  min-width: 0;
+}
+
+.progress-center-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  max-width: 260px;
+}
+
+.amber-progress-track {
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.amber-progress-fill {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+  transition: transform 200ms linear;
+}
+
+.progress-meta-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.progress-percent {
+  font-weight: 600;
+  color: var(--accent-amber);
+}
+
+.progress-eta {
+  color: var(--text-muted);
+}
+
+/* Right: Secondary Actions + Primary Action Button */
+.actions-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  flex: 1;
+}
+
+/* ═══════════════════════════════════════════════════
+   Universal Buttons
+   ═══════════════════════════════════════════════════ */
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease, opacity var(--dur-fast) ease, transform var(--dur-fast) var(--ease-standard);
+  cursor: pointer;
+  user-select: none;
+}
+
+.tool-btn:active:not(:disabled) {
+  transform: scale(0.98);
+  transition: transform var(--dur-instant) var(--ease-out);
+}
+
+.tool-btn.small-btn {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: var(--radius-md);
+  gap: 4px;
+}
+
+/* Primary Button: Solid orange accent, flat surface */
+.tool-btn.primary {
+  background: var(--accent);
+  color: var(--text-inverse);
+  border: 1px solid var(--accent);
+  box-shadow: none;
+}
+
+.tool-btn.primary:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.tool-btn.primary:active:not(:disabled) {
+  opacity: 0.85;
+}
+
+.tool-btn.primary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Secondary Button: Ghost style / flat surface, 1px border */
+.tool-btn.secondary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: none;
+}
+
+.tool-btn.secondary:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border);
+}
+
+.tool-btn.secondary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

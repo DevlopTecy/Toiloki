@@ -1,0 +1,340 @@
+/* ═══════════════════════════════════════════════════
+   Data Workspace View — Interactive Tables & Schemas
+   ═══════════════════════════════════════════════════ */
+
+.data-tool-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.data-viewer-container,
+.data-editor-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ─── Validation Status Banner ─── */
+.validation-status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+}
+
+.validation-status-banner.is-valid {
+  border-color: rgba(74, 222, 128, 0.22);
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.validation-status-banner.is-invalid {
+  border-color: rgba(248, 113, 113, 0.22);
+  background: rgba(248, 113, 113, 0.05);
+}
+
+.validation-status-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.validation-main-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.validation-sub-text {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.validation-location {
+  font-size: 10.5px;
+  color: var(--color-danger);
+  margin-top: 2px;
+}
+
+.validation-location code {
+  font-family: var(--font-mono);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+/* ─── Data Table Toolbar ─── */
+.data-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  flex-wrap: wrap;
+}
+
+.filter-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 180px;
+  max-width: 300px;
+  background: var(--bg-input);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.filter-input-wrap:focus-within {
+  border-color: var(--accent-amber);
+}
+
+.filter-icon {
+  color: var(--text-tertiary);
+}
+
+.table-search-input {
+  background: none;
+  border: none;
+  font-size: 11.5px;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.table-search-input:focus {
+  outline: none;
+}
+
+.columns-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.col-label {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+}
+
+.col-chip {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.col-chip.hidden {
+  opacity: 0.35;
+  text-decoration: line-through;
+}
+
+.type-badge {
+  font-size: 8.5px;
+  color: var(--text-tertiary);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+.table-meta-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.row-count-badge {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+}
+
+/* ─── Interactive Table (34px Row Height) ─── */
+.data-table-scroll-wrapper {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  max-height: 480px;
+  overflow: auto;
+}
+
+.interactive-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  text-align: left;
+}
+
+.interactive-data-table th {
+  height: 32px;
+  padding: 0 12px;
+  background: var(--bg-input);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  cursor: pointer;
+  user-select: none;
+  z-index: 10;
+}
+
+.interactive-data-table th:hover {
+  background: var(--bg-raised);
+  color: var(--text-primary);
+}
+
+.interactive-data-table th.sorted-col {
+  color: var(--accent-amber);
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.interactive-data-table td {
+  height: 34px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.interactive-data-table tr:hover td {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ─── Converter Selectors Bar ─── */
+.converter-selectors-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.selector-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.selector-group label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.arrow-icon {
+  color: var(--text-tertiary);
+}
+
+.view-mode-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Monospace Editor & Tree View ─── */
+.code-editor-box,
+.tree-view-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-view-card {
+  padding: 12px;
+}
+
+.tree-content-block {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-primary);
+  margin: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+
+.editor-top-label-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.editor-lang-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.editor-lines-badge {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.monospace-editor {
+  width: 100%;
+  height: 220px;
+  background: transparent;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  border: none;
+  resize: vertical;
+}
+
+.monospace-editor:focus {
+  outline: none;
+}
+
+.data-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

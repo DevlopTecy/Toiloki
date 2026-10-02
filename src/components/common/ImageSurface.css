@@ -1,0 +1,147 @@
+/* ═══════════════════════════════════════════════════
+   ImageSurface — 6-Layer Shared Treatment Component
+   Strict Minimal • Guaranteed AA Contrast • Accessible
+   ═══════════════════════════════════════════════════ */
+
+.image-surface {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px; /* Radius 14px per spec */
+  background-color: var(--surface);
+  border: 1px solid var(--image-card-border, rgba(255, 255, 255, 0.10));
+  box-sizing: border-box;
+  transition:
+    border-color var(--dur-fast, 120ms) var(--ease-standard, ease),
+    background-color var(--dur-fast, 120ms) var(--ease-standard, ease),
+    transform 150ms var(--ease-standard, ease);
+  outline: none;
+}
+
+/* Hover and Press micro-interactions (enabled when interactive) */
+.image-surface.is-interactive:hover {
+  border-color: var(--image-card-border-hover, rgba(255, 255, 255, 0.20));
+  transform: translateY(-2px);
+}
+
+.image-surface.is-interactive:active {
+  transform: scale(0.99);
+  transition-duration: var(--dur-instant, 80ms);
+}
+
+/* Visible accessible focus ring */
+.image-surface:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Override */
+:root[data-motion='on'] .image-surface.is-interactive:hover,
+:root[data-motion='on'] .image-surface.is-interactive:active,
+@media (prefers-reduced-motion: reduce) {
+  .image-surface.is-interactive:hover {
+    transform: none !important;
+  }
+  .image-surface.is-interactive:active {
+    transform: none !important;
+  }
+}
+
+/* ─── Layer 2: Artwork Container ─── */
+.image-surface-artwork-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+  /* Right 60% gradient mask: fades out smoothly at left and bottom edges */
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.2) 25%, rgba(0, 0, 0, 1) 55%),
+              linear-gradient(to top, transparent 0%, rgba(0, 0, 0, 1) 20%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.2) 25%, rgba(0, 0, 0, 1) 55%),
+                      linear-gradient(to top, transparent 0%, rgba(0, 0, 0, 1) 20%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
+/* Position variants */
+.image-surface-artwork-wrap.pos-right {
+  left: 35%;
+  right: 0;
+}
+
+.image-surface-artwork-wrap.pos-center {
+  left: 15%;
+  right: 0;
+}
+
+.image-surface-artwork-wrap.pos-left {
+  left: 0;
+  right: 25%;
+}
+
+.image-surface-artwork-img {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right bottom;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out, ease), transform 260ms var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+}
+
+.image-surface-artwork-img.is-loaded {
+  opacity: var(--image-art-opacity, 1.0);
+}
+
+/* Artwork scales 1.00 -> 1.04 on card hover */
+.image-surface.is-interactive:hover .image-surface-artwork-img.is-loaded {
+  transform: scale(1.04);
+}
+
+:root[data-motion='on'] .image-surface.is-interactive:hover .image-surface-artwork-img.is-loaded,
+@media (prefers-reduced-motion: reduce) {
+  .image-surface.is-interactive:hover .image-surface-artwork-img.is-loaded {
+    transform: none !important;
+  }
+}
+
+/* ─── Layer 3: Mandatory Readability Scrim ─── */
+.image-surface-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  /* Left-to-right gradient from surface at 92% to 0-30% */
+  background: linear-gradient(
+    to right,
+    rgba(var(--surface-rgb, 26, 26, 26), 0.94) 0%,
+    rgba(var(--surface-rgb, 26, 26, 26), 0.88) 45%,
+    rgba(var(--surface-rgb, 26, 26, 26), var(--scrim-strength-art, 0.20)) 100%
+  );
+}
+
+/* ─── Layer 4: Tint Overlay (8-12% of category color) ─── */
+.image-surface-tint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.10;
+  mix-blend-mode: overlay;
+}
+
+/* ─── Layer 5: Card Content ─── */
+.image-surface-content {
+  position: relative;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── High Contrast Fallback: hide pictures, render purely flat ─── */
+:root[data-theme='high-contrast'] .image-surface-artwork-wrap,
+:root[data-theme='high-contrast'] .image-surface-scrim,
+:root[data-theme='high-contrast'] .image-surface-tint {
+  display: none !important;
+}

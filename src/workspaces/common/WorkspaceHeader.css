@@ -1,0 +1,143 @@
+/* ═══════════════════════════════════════════════════
+   TOILOKI — Compact Workspace Header (One Block)
+   Breadcrumb • 22px Title • Favorite Star • Description • Ghost Reset
+   ═══════════════════════════════════════════════════ */
+
+.compact-workspace-header {
+  padding: 18px var(--content-padding-x, 32px) 16px var(--content-padding-x, 32px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background-color: var(--bg);
+  flex-shrink: 0;
+  gap: 16px;
+  user-select: none;
+}
+
+.header-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* ─── Breadcrumb: Home / Category / Tool ─── */
+.header-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.breadcrumb-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  transition: color 150ms ease;
+}
+
+.breadcrumb-btn:hover {
+  color: var(--text);
+}
+
+.breadcrumb-sep {
+  color: var(--border);
+  font-size: 11px;
+}
+
+.breadcrumb-item {
+  color: var(--text-muted);
+}
+
+.breadcrumb-item.active {
+  color: var(--text-2);
+}
+
+/* ─── Title Row: 22px / 600 + Star ─── */
+.header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.header-tool-title {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text);
+  letter-spacing: 0;
+  text-transform: none;
+  margin: 0;
+}
+
+.header-star-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-xs, 4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--dur-base) ease, background-color var(--dur-fast) ease;
+}
+
+.header-star-btn svg {
+  transition: fill var(--dur-base) ease, stroke var(--dur-base) ease, color var(--dur-base) ease;
+}
+
+.header-star-btn:hover {
+  background-color: var(--surface-hover);
+  color: var(--text);
+}
+
+.header-star-btn.favorited {
+  color: var(--accent);
+}
+
+.header-star-btn.favorited svg {
+  color: var(--accent);
+  stroke: var(--accent);
+  animation: starFavoritePulse var(--dur-page) var(--ease-out);
+}
+
+/* ─── ONE Muted Line of Description ─── */
+.header-tool-desc {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--text-2);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Right Col: Ghost Reset Button ─── */
+.header-right-col {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.header-reset-btn {
+  border: 1px solid var(--border) !important;
+  color: var(--text-2) !important;
+}
+
+.header-reset-btn:hover {
+  background-color: var(--surface-hover) !important;
+  color: var(--text) !important;
+}

@@ -1,0 +1,225 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOILOKI — Motion System Tokens, Easings, and Animations
+   Strict Minimal • 60fps Desktop Performance • Accessible
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Speed Multiplier (Ctrl+Shift+M toggles 5 for review) ─── */
+  --motion-speed: 1;
+
+  /* ─── Durations ─── */
+  --dur-instant: calc(80ms * var(--motion-speed));
+  --dur-fast:    calc(120ms * var(--motion-speed));
+  --dur-base:    calc(180ms * var(--motion-speed));
+  --dur-slow:    calc(260ms * var(--motion-speed));
+  --dur-page:    calc(220ms * var(--motion-speed));
+
+  /* ─── Easings ─── */
+  --ease-out:      cubic-bezier(0.2, 0.8, 0.2, 1); /* Entrances */
+  --ease-in:       cubic-bezier(0.4, 0, 1, 1);      /* Exits (~30% faster) */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);   /* State changes */
+
+  /* ─── Distances ─── */
+  --move-sm: 4px;
+  --move-md: 8px;
+  --move-lg: 16px;
+}
+
+/* ─── Review Mode: 5x Slow Motion Toggle (Ctrl+Shift+M) ─── */
+:root[data-motion-slow='true'] {
+  --motion-speed: 5;
+}
+
+/* ─── Accessibility: Reduced Motion ─── */
+/* Auto mode matching media query, or explicit data-motion="on" */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='off']) {
+    --dur-instant: 0ms;
+    --dur-fast: 60ms;
+    --dur-base: 80ms;
+    --dur-slow: 100ms;
+    --dur-page: 100ms;
+    --move-sm: 0px;
+    --move-md: 0px;
+    --move-lg: 0px;
+  }
+}
+
+:root[data-motion='on'] {
+  --dur-instant: 0ms;
+  --dur-fast: 60ms;
+  --dur-base: 80ms;
+  --dur-slow: 100ms;
+  --dur-page: 100ms;
+  --move-sm: 0px;
+  --move-md: 0px;
+  --move-lg: 0px;
+}
+
+/* ─── First Paint Preload: Suppress initial transition flash ─── */
+body.preload,
+body.preload * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   CORE KEYFRAMES
+   ═══════════════════════════════════════════════════ */
+
+/* Workspace / View Page Entrance */
+@keyframes workspaceEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(var(--move-md));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tool List Panel Slide-in on First Entry from Home */
+@keyframes toolListPanelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Button Loading Spinner */
+@keyframes spinLoop {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Modal / Dialog / Command Palette Entrance */
+@keyframes modalPanelEnter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--move-md)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Toast Slide-In Bottom-Right */
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Toast Exit */
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+}
+
+/* Toast Auto-Dismiss Progress Bar */
+@keyframes toastProgressShrink {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+/* Star / Favorite Pulse (1 -> 1.2 -> 1, 220ms) */
+@keyframes starFavoritePulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Field Error 2-Cycle Shake (4px, 240ms) */
+@keyframes fieldErrorShake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  50%      { transform: translateX(4px); }
+  75%      { transform: translateX(-4px); }
+}
+
+/* Self-Drawing Circle Stroke */
+@keyframes drawCircleStroke {
+  from { stroke-dashoffset: 76; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Self-Drawing Check Stroke */
+@keyframes drawCheckStroke {
+  from { stroke-dashoffset: 24; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Attention Nudge for Download Button (1 -> 1.03 -> 1, 300ms) */
+@keyframes buttonAttentionNudge {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* Indeterminate Progress Bar Slide */
+@keyframes indeterminateSlide {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(50%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Flat Opacity Skeleton Pulse (0.6 <-> 1.0 over 1.4s) */
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1.0; }
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILITY CLASSES
+   ═══════════════════════════════════════════════════ */
+
+.motion-fade-in {
+  animation: workspaceEntrance var(--dur-page) var(--ease-out) forwards;
+}
+
+.motion-scale-press:active {
+  transform: scale(0.98);
+  transition: transform var(--dur-instant) var(--ease-out);
+}
+
+.motion-skeleton {
+  background-color: var(--border);
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}
+
+/* Reduced motion overrides for utility classes */
+:root[data-motion='on'] .motion-skeleton {
+  animation: none !important;
+  opacity: 0.75 !important;
+}
+
+:root[data-motion='on'] .field-shake-error {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='off']) .motion-skeleton {
+    animation: none !important;
+    opacity: 0.75 !important;
+  }
+  :root:not([data-motion='off']) .field-shake-error {
+    animation: none !important;
+  }
+}

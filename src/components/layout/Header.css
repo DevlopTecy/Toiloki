@@ -1,0 +1,43 @@
+/* ═══════════════════════════════════════════════════
+   Header — Minimal Page Title (Subtitle & Search Hidden)
+   ═══════════════════════════════════════════════════ */
+
+.app-header {
+  padding: 32px var(--content-padding-x) 16px var(--content-padding-x);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.header-headline-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Page title: 26px / 600, sentence case, no tracked uppercase */
+.hero-title {
+  font-family: var(--font-sans);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+  line-height: 1.25;
+  margin: 0;
+}
+
+/* Hide page subtitle per Section 3 */
+.hero-subtitle {
+  display: none !important;
+}
+
+/* Hide duplicate page-level search per Section 3 */
+.header-search-container {
+  display: none !important;
+}

@@ -1,0 +1,478 @@
+/* ═══════════════════════════════════════════════════
+   Dashboard Home — Clean, Minimal, Calm UI
+   Neutral Surfaces • Single Orange Accent
+   ═══════════════════════════════════════════════════ */
+
+.dashboard-home {
+  display: flex;
+  flex-direction: column;
+  gap: 40px; /* Section spacing: 40px */
+  padding: 0 var(--content-padding-x) 48px var(--content-padding-x);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════
+   Section Headers (17px / 600, Sentence Case, No Tracked Uppercase)
+   ═══════════════════════════════════════════════════ */
+.dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title-wrap {
+  display: flex;
+  align-items: baseline;
+}
+
+.section-title {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+/* Hide section helper labels per Section 3 */
+.section-count {
+  display: none !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   Category Grid (4x2 Grid, 20px Gap, 24px Padding)
+   ═══════════════════════════════════════════════════ */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px; /* Grid gap: 20px */
+}
+
+@media (max-width: 1100px) {
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.category-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px; /* Radius: 12px */
+  box-shadow: var(--card-shadow);
+  padding: 24px; /* Card padding: 24px */
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 150ms var(--ease-standard);
+  position: relative;
+}
+
+/* Hover: background --surface-hover plus 1px upward move only on Home module cards. No scale, no shadow growth */
+.category-card:hover {
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+}
+
+.category-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Plain 20px outline icon style, --text-2, no tinted boxes or glows */
+.category-icon-tile {
+  width: 20px;
+  height: 20px;
+  border-radius: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--text-2) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.category-icon-tile svg {
+  width: 20px;
+  height: 20px;
+  color: var(--text-2) !important;
+  stroke: var(--text-2) !important;
+  stroke-width: 1.75px;
+}
+
+.category-card:hover .category-icon-tile svg {
+  color: var(--text) !important;
+  stroke: var(--text) !important;
+}
+
+.category-meta-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Tool count: small, in --text-muted */
+.category-tool-pill {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  background: transparent;
+  padding: 0;
+  line-height: 1;
+}
+
+.category-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Card title: 15px / 600, sentence case, no tracked uppercase */
+.category-title {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Module card descriptions hidden per Section 3 (shown as tooltip on hover) */
+.category-desc {
+  display: none !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   Two-Column Section: Recent Activity & Quick Actions
+   ═══════════════════════════════════════════════════ */
+.dashboard-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 960px) {
+  .dashboard-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.col-half {
+  min-width: 0;
+}
+
+/* ─── Recent Runs List (Thin Divider Between Rows, No Row Borders) ─── */
+.recent-runs-list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.empty-runs-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 20px;
+  text-align: center;
+  gap: 8px;
+}
+
+.empty-icon {
+  color: var(--text-muted);
+}
+
+.empty-runs-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.empty-runs-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  max-width: 260px;
+}
+
+.recent-run-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+  gap: 12px;
+}
+
+.recent-run-row:last-child {
+  border-bottom: none;
+}
+
+.recent-run-row:hover {
+  background: var(--surface-hover);
+}
+
+.run-row-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.run-status-icon.success {
+  color: var(--success);
+}
+
+.run-status-icon.failed {
+  color: var(--color-danger);
+}
+
+.run-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.run-tool-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* JetBrains Mono ONLY for file names */
+.run-file-target {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.run-row-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.run-timestamp {
+  font-size: 12px;
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+}
+
+/* Open Button: Ghost style, text-only with a 1px --border, radius 8px, hover --surface-hover */
+.run-open-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.run-open-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--border);
+}
+
+/* ─── Quick Actions Grid (Flat Card Style, Radius 12px) ─── */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.quick-action-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.quick-action-card:hover {
+  background: var(--surface-hover);
+}
+
+.quick-action-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Hide Quick Action category tag pills per Section 3 */
+.qa-tag {
+  display: none !important;
+}
+
+.qa-arrow {
+  color: var(--text-muted);
+  margin-left: auto;
+  transition: transform 150ms var(--ease-standard), color 150ms ease;
+}
+
+.quick-action-card:hover .qa-arrow {
+  color: var(--text);
+  transform: translateX(2px);
+}
+
+.quick-action-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qa-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Show subtitle only on hover per Section 3 */
+.qa-desc {
+  font-size: 12px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  max-height: 0;
+  transition: opacity 150ms ease, max-height 150ms ease;
+}
+
+.quick-action-card:hover .qa-desc {
+  opacity: 1;
+  max-height: 24px;
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════
+   IMAGE STYLE SMALLER TILES (Recent & Quick Actions)
+   ═══════════════════════════════════════════════════ */
+.recent-run-row.image-style-row {
+  border-radius: var(--radius-sm, 6px);
+  margin-bottom: 4px;
+  border-bottom: 1px solid transparent;
+}
+
+.run-icon-tile-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.20);
+}
+
+.run-overflow-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast, 150ms) ease;
+}
+
+.run-overflow-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* Quick Action Card in Image Style */
+.quick-action-card.image-style-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--image-card-border, rgba(255, 255, 255, 0.10));
+  border-radius: 14px;
+  min-height: 100px;
+}
+
+.quick-action-card.image-style-card:hover {
+  border-color: var(--image-card-border-hover, rgba(255, 255, 255, 0.20));
+  transform: translateY(-1px);
+}
+
+/* Faint background artwork at opacity 0.25 */
+.qa-faint-art {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 60%;
+  height: 100%;
+  background-size: cover;
+  background-position: right bottom;
+  opacity: 0.25;
+  pointer-events: none;
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 1) 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 1) 100%);
+  z-index: 1;
+}
+
+.qa-icon-tile-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.20);
+  z-index: 2;
+}
+
+.quick-action-card.image-style-card .quick-action-top,
+.quick-action-card.image-style-card .quick-action-info {
+  position: relative;
+  z-index: 2;
+}
+
+.quick-action-card.image-style-card .qa-desc {
+  opacity: 1 !important;
+  max-height: none !important;
+  color: var(--text-2);
+}

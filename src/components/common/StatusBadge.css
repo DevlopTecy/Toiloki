@@ -1,0 +1,88 @@
+/* ═══════════════════════════════════════════════════
+   Status Badge — 20px Height, 6px Radius, Dot / Pulse
+   ═══════════════════════════════════════════════════ */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+  white-space: nowrap;
+  line-height: 1;
+  border: 1px solid transparent;
+}
+
+.status-badge.size-sm {
+  height: 18px;
+  padding: 0 6px;
+  font-size: 9.5px;
+}
+
+.status-badge.size-md {
+  height: 20px;
+  padding: 0 8px;
+  font-size: 10px;
+}
+
+/* ─── Ready / Waiting (Gray) ─── */
+.status-badge.status-waiting {
+  background: var(--bg-raised);
+  color: var(--text-tertiary);
+  border-color: var(--border-subtle);
+}
+
+/* ─── Processing (Amber Pulse) ─── */
+.status-badge.status-processing {
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
+  border-color: var(--accent-amber-border);
+  animation: pulse-amber 1.8s ease-in-out infinite;
+}
+
+/* ─── Completed (Emerald) ─── */
+.status-badge.status-completed {
+  background: rgba(74, 222, 128, 0.08);
+  color: var(--color-success);
+  border-color: rgba(74, 222, 128, 0.22);
+}
+
+/* ─── Failed / Error (Rose) ─── */
+.status-badge.status-failed {
+  background: rgba(248, 113, 113, 0.08);
+  color: var(--color-danger);
+  border-color: rgba(248, 113, 113, 0.22);
+}
+
+/* ─── Info ─── */
+.status-badge.status-info {
+  background: rgba(96, 165, 250, 0.08);
+  color: var(--color-info);
+  border-color: rgba(96, 165, 250, 0.22);
+}
+
+.badge-spin {
+  animation: badgeSpin 1s linear infinite;
+}
+
+@keyframes badgeSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-amber {
+  0%, 100% {
+    opacity: 1;
+    border-color: var(--accent-amber-border);
+  }
+  50% {
+    opacity: 0.7;
+    border-color: var(--accent-amber);
+  }
+}

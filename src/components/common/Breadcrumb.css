@@ -1,0 +1,54 @@
+/* ═══════════════════════════════════════════════════
+   Breadcrumb — Single-line Desktop Navigation Crumb
+   ═══════════════════════════════════════════════════ */
+
+.desktop-breadcrumb,
+.breadcrumb {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  user-select: none;
+  line-height: 1;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb-item.link-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.breadcrumb-item.link-btn:hover {
+  color: var(--text-primary);
+}
+
+.breadcrumb-item.current {
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: default;
+}
+
+.home-breadcrumb-icon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.breadcrumb-separator {
+  color: var(--text-tertiary);
+  opacity: 0.6;
+  flex-shrink: 0;
+}

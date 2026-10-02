@@ -1,0 +1,94 @@
+/* ═══════════════════════════════════════════════════
+   Dialog — Modal Overlay
+   ═══════════════════════════════════════════════════ */
+
+@keyframes dialogBackdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.toiloki-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.40);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: dialogBackdropFade 150ms var(--ease-out) forwards;
+}
+
+.toiloki-dialog-window {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl, 12px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalPanelEnter 180ms var(--ease-out) forwards;
+}
+
+.toiloki-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-panel);
+}
+
+.toiloki-dialog-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toiloki-dialog-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-amber);
+}
+
+.toiloki-dialog-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.toiloki-dialog-close-btn {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  transition: all var(--transition-fast);
+}
+
+.toiloki-dialog-close-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.toiloki-dialog-body {
+  padding: 16px;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.toiloki-dialog-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-panel);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}

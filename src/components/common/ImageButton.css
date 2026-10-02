@@ -1,0 +1,49 @@
+/* ═══════════════════════════════════════════════════
+   ImageButton — Skin & Texture on Primary Action Buttons
+   ═══════════════════════════════════════════════════ */
+
+.toiloki-btn-with-skin {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--accent) !important;
+}
+
+.btn-skin-layer {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.85;
+  transition: transform var(--dur-slow, 260ms) var(--ease-out, ease);
+}
+
+.toiloki-btn-with-skin:hover .btn-skin-layer {
+  transform: scale(1.05);
+}
+
+/* Scrim ensures AA contrast for on-accent text without text-shadow */
+.btn-skin-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    color-mix(in srgb, var(--accent) 85%, transparent 15%) 50%,
+    color-mix(in srgb, var(--accent) 70%, transparent 30%) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.btn-skin-label {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-inverse) !important;
+  font-weight: 600;
+}

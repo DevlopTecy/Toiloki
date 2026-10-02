@@ -1,0 +1,45 @@
+{
+  "skill_name": "toiloki-ui",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Design a new 'Batch EXIF Stripper' utility screen under the Images workspace in Toiloki. Ensure it adheres strictly to the Toiloki design system: compact drop zone, structured file table list with file size and metadata tags, options panel with toggles for GPS, Camera Model, and Timestamp, and a singular Champagne gold primary action button.",
+      "expected_output": "A fully specified or implemented Toiloki tool screen that respects the 3-zone layout, 8px harmonic spacing, compact drop zone (100-120px max), JetBrains Mono for metadata, and Champagne gold accent (#D4B06A) without any AI/cloud dashboard fluff.",
+      "files": [],
+      "expectations": [
+        "Uses 3-zone tool layout: Header with single-line breadcrumb, Zone 1 workspace with dropzone and file table, Zone 2 options panel, Zone 3 primary action bar",
+        "Includes compact file dropzone with the privacy notice 'Files stay on your computer. Fully offline & local.'",
+        "Presents uploaded files in a dense data table with 34px-38px rows rather than scattered oversized cards",
+        "Uses Champagne gold (#D4B06A) exclusively for the primary action button 'Strip Metadata'",
+        "Uses JetBrains Mono font for file sizes and metadata tags",
+        "Excludes any AI chat, cloud sync, or decorative marketing statistics"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review and redesign the Developer 'JSON Formatter & Validator' tool screen in Toiloki. The current mock has visual defects: large pill-shaped buttons (border-radius: 9999px), an oversized 48px hero title, glowing neon border effects, and lacks breadcrumb navigation. Fix these visual inconsistencies according to Toiloki design rules.",
+      "expected_output": "An editorial engineering layout conforming to Toiloki's desktop design system, removing all neon/pill anti-patterns and applying restrained hairline borders, Inter typography scale, JetBrains Mono for JSON, and proper breadcrumbs.",
+      "files": [],
+      "expectations": [
+        "Removes pill-shaped buttons and replaces with 6px radius standard buttons",
+        "Replaces oversized hero title with standard Page Title (32px / 650 weight) or Section Heading (18px / 600 weight)",
+        "Eliminates neon glowing box-shadows and restores hairline borders (rgba(255,255,255,0.06/0.10))",
+        "Adds single-line breadcrumb: Home › Developer › JSON Formatter",
+        "Preserves all existing formatting, minification, and validation functionality without data loss"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Perform a visual and accessibility audit of the PDF workspace across both Dark and Light themes. Verify that typography, spacing, and DOM structure are completely identical between themes, contrast ratios meet WCAG AA, and interactive controls satisfy minimum hit target sizes.",
+      "expected_output": "A detailed audit report and code adjustments verifying exact layout parity between Dark and Light themes, WCAG AA 4.5:1 contrast compliance, and minimum 36px hit targets for all clickable icons.",
+      "files": [],
+      "expectations": [
+        "Verifies identical DOM layout, element dimensions, and spacing between Dark and Light themes",
+        "Confirms Dark theme uses #0B0C0F background, #12141A surface, #F4F5F7 primary text, and #D4B06A accent",
+        "Confirms Light theme uses #F8F9FA background, #FFFFFF surface, #111318 primary text, and #B88E3E accent",
+        "Ensures all icon-only buttons have at least 36px clickable hit targets with title tooltips and aria-labels",
+        "Verifies that all text meets WCAG AA 4.5:1 contrast minimums"
+      ]
+    }
+  ]
+}

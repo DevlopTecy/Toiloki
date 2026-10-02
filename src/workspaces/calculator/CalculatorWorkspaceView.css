@@ -1,0 +1,670 @@
+/* ═══════════════════════════════════════════════════
+   Calculator Workspace View — Template D (Calculators & Converters)
+   Centered Two-Column • 360px Card • 56px Keys • 320px History
+   ═══════════════════════════════════════════════════ */
+
+.calc-workspace-container {
+  display: flex;
+  flex-direction: column;
+  padding: 32px var(--content-padding-x, 32px);
+  gap: 20px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.calc-card-view {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.calc-card-view.single-col {
+  flex-direction: column;
+  max-width: 760px;
+}
+
+/* ─── Desktop Calculator Frame (360px Card, 12px Radius) ─── */
+.calc-desktop-frame {
+  width: 360px;
+  max-width: 360px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-cards, 12px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.calc-desktop-frame.scientific {
+  width: 520px;
+  max-width: 520px;
+}
+
+.calc-display-section {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-controls, 8px);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-height: 84px;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.calc-sub-tape {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  height: 18px;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.calc-main-num {
+  font-family: var(--font-sans);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 44px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.calc-rad-toggle {
+  display: flex;
+  align-self: flex-start;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs, 4px);
+  padding: 2px;
+  gap: 2px;
+}
+
+.rad-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  font-family: var(--font-sans);
+}
+
+.rad-btn.active {
+  background-color: var(--surface-hover);
+  color: var(--text);
+}
+
+/* ─── Keypad Grids: 56px High, 8px Gap, 10px Radius ─── */
+.calc-keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calc-keypad-grid.scientific {
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.calc-btn {
+  height: 56px;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.calc-btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+}
+
+/* Digits: Surface */
+.calc-btn.num {
+  font-weight: 500;
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+.calc-btn.num:hover {
+  background-color: var(--surface-hover);
+}
+
+/* Operators: Surface-hover with Accent Text */
+.calc-btn.action {
+  background-color: var(--surface-hover);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.calc-btn.action:hover {
+  background-color: var(--border);
+}
+
+/* Clear C/CE: Muted Text */
+.calc-btn.op,
+.calc-btn.fn {
+  color: var(--text-muted);
+  background-color: var(--surface-hover);
+}
+
+.calc-btn.op:hover,
+.calc-btn.fn:hover {
+  background-color: var(--border);
+  color: var(--text);
+}
+
+/* Equals Button: Accent Filled, Dark Text */
+.calc-btn.equals {
+  background-color: var(--accent);
+  color: var(--text-inverse);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.calc-btn.equals:hover {
+  opacity: 0.92;
+}
+
+.calc-btn.equals.full-span {
+  grid-column: span 2;
+}
+
+/* ─── 320px History Tape Panel ─── */
+.calc-tape-panel {
+  width: 320px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-cards, 12px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 440px;
+}
+
+.calc-tape-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.calc-tape-clear-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 10.5px;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 2px;
+}
+
+.calc-tape-clear-btn:hover {
+  color: var(--color-danger);
+}
+
+.calc-tape-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  overflow-y: auto;
+  max-height: 280px;
+}
+
+.calc-tape-item {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 5px 8px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--transition-fast);
+}
+
+.calc-tape-item:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.calc-tape-empty {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* ─── Form Cards for other tools ─── */
+.calc-form-card {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.calc-card-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.calc-helper-note {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ─── Percentage Rows ─── */
+.pct-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.pct-equals {
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.pct-val {
+  font-weight: 600;
+  color: var(--accent-amber);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.pct-divider {
+  height: 1px;
+  background-color: var(--border-subtle);
+  margin: 6px 0;
+}
+
+.small-num {
+  width: 80px;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.calc-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.calc-summary-stats-box {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  flex: 1;
+  min-width: 120px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-pill-label {
+  font-size: 9.5px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+
+.stat-pill-val {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.stat-pill-val.highlight {
+  color: var(--accent-amber);
+}
+
+.stat-pill-val.green {
+  color: var(--color-success);
+}
+
+/* ─── Ratio ─── */
+.ratio-flex-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ratio-term {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ratio-sep, .ratio-equal {
+  font-weight: 600;
+  margin-top: 14px;
+  color: var(--text-tertiary);
+}
+
+.ratio-result-badge {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--accent-amber);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: var(--radius-xs);
+  min-width: 70px;
+  text-align: center;
+}
+
+/* ─── Constants Table ─── */
+.constants-table-view {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.constant-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  gap: 12px;
+}
+
+.constant-row:hover {
+  background-color: var(--bg-hover);
+}
+
+.const-sym-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 140px;
+}
+
+.const-sym {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-amber);
+  font-family: var(--font-mono);
+  width: 24px;
+  text-align: center;
+}
+
+.const-name {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.const-desc-col {
+  flex: 1;
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+}
+
+.const-val-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* ─── Fractions ─── */
+.fraction-calc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.frac-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 65px;
+}
+
+.frac-input {
+  text-align: center;
+  font-family: var(--font-mono);
+  height: 28px;
+  padding: 2px 4px;
+}
+
+.frac-bar {
+  height: 2px;
+  background-color: var(--border-medium);
+  border-radius: 1px;
+}
+
+.frac-op-select {
+  width: 44px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.frac-res-box {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 6px 12px;
+  align-items: center;
+}
+
+.frac-val-main {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-amber);
+  font-family: var(--font-mono);
+}
+
+.frac-val-dec {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+/* ─── Statistics Grid ─── */
+.stats-grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.stat-card-item {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-title {
+  font-size: 9.5px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.stat-num {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+/* ─── Unit Converter ─── */
+.unit-category-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.unit-cat-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  padding: 4px 10px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.unit-cat-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.unit-cat-btn.active {
+  background-color: var(--accent-amber-subtle);
+  color: var(--accent-amber);
+  border-color: var(--accent-amber-border);
+  font-weight: 600;
+}
+
+.unit-converter-grid {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.unit-input-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.unit-swap-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  color: var(--text-2);
+}
+
+/* Swap button rotates 180deg over 200ms */
+.unit-swap-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-controls, 8px);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: transform 200ms var(--ease-standard), background-color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.unit-swap-btn:hover {
+  background-color: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.unit-swap-btn.rotated {
+  transform: rotate(180deg);
+}
+
+@keyframes unitFieldCrossfade {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+
+.swap-crossfade-active {
+  animation: unitFieldCrossfade 150ms var(--ease-standard);
+}
+
+.converted-val-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 6px 12px;
+  min-height: 38px;
+}
+
+.converted-num {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-amber);
+  font-family: var(--font-mono);
+}

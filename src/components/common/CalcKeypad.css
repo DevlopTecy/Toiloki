@@ -1,0 +1,241 @@
+/* ═══════════════════════════════════════════════════
+   TOILOKI — Template D: Calculators & Converters
+   Centered Two-Column • 360px Card • 56px Keys • 320px History
+   ═══════════════════════════════════════════════════ */
+
+.calc-template-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ─── Calculator Card (Max-width 360px) ─── */
+.calc-card {
+  width: 360px;
+  max-width: 360px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-cards, 12px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ─── Display: Expression Above, 40px Right-Aligned Tabular Numbers ─── */
+.calc-display-wrap {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-controls, 8px);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 84px;
+  overflow: hidden;
+}
+
+.calc-expression-line {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  height: 18px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@keyframes displayValueFade {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+
+.display-value-fade {
+  animation: displayValueFade 100ms var(--ease-out);
+}
+
+.calc-main-display {
+  font-family: var(--font-sans);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 44px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ─── Keypad Grid: 56px High, 8px Gap, 10px Radius ─── */
+.calc-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calc-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calc-key {
+  height: 56px;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-standard);
+  border: 1px solid var(--border);
+}
+
+/* Key press = scale(0.96) for 80ms with background flash to surface-hover */
+.calc-key:active {
+  transform: scale(0.96);
+  background-color: var(--surface-hover) !important;
+  transition: transform var(--dur-instant) var(--ease-out), background-color var(--dur-instant) ease;
+}
+
+.calc-key:focus-visible {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+}
+
+/* Digits = Surface */
+.calc-key.key-digit {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+.calc-key.key-digit:hover {
+  background-color: var(--surface-hover);
+}
+
+/* Operators = Surface-hover with Accent Text */
+.calc-key.key-operator {
+  background-color: var(--surface-hover);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.calc-key.key-operator:hover {
+  background-color: var(--border);
+}
+
+/* C / CE = Muted Text */
+.calc-key.key-clear {
+  background-color: var(--surface-hover);
+  color: var(--text-muted);
+}
+
+.calc-key.key-clear:hover {
+  background-color: var(--border);
+  color: var(--text);
+}
+
+/* = Equals: Accent Filled */
+.calc-key.key-equals {
+  background-color: var(--accent);
+  color: var(--text-inverse);
+  font-weight: 600;
+  border-color: var(--accent);
+}
+
+.calc-key.key-equals:hover {
+  opacity: 0.92;
+}
+
+/* ─── 320px History Panel ─── */
+.calc-history-panel {
+  width: 320px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-cards, 12px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 440px;
+}
+
+.calc-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.calc-history-title {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0;
+  text-transform: none;
+  margin: 0;
+}
+
+.calc-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+@keyframes historySlideInTop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.calc-history-item {
+  padding: 10px 12px;
+  border-radius: var(--radius-controls, 8px);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+  text-align: right;
+}
+
+.calc-history-item:first-child {
+  animation: historySlideInTop 160ms var(--ease-out);
+}
+
+.calc-history-item:hover {
+  border-color: var(--accent);
+  background-color: var(--surface-hover);
+}
+
+.calc-history-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
