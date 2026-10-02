@@ -11,6 +11,7 @@ export interface ImageCardProps {
   title: string;
   description: string;
   toolCount: number;
+  tooltip?: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   categoryColor: string;
   cardStyle?: 'flat' | 'image';
@@ -24,6 +25,7 @@ export const ImageCard: React.FC<ImageCardProps> = ({
   title,
   description,
   toolCount,
+  tooltip,
   icon: Icon,
   categoryColor,
   cardStyle = 'flat',
@@ -55,7 +57,9 @@ export const ImageCard: React.FC<ImageCardProps> = ({
             <Icon size={20} />
           </div>
           <div className="category-meta-right">
-            <span className="category-tool-pill">{toolCount} tools</span>
+            <span className="category-tool-pill" title={tooltip || `${toolCount} utilities`}>
+              {toolCount} utilities
+            </span>
           </div>
         </div>
 
@@ -110,7 +114,9 @@ export const ImageCard: React.FC<ImageCardProps> = ({
           <Icon size={24} />
         </div>
 
-        <span className="image-card-badge">{toolCount} tools</span>
+        <span className="image-card-badge" title={tooltip || `${toolCount} utilities`}>
+          {toolCount} utilities
+        </span>
       </div>
 
       {/* Card Body: Title 18px/600, Description 14px/400 (max 2 lines) */}

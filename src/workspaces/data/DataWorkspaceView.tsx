@@ -28,8 +28,8 @@ import { DataTable } from '../../components/common/DataTable';
 import './DataWorkspaceView.css';
 
 interface DataWorkspaceViewProps {
+  groupId: string;
   utilityId: string;
-  featureId: string;
   toolName: string;
   toolDescription: string;
   onBackToUtilities: () => void;
@@ -38,8 +38,8 @@ interface DataWorkspaceViewProps {
 }
 
 export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
+  groupId,
   utilityId,
-  featureId,
   toolName,
   toolDescription,
   onBackToUtilities,
@@ -194,7 +194,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
       let summary = '';
 
       // Converters
-      if (featureId === 'csv-to-json' || (sourceFormat === 'csv' && targetFormat === 'json')) {
+      if (utilityId === 'csv-to-json' || (sourceFormat === 'csv' && targetFormat === 'json')) {
         setProgressPercent(60);
         const res = DataEngine.csvToJson(dataInput);
         if (res.success && res.data) {
@@ -205,7 +205,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
           setErrorMsg(res.error || 'Failed to parse CSV.');
         }
       } else if (
-        featureId === 'json-to-csv' ||
+        utilityId === 'json-to-csv' ||
         (sourceFormat === 'json' && targetFormat === 'csv')
       ) {
         setProgressPercent(60);
@@ -217,7 +217,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         } else {
           setErrorMsg(res.error || 'Failed to convert JSON to CSV.');
         }
-      } else if (featureId === 'csv-to-xlsx') {
+      } else if (utilityId === 'csv-to-xlsx') {
         setProgressPercent(50);
         setProgressStage('Building Excel workbook cells...');
         const res = await DataEngine.csvToXlsx(dataInput);
@@ -229,7 +229,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         } else {
           setErrorMsg(res.error || 'Failed to generate Excel file.');
         }
-      } else if (featureId === 'json-to-yaml') {
+      } else if (utilityId === 'json-to-yaml') {
         const res = DataEngine.jsonToYaml(dataInput);
         if (res.success && res.data) {
           setOutputData(res.data);
@@ -238,7 +238,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         } else {
           setErrorMsg(res.error || 'Failed to convert JSON to YAML.');
         }
-      } else if (featureId === 'yaml-to-json') {
+      } else if (utilityId === 'yaml-to-json') {
         const res = DataEngine.yamlToJson(dataInput);
         if (res.success && res.data) {
           setOutputData(res.data);
@@ -247,7 +247,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         } else {
           setErrorMsg(res.error || 'Failed to convert YAML to JSON.');
         }
-      } else if (featureId === 'xml-to-json') {
+      } else if (utilityId === 'xml-to-json') {
         const res = DataEngine.formatXml(dataInput);
         if (res.success && res.data) {
           setOutputData(res.data);
@@ -256,7 +256,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         } else {
           setErrorMsg(res.error || 'Failed to parse XML.');
         }
-      } else if (featureId === 'json-pretty-minify') {
+      } else if (utilityId === 'json-pretty-minify') {
         const res = DataEngine.formatJson(dataInput, false);
         if (res.success && res.data) {
           setOutputData(res.data);
@@ -265,7 +265,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         } else {
           setErrorMsg(res.error || 'Invalid JSON syntax.');
         }
-      } else if (featureId === 'xml-formatting') {
+      } else if (utilityId === 'xml-formatting') {
         const res = DataEngine.formatXml(dataInput);
         if (res.success && res.data) {
           setOutputData(res.data);
@@ -274,15 +274,15 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         } else {
           setErrorMsg(res.error || 'Invalid XML syntax.');
         }
-      } else if (featureId === 'yaml-formatting') {
+      } else if (utilityId === 'yaml-formatting') {
         const res = DataEngine.jsonToYaml(JSON.stringify(dataInput));
         if (res.success && res.data) {
           setOutputData(res.data);
           success = true;
           summary = 'Formatted YAML';
         }
-      } else if (featureId.startsWith('validate-')) {
-        if (featureId === 'validate-json') {
+      } else if (utilityId.startsWith('validate-')) {
+        if (utilityId === 'validate-json') {
           const res = DataEngine.formatJson(dataInput, false);
           if (res.success) {
             setValidationStatus({
@@ -300,7 +300,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
             });
             setErrorMsg(res.error || 'Invalid JSON syntax.');
           }
-        } else if (featureId === 'validate-xml') {
+        } else if (utilityId === 'validate-xml') {
           const res = DataEngine.formatXml(dataInput);
           if (res.success) {
             setValidationStatus({
@@ -319,7 +319,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
             setErrorMsg(res.error || 'XML syntax validation error.');
           }
         }
-      } else if (featureId === 'data-dedup') {
+      } else if (utilityId === 'data-dedup') {
         const lines = dataInput.trim().split('\n');
         const header = lines[0];
         const unique = Array.from(new Set(lines.slice(1)));
@@ -339,8 +339,8 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         HistoryService.record({
           toolName,
           workspaceId: 'data',
+          groupId,
           utilityId,
-          featureId,
           input: files[0]?.name || `${dataInput.split('\n').length} lines`,
           output: summary,
           status: 'completed',
@@ -354,10 +354,10 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
   };
 
   const getOutputExtension = () => {
-    if (featureId.includes('json') || targetFormat === 'json') return 'json';
-    if (featureId.includes('yaml') || targetFormat === 'yaml') return 'yaml';
-    if (featureId.includes('xml') || targetFormat === 'xml') return 'xml';
-    if (featureId === 'csv-to-xlsx') return 'xlsx';
+    if (utilityId.includes('json') || targetFormat === 'json') return 'json';
+    if (utilityId.includes('yaml') || targetFormat === 'yaml') return 'yaml';
+    if (utilityId.includes('xml') || targetFormat === 'xml') return 'xml';
+    if (utilityId === 'csv-to-xlsx') return 'xlsx';
     return 'csv';
   };
 
@@ -545,7 +545,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
               title={`${toolName} Completed`}
               outputText={outputBuffer ? undefined : outputData}
               outputBuffer={outputBuffer || undefined}
-              outputName={`toiloki_${featureId}_output.${getOutputExtension()}`}
+              outputName={`toiloki_${utilityId}_output.${getOutputExtension()}`}
               defaultExtension={getOutputExtension()}
               inputFormat={sourceFormat}
               outputFormat={getOutputExtension()}

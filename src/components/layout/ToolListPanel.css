@@ -89,7 +89,7 @@
   box-shadow: 0 0 0 2px var(--accent);
 }
 
-/* ─── Scrollable Groups and Features ─── */
+/* ─── Scrollable Groups and Utilities ─── */
 .tool-list-scrollable {
   flex: 1;
   overflow-y: auto;
@@ -179,7 +179,7 @@
   overflow: hidden;
 }
 
-/* Features List Items: 32px high, 14px font */
+/* Utilities List Items: 32px high, 14px font */
 .tool-group-items {
   display: flex;
   flex-direction: column;
@@ -215,7 +215,7 @@
   color: var(--text);
 }
 
-/* Active Feature Item: surface-hover text */
+/* Active Utility Item: surface-hover text */
 .tool-item-btn.active {
   background-color: var(--surface-hover);
   color: var(--text);

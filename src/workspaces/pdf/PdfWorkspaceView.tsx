@@ -29,8 +29,8 @@ import {
 import './PdfWorkspaceView.css';
 
 interface PdfWorkspaceViewProps {
+  groupId: string;
   utilityId: string;
-  featureId: string;
   toolName: string;
   toolDescription: string;
   onBackToUtilities: () => void;
@@ -46,8 +46,8 @@ interface PageItem {
 }
 
 export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
+  groupId,
   utilityId,
-  featureId,
   toolName,
   toolDescription,
   onBackToUtilities,
@@ -193,7 +193,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
       let operationSuccess = false;
 
       // 1. Merge PDFs
-      if (featureId === 'merge-pdf') {
+      if (utilityId === 'merge-pdf') {
         const buffers = files.map((f) => f.buffer).filter((b): b is Uint8Array => !!b);
         setProgressPercent(50);
         const res = await PdfEngine.merge(buffers, (p) => {
@@ -210,9 +210,9 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
 
       // 2. Split / Extract / Delete Pages
       else if (
-        featureId === 'split-pdf' ||
-        featureId === 'extract-pages' ||
-        featureId === 'delete-pages'
+        utilityId === 'split-pdf' ||
+        utilityId === 'extract-pages' ||
+        utilityId === 'delete-pages'
       ) {
         const buf = files[0].buffer;
         if (!buf) return;
@@ -250,7 +250,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
       }
 
       // 3. Rotate Pages
-      else if (featureId === 'rotate-pages') {
+      else if (utilityId === 'rotate-pages') {
         const buf = files[0].buffer;
         if (!buf) return;
         setProgressPercent(60);
@@ -264,7 +264,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
       }
 
       // 4. Images to PDF
-      else if (featureId === 'images-to-pdf') {
+      else if (utilityId === 'images-to-pdf') {
         const imgItems = files
           .filter((f) => !!f.buffer)
           .map((f) => {
@@ -289,7 +289,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
       }
 
       // 5. Compress PDF
-      else if (featureId === 'compress-pdf' || featureId === 'optimize-images') {
+      else if (utilityId === 'compress-pdf' || utilityId === 'optimize-images') {
         const buf = files[0].buffer;
         if (!buf) return;
         setProgressPercent(50);
@@ -310,7 +310,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
       }
 
       // 6. Watermark
-      else if (featureId === 'watermark') {
+      else if (utilityId === 'watermark') {
         const buf = files[0].buffer;
         if (!buf) return;
         setProgressPercent(40);
@@ -336,7 +336,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
       }
 
       // 7. Page numbers
-      else if (featureId === 'page-numbers') {
+      else if (utilityId === 'page-numbers') {
         const buf = files[0].buffer;
         if (!buf) return;
         setProgressPercent(40);
@@ -359,7 +359,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
       }
 
       // 8. Security Tools
-      else if (featureId === 'password-protect' || featureId === 'encrypt-pdf') {
+      else if (utilityId === 'password-protect' || utilityId === 'encrypt-pdf') {
         const buf = files[0].buffer;
         if (!buf) return;
         if (!password.trim()) {
@@ -373,7 +373,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
           elapsedMs: 290,
         });
         operationSuccess = true;
-      } else if (featureId === 'remove-password') {
+      } else if (utilityId === 'remove-password') {
         const buf = files[0].buffer;
         if (!buf) return;
         setResult({
@@ -386,7 +386,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
       }
 
       // 9. Inspect / Extract Text & Metadata
-      else if (featureId === 'extract-text') {
+      else if (utilityId === 'extract-text') {
         const buf = files[0].buffer;
         if (!buf) return;
         const meta = await PdfEngine.getMetadata(buf);
@@ -394,10 +394,10 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
         setTextResult(sampleText);
         operationSuccess = true;
       } else if (
-        featureId === 'extract-metadata' ||
-        featureId === 'file-info' ||
-        featureId === 'page-count' ||
-        featureId === 'doc-properties'
+        utilityId === 'extract-metadata' ||
+        utilityId === 'file-info' ||
+        utilityId === 'page-count' ||
+        utilityId === 'doc-properties'
       ) {
         const buf = files[0].buffer;
         if (!buf) return;
@@ -408,7 +408,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
         } else {
           setErrorMsg(res.error || 'Failed to inspect PDF metadata.');
         }
-      } else if (featureId === 'search-text') {
+      } else if (utilityId === 'search-text') {
         setSearchMatches([
           `Page 1, Line 4: Match found for "${searchQuery}"`,
           `Page 2, Line 12: Match found for "${searchQuery}"`,
@@ -433,8 +433,8 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
         HistoryService.record({
           toolName,
           workspaceId: 'pdf',
+          groupId,
           utilityId,
-          featureId,
           input: files.map((f) => f.name).join(', ') || 'Document',
           output: `Processed PDF (${files.length} file${files.length > 1 ? 's' : ''})`,
           status: 'completed',
@@ -447,9 +447,9 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
     }
   };
 
-  const isMulti = featureId === 'merge-pdf' || featureId === 'images-to-pdf';
+  const isMulti = utilityId === 'merge-pdf' || utilityId === 'images-to-pdf';
   const acceptTypes =
-    featureId === 'images-to-pdf'
+    utilityId === 'images-to-pdf'
       ? ['.png', '.jpg', '.jpeg', '.webp']
       : ['.pdf'];
 
@@ -501,7 +501,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
               files={files}
               onFilesChanged={setFiles}
               label={
-                featureId === 'images-to-pdf'
+                utilityId === 'images-to-pdf'
                   ? 'Drop images here to combine into PDF (PNG, JPG, WebP)'
                   : isMulti
                     ? 'Drop PDF files to merge in order'
@@ -511,7 +511,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
             />
 
             {/* Merge Documents List with Reorder / Remove */}
-            {featureId === 'merge-pdf' && files.length > 0 && (
+            {utilityId === 'merge-pdf' && files.length > 0 && (
               <div className="pdf-merge-list-card">
                 <div className="merge-list-header">
                   <span className="merge-list-title">
@@ -566,11 +566,12 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
             )}
 
             {/* Visual Page Thumbnails Organizer for Page Tools */}
-            {(utilityId === 'pdf-organizer' ||
-              featureId === 'split-pdf' ||
-              featureId === 'extract-pages' ||
-              featureId === 'delete-pages' ||
-              featureId === 'rotate-pages') &&
+            {(groupId === 'pdf-organizer' ||
+              groupId === 'page-organizer' ||
+              utilityId === 'split-pdf' ||
+              utilityId === 'extract-pages' ||
+              utilityId === 'delete-pages' ||
+              utilityId === 'rotate-pages') &&
               files.length > 0 && (
                 <div className="pdf-page-thumbnails-card">
                   <div className="thumbnails-header-row">
@@ -668,7 +669,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
             {files.length > 0 && (
               <div className="tool-options-card">
                 {/* Split Modes: Page ranges, Individual pages, Custom ranges */}
-                {featureId === 'split-pdf' && (
+                {utilityId === 'split-pdf' && (
                   <div className="split-modes-section">
                     <span className="option-label">Split Method:</span>
                     <div className="split-mode-buttons">
@@ -711,7 +712,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                 )}
 
                 {/* Rotate pages standalone */}
-                {featureId === 'rotate-pages' && (
+                {utilityId === 'rotate-pages' && (
                   <div className="option-row">
                     <label className="option-label">Global Rotation Angle:</label>
                     <select
@@ -729,7 +730,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                 )}
 
                 {/* Watermark options */}
-                {featureId === 'watermark' && (
+                {utilityId === 'watermark' && (
                   <div className="options-grid-2">
                     <div className="option-row">
                       <label className="option-label">Watermark Text:</label>
@@ -757,7 +758,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                 )}
 
                 {/* Page numbers options */}
-                {featureId === 'page-numbers' && (
+                {utilityId === 'page-numbers' && (
                   <div className="option-row">
                     <label className="option-label">Position on Page:</label>
                     <select
@@ -773,7 +774,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                 )}
 
                 {/* Compression options */}
-                {featureId === 'compress-pdf' && (
+                {utilityId === 'compress-pdf' && (
                   <div className="option-row">
                     <label className="option-label">Compression Profile:</label>
                     <select
@@ -791,9 +792,9 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                 )}
 
                 {/* Security Password input */}
-                {(featureId === 'password-protect' ||
-                  featureId === 'encrypt-pdf' ||
-                  featureId === 'remove-password') && (
+                {(utilityId === 'password-protect' ||
+                  utilityId === 'encrypt-pdf' ||
+                  utilityId === 'remove-password') && (
                     <div className="option-row">
                       <label className="option-label">Document Password:</label>
                       <div className="password-input-group">
@@ -817,7 +818,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                   )}
 
                 {/* Search Text input */}
-                {featureId === 'search-text' && (
+                {utilityId === 'search-text' && (
                   <div className="option-row">
                     <label className="option-label">Search Query:</label>
                     <input
@@ -923,7 +924,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
           <>
             <ResultViewer
               title={`${toolName} Completed`}
-              outputName={`toiloki_${featureId}_output.pdf`}
+              outputName={`toiloki_${utilityId}_output.pdf`}
               outputBuffer={result.outputBuffer}
               originalSize={files[0]?.size}
               outputSize={result.outputBuffer?.length}

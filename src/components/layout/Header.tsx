@@ -20,7 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="app-header-inner">
         <div className="header-headline-wrap">
           <h1 className="hero-title">Local Utility Suite</h1>
-          <p className="hero-subtitle">Fast, offline, deterministic tools running entirely on your machine.</p>
+          <p className="hero-subtitle">Fast, offline, deterministic utilities running entirely on your machine.</p>
         </div>
 
         <div className="header-search-container" onClick={onOpenSearchModal} role="button" tabIndex={0}>
@@ -28,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
           <input
             type="text"
             className="search-input"
-            placeholder="Search tools and converters... (Ctrl+K)"
+            placeholder="Search utilities and converters... (Ctrl+K)"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             onClick={(e) => e.stopPropagation()}

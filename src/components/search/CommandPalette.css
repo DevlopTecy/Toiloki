@@ -145,13 +145,13 @@
   font-family: var(--font-mono);
 }
 
-.palette-feature-name {
+.palette-utility-name {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.palette-feature-desc {
+.palette-utility-desc {
   font-size: 11px;
   color: var(--text-secondary);
   white-space: nowrap;

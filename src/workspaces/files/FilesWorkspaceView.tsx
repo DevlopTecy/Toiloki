@@ -26,10 +26,10 @@ import {
 import './FilesWorkspaceView.css';
 
 interface FilesWorkspaceViewProps {
-  featureId: string;
+  utilityId: string;
 }
 
-export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ featureId }) => {
+export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityId }) => {
   const [files, setFiles] = useState<SelectedFile[]>([]);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -103,8 +103,8 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ featureI
     HistoryService.record({
       toolName: 'File Analyzer',
       workspaceId: 'files',
-      utilityId: 'files-analyzer',
-      featureId: 'file-type-detection',
+      groupId: 'files-analyzer',
+      utilityId: 'file-type-detection',
       input: `${files.length} files`,
       output: `Analyzed MIME signatures and SHA-256`,
       status: 'completed',
@@ -160,8 +160,8 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ featureI
     HistoryService.record({
       toolName: 'Duplicate Finder',
       workspaceId: 'files',
-      utilityId: 'files-duplicate',
-      featureId: 'find-duplicates',
+      groupId: 'files-duplicate',
+      utilityId: 'find-duplicates',
       input: `${files.length} files scanned`,
       output: `Found ${Object.keys(actualDuplicates).length} duplicate groups`,
       status: 'completed',
@@ -275,8 +275,8 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ featureI
       HistoryService.record({
         toolName: 'Archive Manager',
         workspaceId: 'files',
-        utilityId: 'files-archive',
-        featureId: 'create-zip-archive',
+        groupId: 'files-archive',
+        utilityId: 'create-zip-archive',
         input: `${validFiles.length} files`,
         output: `${outName} created (${((res.data.length || 0) / 1024).toFixed(1)} KB)`,
         status: 'completed',
@@ -297,7 +297,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ featureI
   return (
     <div className="files-workspace-view">
       {/* 1. BATCH RENAME */}
-      {featureId === 'batch-rename-files' && (
+      {utilityId === 'batch-rename-files' && (
         <div className="files-tool-frame">
           <FileDropzone
             multiple={true}
@@ -427,9 +427,9 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ featureI
       )}
 
       {/* 2. FILE TYPE DETECTION & METADATA (FILE ANALYZER) */}
-      {(featureId === 'file-type-detection' ||
-        featureId === 'file-metadata-ops' ||
-        featureId === 'file-analyzer-full') && (
+      {(utilityId === 'file-type-detection' ||
+        utilityId === 'file-metadata-ops' ||
+        utilityId === 'file-analyzer-full') && (
           <div className="files-tool-frame">
             <FileDropzone
               multiple={true}
@@ -557,7 +557,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ featureI
         )}
 
       {/* 3. DUPLICATE FINDER */}
-      {featureId === 'duplicate-finder-hash' && (
+      {utilityId === 'duplicate-finder-hash' && (
         <div className="files-tool-frame">
           <FileDropzone
             multiple={true}
@@ -690,7 +690,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ featureI
       )}
 
       {/* 4. FILE COMPARISON */}
-      {featureId === 'file-compare-hashes' && (
+      {utilityId === 'file-compare-hashes' && (
         <div className="files-tool-frame">
           <FileDropzone
             multiple={true}
@@ -769,10 +769,10 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ featureI
       )}
 
       {/* 5. ARCHIVE MANAGER (Create, Extract, Inspect for ZIP, TAR, GZIP) */}
-      {(featureId === 'create-zip-archive' ||
-        featureId === 'inspect-zip-archive' ||
-        featureId === 'extract-zip-archive' ||
-        featureId === 'tar-gzip-manager') && (
+      {(utilityId === 'create-zip-archive' ||
+        utilityId === 'inspect-zip-archive' ||
+        utilityId === 'extract-zip-archive' ||
+        utilityId === 'tar-gzip-manager') && (
           <div className="files-tool-frame">
             <div className="archive-mode-tabs">
               <button

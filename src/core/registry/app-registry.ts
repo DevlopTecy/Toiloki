@@ -44,22 +44,22 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     description: 'Manage, edit, convert and analyze PDF files.',
     icon: FileText,
     badgeGradient: 'var(--badge-pdf)',
-    utilities: [
+    groups: [
       {
         id: 'page-organizer',
         name: 'Page Organizer',
         description: 'Merge, split, extract, delete, and reorder PDF pages.',
         icon: Layers,
         badgeGradient: 'var(--badge-pdf)',
-        features: [
-          { id: 'merge-pdf', name: 'Merge PDF', description: 'Combine multiple PDF files into one.', engineId: 'pdf', keywords: ['merge', 'combine', 'join', 'pdf', 'concat'] },
-          { id: 'split-pdf', name: 'Split PDF', description: 'Split a PDF into individual pages or ranges.', engineId: 'pdf', keywords: ['split', 'separate', 'pages'] },
-          { id: 'extract-pages', name: 'Extract Pages', description: 'Extract chosen pages to a new PDF document.', engineId: 'pdf', keywords: ['extract', 'save pages', 'subset'] },
-          { id: 'delete-pages', name: 'Delete Pages', description: 'Remove unwanted pages from a PDF document.', engineId: 'pdf', keywords: ['delete', 'remove', 'strip pages'] },
-          { id: 'reorder-pages', name: 'Reorder Pages', description: 'Visually rearrange the sequence of pages.', engineId: 'pdf', keywords: ['reorder', 'sort', 'arrange', 'move'] },
-          { id: 'rotate-pages', name: 'Rotate Pages', description: 'Rotate pages 90°, 180°, or 270° clockwise.', engineId: 'pdf', keywords: ['rotate', 'orientation', 'turn', 'landscape'] },
-          { id: 'duplicate-pages', name: 'Duplicate Pages', description: 'Clone selected pages inside a PDF.', engineId: 'pdf', keywords: ['duplicate', 'clone', 'copy pages'] },
-          { id: 'replace-pages', name: 'Replace Pages', description: 'Substitute pages with pages from another PDF.', engineId: 'pdf', keywords: ['replace', 'swap', 'substitute'] },
+        utilities: [
+          { id: 'merge-pdf', name: 'Merge PDF', description: 'Combine multiple PDF files into one.', engineId: 'pdf', status: 'ready', keywords: ['merge', 'combine', 'join', 'pdf', 'concat'] },
+          { id: 'split-pdf', name: 'Split PDF', description: 'Split a PDF into individual pages or ranges.', engineId: 'pdf', status: 'ready', keywords: ['split', 'separate', 'pages'] },
+          { id: 'extract-pages', name: 'Extract Pages', description: 'Extract chosen pages to a new PDF document.', engineId: 'pdf', status: 'ready', keywords: ['extract', 'save pages', 'subset'] },
+          { id: 'delete-pages', name: 'Delete Pages', description: 'Remove unwanted pages from a PDF document.', engineId: 'pdf', status: 'ready', keywords: ['delete', 'remove', 'strip pages'] },
+          { id: 'reorder-pages', name: 'Reorder Pages', description: 'Visually rearrange the sequence of pages.', engineId: 'pdf', status: 'ready', keywords: ['reorder', 'sort', 'arrange', 'move'] },
+          { id: 'rotate-pages', name: 'Rotate Pages', description: 'Rotate pages 90°, 180°, or 270° clockwise.', engineId: 'pdf', status: 'ready', keywords: ['rotate', 'orientation', 'turn', 'landscape'] },
+          { id: 'duplicate-pages', name: 'Duplicate Pages', description: 'Clone selected pages inside a PDF.', engineId: 'pdf', status: 'ready', keywords: ['duplicate', 'clone', 'copy pages'] },
+          { id: 'replace-pages', name: 'Replace Pages', description: 'Substitute pages with pages from another PDF.', engineId: 'pdf', status: 'soon', keywords: ['replace', 'swap', 'substitute'] },
         ],
       },
       {
@@ -68,13 +68,13 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Add text, drawings, highlights, watermarks, and page numbers.',
         icon: Edit3,
         badgeGradient: 'var(--badge-pdf)',
-        features: [
-          { id: 'add-text', name: 'Add Text', description: 'Insert custom text boxes and labels into PDF pages.', engineId: 'pdf', keywords: ['text', 'label', 'annotate', 'type'] },
-          { id: 'add-image', name: 'Add Image', description: 'Embed logos, stamps, or pictures onto PDF pages.', engineId: 'pdf', keywords: ['image', 'stamp', 'logo', 'embed'] },
-          { id: 'draw-shapes', name: 'Draw & Shapes', description: 'Add rectangles, circles, lines, and freehand markup.', engineId: 'pdf', keywords: ['draw', 'shapes', 'line', 'rectangle', 'freehand'] },
-          { id: 'highlight-underline', name: 'Highlight & Underline', description: 'Emphasize document text with colored highlights.', engineId: 'pdf', keywords: ['highlight', 'underline', 'strike'] },
-          { id: 'watermark', name: 'Watermark', description: 'Apply confidential, draft, or custom text watermarks.', engineId: 'pdf', keywords: ['watermark', 'draft', 'confidential', 'stamp'] },
-          { id: 'page-numbers', name: 'Page Numbers', description: 'Number pages with custom formatting and position.', engineId: 'pdf', keywords: ['number', 'pagination', 'header', 'footer'] },
+        utilities: [
+          { id: 'add-text', name: 'Add Text', description: 'Insert custom text boxes and labels into PDF pages.', engineId: 'pdf', status: 'soon', keywords: ['text', 'label', 'annotate', 'type'] },
+          { id: 'add-image', name: 'Add Image', description: 'Embed logos, stamps, or pictures onto PDF pages.', engineId: 'pdf', status: 'soon', keywords: ['image', 'stamp', 'logo', 'embed'] },
+          { id: 'draw-shapes', name: 'Draw & Shapes', description: 'Add rectangles, circles, lines, and freehand markup.', engineId: 'pdf', status: 'soon', keywords: ['draw', 'shapes', 'line', 'rectangle', 'freehand'] },
+          { id: 'highlight-underline', name: 'Highlight & Underline', description: 'Emphasize document text with colored highlights.', engineId: 'pdf', status: 'soon', keywords: ['highlight', 'underline', 'strike'] },
+          { id: 'watermark', name: 'Watermark', description: 'Apply confidential, draft, or custom text watermarks.', engineId: 'pdf', status: 'ready', keywords: ['watermark', 'draft', 'confidential', 'stamp'] },
+          { id: 'page-numbers', name: 'Page Numbers', description: 'Number pages with custom formatting and position.', engineId: 'pdf', status: 'ready', keywords: ['number', 'pagination', 'header', 'footer'] },
         ],
       },
       {
@@ -83,13 +83,13 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Convert images, DOCX, TXT, Markdown, and HTML to and from PDF.',
         icon: ArrowRightLeft,
         badgeGradient: 'var(--badge-pdf)',
-        features: [
-          { id: 'images-to-pdf', name: 'Images → PDF', description: 'Combine JPG, PNG, WebP images into a single PDF.', engineId: 'pdf', keywords: ['images', 'jpg', 'png', 'scan', 'photos'] },
-          { id: 'docx-to-pdf', name: 'DOCX → PDF', description: 'Convert Microsoft Word documents to PDF.', engineId: 'pdf', keywords: ['docx', 'word', 'doc', 'convert'] },
-          { id: 'txt-to-pdf', name: 'TXT → PDF', description: 'Format and convert plain text files to clean PDF.', engineId: 'pdf', keywords: ['txt', 'text', 'plain'] },
-          { id: 'markdown-to-pdf', name: 'Markdown → PDF', description: 'Render Markdown notes as styled PDF documents.', engineId: 'pdf', keywords: ['markdown', 'md', 'render'] },
-          { id: 'html-to-pdf', name: 'HTML → PDF', description: 'Render local HTML pages and web snippets as PDF.', engineId: 'pdf', keywords: ['html', 'web', 'markup'] },
-          { id: 'pdf-to-doc', name: 'PDF → Document Formats', description: 'Export PDF text and content to structured formats.', engineId: 'pdf', keywords: ['export', 'convert', 'extract'] },
+        utilities: [
+          { id: 'images-to-pdf', name: 'Images → PDF', description: 'Combine JPG, PNG, WebP images into a single PDF.', engineId: 'pdf', status: 'ready', keywords: ['images', 'jpg', 'png', 'scan', 'photos'] },
+          { id: 'docx-to-pdf', name: 'DOCX → PDF', description: 'Convert Microsoft Word documents to PDF.', engineId: 'pdf', status: 'soon', keywords: ['docx', 'word', 'doc', 'convert'] },
+          { id: 'txt-to-pdf', name: 'TXT → PDF', description: 'Format and convert plain text files to clean PDF.', engineId: 'pdf', status: 'soon', keywords: ['txt', 'text', 'plain'] },
+          { id: 'markdown-to-pdf', name: 'Markdown → PDF', description: 'Render Markdown notes as styled PDF documents.', engineId: 'pdf', status: 'soon', keywords: ['markdown', 'md', 'render'] },
+          { id: 'html-to-pdf', name: 'HTML → PDF', description: 'Render local HTML pages and web snippets as PDF.', engineId: 'pdf', status: 'soon', keywords: ['html', 'web', 'markup'] },
+          { id: 'pdf-to-doc', name: 'PDF → Document Formats', description: 'Export PDF text and content to structured formats.', engineId: 'pdf', status: 'soon', keywords: ['export', 'convert', 'extract'] },
         ],
       },
       {
@@ -98,11 +98,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Compress, optimize images, flatten forms, and strip metadata.',
         icon: Minimize2,
         badgeGradient: 'var(--badge-pdf)',
-        features: [
-          { id: 'compress-pdf', name: 'Compress PDF', description: 'Reduce PDF file size while maintaining visual clarity.', engineId: 'pdf', keywords: ['compress', 'reduce', 'size', 'shrink', 'optimize'] },
-          { id: 'optimize-images', name: 'Optimize Images', description: 'Re-encode embedded graphics at lower DPI.', engineId: 'pdf', keywords: ['dpi', 'resample', 'downsample'] },
-          { id: 'flatten-pdf', name: 'Flatten PDF', description: 'Merge form fields and annotations into static page content.', engineId: 'pdf', keywords: ['flatten', 'forms', 'lock'] },
-          { id: 'remove-metadata', name: 'Remove Metadata', description: 'Strip author, software, and tracking info for privacy.', engineId: 'pdf', keywords: ['metadata', 'privacy', 'sanitize', 'strip'] },
+        utilities: [
+          { id: 'compress-pdf', name: 'Compress PDF', description: 'Reduce PDF file size while maintaining visual clarity.', engineId: 'pdf', status: 'beta', keywords: ['compress', 'reduce', 'size', 'shrink', 'optimize'] },
+          { id: 'optimize-images', name: 'Optimize Images', description: 'Re-encode embedded graphics at lower DPI.', engineId: 'pdf', status: 'beta', keywords: ['dpi', 'resample', 'downsample'] },
+          { id: 'flatten-pdf', name: 'Flatten PDF', description: 'Merge form fields and annotations into static page content.', engineId: 'pdf', status: 'soon', keywords: ['flatten', 'forms', 'lock'] },
+          { id: 'remove-metadata', name: 'Remove Metadata', description: 'Strip author, software, and tracking info for privacy.', engineId: 'pdf', status: 'soon', keywords: ['metadata', 'privacy', 'sanitize', 'strip'] },
         ],
       },
       {
@@ -111,11 +111,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Extract text, embedded images, pages, and search document contents.',
         icon: FileSearch,
         badgeGradient: 'var(--badge-pdf)',
-        features: [
-          { id: 'extract-text', name: 'Extract Text', description: 'Export full text content as plain text or structured lines.', engineId: 'pdf', keywords: ['text', 'extract', 'read', 'ocr'] },
-          { id: 'extract-images', name: 'Extract Images', description: 'Extract all embedded photos and raster assets.', engineId: 'pdf', keywords: ['images', 'photos', 'graphics', 'assets'] },
-          { id: 'extract-metadata', name: 'Extract Metadata', description: 'Read creation date, author, producer, and page info.', engineId: 'pdf', keywords: ['metadata', 'properties', 'tags'] },
-          { id: 'search-text', name: 'Search PDF Text', description: 'Find occurrences of words and phrases across pages.', engineId: 'pdf', keywords: ['search', 'find', 'query', 'filter'] },
+        utilities: [
+          { id: 'extract-text', name: 'Extract Text', description: 'Export full text content as plain text or structured lines.', engineId: 'pdf', status: 'beta', keywords: ['text', 'extract', 'read', 'ocr'] },
+          { id: 'extract-images', name: 'Extract Images', description: 'Extract all embedded photos and raster assets.', engineId: 'pdf', status: 'soon', keywords: ['images', 'photos', 'graphics', 'assets'] },
+          { id: 'extract-metadata', name: 'Extract Metadata', description: 'Read creation date, author, producer, and page info.', engineId: 'pdf', status: 'ready', keywords: ['metadata', 'properties', 'tags'] },
+          { id: 'search-text', name: 'Search PDF Text', description: 'Find occurrences of words and phrases across pages.', engineId: 'pdf', status: 'soon', keywords: ['search', 'find', 'query', 'filter'] },
         ],
       },
       {
@@ -124,11 +124,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Password protect, encrypt, remove passwords, and sign documents.',
         icon: Lock,
         badgeGradient: 'var(--badge-pdf)',
-        features: [
-          { id: 'password-protect', name: 'Password Protect', description: 'Enforce user password protection with standard encryption.', engineId: 'pdf', keywords: ['password', 'lock', 'secure', 'protect'] },
-          { id: 'encrypt-pdf', name: 'Encrypt PDF', description: 'Apply 128/256-bit permission and printing restrictions.', engineId: 'pdf', keywords: ['encrypt', 'permissions', 'aes'] },
-          { id: 'remove-password', name: 'Remove Password', description: 'Decrypt and save an unencumbered copy with your password.', engineId: 'pdf', keywords: ['unlock', 'decrypt', 'remove password'] },
-          { id: 'sign-pdf', name: 'Sign PDF', description: 'Place a visual signature or certified mark on the document.', engineId: 'pdf', keywords: ['sign', 'signature', 'stamp'] },
+        utilities: [
+          { id: 'password-protect', name: 'Password Protect', description: 'Enforce user password protection with standard encryption.', engineId: 'pdf', status: 'beta', keywords: ['password', 'lock', 'secure', 'protect'] },
+          { id: 'encrypt-pdf', name: 'Encrypt PDF', description: 'Apply 128/256-bit permission and printing restrictions.', engineId: 'pdf', status: 'beta', keywords: ['encrypt', 'permissions', 'aes'] },
+          { id: 'remove-password', name: 'Remove Password', description: 'Decrypt and save an unencumbered copy with your password.', engineId: 'pdf', status: 'beta', keywords: ['unlock', 'decrypt', 'remove password'] },
+          { id: 'sign-pdf', name: 'Sign PDF', description: 'Place a visual signature or certified mark on the document.', engineId: 'pdf', status: 'soon', keywords: ['sign', 'signature', 'stamp'] },
         ],
       },
       {
@@ -137,10 +137,10 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Inspect page count, version, metadata, embedded fonts, and properties.',
         icon: Info,
         badgeGradient: 'var(--badge-pdf)',
-        features: [
-          { id: 'file-info', name: 'File Information', description: 'Inspect file size, version, and page dimensions.', engineId: 'pdf', keywords: ['info', 'version', 'size', 'dimensions'] },
-          { id: 'page-count', name: 'Page Count & Stats', description: 'Detailed breakdown of page counts, aspect ratios, and orientations.', engineId: 'pdf', keywords: ['count', 'pages', 'landscape', 'portrait'] },
-          { id: 'doc-properties', name: 'Document Properties', description: 'View creator, producer, title, and creation timestamps.', engineId: 'pdf', keywords: ['properties', 'creator', 'author'] },
+        utilities: [
+          { id: 'file-info', name: 'File Information', description: 'Inspect file size, version, and page dimensions.', engineId: 'pdf', status: 'ready', keywords: ['info', 'version', 'size', 'dimensions'] },
+          { id: 'page-count', name: 'Page Count & Stats', description: 'Detailed breakdown of page counts, aspect ratios, and orientations.', engineId: 'pdf', status: 'ready', keywords: ['count', 'pages', 'landscape', 'portrait'] },
+          { id: 'doc-properties', name: 'Document Properties', description: 'View creator, producer, title, and creation timestamps.', engineId: 'pdf', status: 'ready', keywords: ['properties', 'creator', 'author'] },
         ],
       },
     ],
@@ -153,20 +153,20 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     description: 'Convert, edit, compare and export documents.',
     icon: FileSpreadsheet,
     badgeGradient: 'var(--badge-doc)',
-    utilities: [
+    groups: [
       {
         id: 'doc-converter',
         name: 'Converter',
         description: 'Convert DOCX, Markdown, HTML, RTF, and plain text files.',
         icon: ArrowRightLeft,
         badgeGradient: 'var(--badge-doc)',
-        features: [
-          { id: 'docx-to-pdf', name: 'DOCX → PDF', description: 'Convert Word DOCX files to clean PDF documents.', engineId: 'docx', keywords: ['docx', 'word', 'pdf'] },
-          { id: 'pdf-to-docx', name: 'PDF → DOCX', description: 'Extract structured text and formatting to Word DOCX.', engineId: 'docx', keywords: ['pdf to word', 'docx'] },
-          { id: 'txt-to-pdf-doc', name: 'TXT → PDF', description: 'Convert plain text files into formatted PDF documents.', engineId: 'docx', keywords: ['txt', 'pdf'] },
-          { id: 'md-to-pdf-doc', name: 'Markdown → PDF', description: 'Render Markdown files into elegant PDF pages.', engineId: 'docx', keywords: ['markdown', 'md', 'pdf'] },
-          { id: 'html-to-pdf-doc', name: 'HTML → PDF', description: 'Convert local HTML files or rich text into PDF.', engineId: 'docx', keywords: ['html', 'pdf'] },
-          { id: 'rtf-to-pdf', name: 'RTF → PDF', description: 'Convert Rich Text Format (RTF) documents to PDF.', engineId: 'docx', keywords: ['rtf', 'pdf', 'rich text'] },
+        utilities: [
+          { id: 'docx-to-pdf', name: 'DOCX → PDF', description: 'Convert Word DOCX files to clean PDF documents.', engineId: 'docx', status: 'soon', keywords: ['docx', 'word', 'pdf'] },
+          { id: 'pdf-to-docx', name: 'PDF → DOCX', description: 'Extract structured text and formatting to Word DOCX.', engineId: 'docx', status: 'soon', keywords: ['pdf to word', 'docx'] },
+          { id: 'txt-to-pdf-doc', name: 'TXT → PDF', description: 'Convert plain text files into formatted PDF documents.', engineId: 'docx', status: 'ready', keywords: ['txt', 'pdf'] },
+          { id: 'md-to-pdf-doc', name: 'Markdown → PDF', description: 'Render Markdown files into elegant PDF pages.', engineId: 'docx', status: 'ready', keywords: ['markdown', 'md', 'pdf'] },
+          { id: 'html-to-pdf-doc', name: 'HTML → PDF', description: 'Convert local HTML files or rich text into PDF.', engineId: 'docx', status: 'ready', keywords: ['html', 'pdf'] },
+          { id: 'rtf-to-pdf', name: 'RTF → PDF', description: 'Convert Rich Text Format (RTF) documents to PDF.', engineId: 'docx', status: 'ready', keywords: ['rtf', 'pdf', 'rich text'] },
         ],
       },
       {
@@ -175,11 +175,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Edit text, find and replace, view metrics, and clean formatting.',
         icon: Edit3,
         badgeGradient: 'var(--badge-doc)',
-        features: [
-          { id: 'edit-text', name: 'Edit Text', description: 'Rich text and markdown editing surface with preview.', engineId: 'text', keywords: ['edit', 'write', 'compose'] },
-          { id: 'find-replace', name: 'Find and Replace', description: 'Bulk search and replace text with case sensitivity.', engineId: 'text', keywords: ['find', 'replace', 'substitute'] },
-          { id: 'doc-stats', name: 'Document Statistics', description: 'Live word, character, and paragraph counter.', engineId: 'text', keywords: ['words', 'characters', 'paragraphs', 'count'] },
-          { id: 'text-cleanup', name: 'Text Cleanup', description: 'Strip duplicate spaces, blank lines, and line breaks.', engineId: 'text', keywords: ['clean', 'normalize', 'format'] },
+        utilities: [
+          { id: 'edit-text', name: 'Edit Text', description: 'Rich text and markdown editing surface with preview.', engineId: 'text', status: 'ready', keywords: ['edit', 'write', 'compose'] },
+          { id: 'find-replace', name: 'Find and Replace', description: 'Bulk search and replace text with case sensitivity.', engineId: 'text', status: 'ready', keywords: ['find', 'replace', 'substitute'] },
+          { id: 'doc-stats', name: 'Document Statistics', description: 'Live word, character, and paragraph counter.', engineId: 'text', status: 'ready', keywords: ['words', 'characters', 'paragraphs', 'count'] },
+          { id: 'text-cleanup', name: 'Text Cleanup', description: 'Strip duplicate spaces, blank lines, and line breaks.', engineId: 'text', status: 'ready', keywords: ['clean', 'normalize', 'format'] },
         ],
       },
       {
@@ -188,8 +188,8 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Compare two documents and highlight changes side-by-side.',
         icon: GitCompare,
         badgeGradient: 'var(--badge-doc)',
-        features: [
-          { id: 'doc-diff', name: 'Document Diff', description: 'Highlight additions, deletions, and changed sections.', engineId: 'diff', keywords: ['compare', 'diff', 'changes', 'revisions'] },
+        utilities: [
+          { id: 'doc-diff', name: 'Document Diff', description: 'Highlight additions, deletions, and changed sections.', engineId: 'diff', status: 'ready', keywords: ['compare', 'diff', 'changes', 'revisions'] },
         ],
       },
       {
@@ -198,11 +198,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Export documents to PDF, TXT, HTML, or Markdown.',
         icon: Download,
         badgeGradient: 'var(--badge-doc)',
-        features: [
-          { id: 'export-pdf', name: 'Export to PDF', description: 'Export document directly to print-ready PDF.', engineId: 'docx', keywords: ['export', 'pdf'] },
-          { id: 'export-txt', name: 'Export to TXT', description: 'Export clean plain text file.', engineId: 'text', keywords: ['export', 'txt', 'plain text'] },
-          { id: 'export-html', name: 'Export to HTML', description: 'Export HTML file with standard styling.', engineId: 'docx', keywords: ['export', 'html'] },
-          { id: 'export-md', name: 'Export to Markdown', description: 'Export formatted Markdown document.', engineId: 'docx', keywords: ['export', 'markdown', 'md'] },
+        utilities: [
+          { id: 'export-pdf', name: 'Export to PDF', description: 'Export document directly to print-ready PDF.', engineId: 'docx', status: 'ready', keywords: ['export', 'pdf'] },
+          { id: 'export-txt', name: 'Export to TXT', description: 'Export clean plain text file.', engineId: 'text', status: 'ready', keywords: ['export', 'txt', 'plain text'] },
+          { id: 'export-html', name: 'Export to HTML', description: 'Export HTML file with standard styling.', engineId: 'docx', status: 'ready', keywords: ['export', 'html'] },
+          { id: 'export-md', name: 'Export to Markdown', description: 'Export formatted Markdown document.', engineId: 'docx', status: 'ready', keywords: ['export', 'markdown', 'md'] },
         ],
       },
     ],
@@ -215,18 +215,18 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     description: 'Transform, convert, optimize and inspect images.',
     icon: ImageIcon,
     badgeGradient: 'var(--badge-img)',
-    utilities: [
+    groups: [
       {
         id: 'img-transformer',
         name: 'Transformer',
         description: 'Resize, crop, rotate, flip, and manage dimensions and aspect ratio.',
         icon: Crop,
         badgeGradient: 'var(--badge-img)',
-        features: [
-          { id: 'img-resize', name: 'Resize & Scale', description: 'Scale dimensions by pixels or percentage with aspect lock.', engineId: 'image', keywords: ['resize', 'scale', 'width', 'height'] },
-          { id: 'img-crop', name: 'Crop Image', description: 'Trim canvas boundaries to exact coordinates.', engineId: 'image', keywords: ['crop', 'cut', 'trim'] },
-          { id: 'img-rotate', name: 'Rotate & Flip', description: 'Rotate 90/180/270 degrees or flip horizontally/vertically.', engineId: 'image', keywords: ['rotate', 'flip', 'mirror'] },
-          { id: 'img-aspect', name: 'Aspect Ratio & Dimensions', description: 'Pad or fit image into standard 16:9, 4:3, or 1:1 ratios.', engineId: 'image', keywords: ['aspect ratio', 'square', 'widescreen'] },
+        utilities: [
+          { id: 'img-resize', name: 'Resize & Scale', description: 'Scale dimensions by pixels or percentage with aspect lock.', engineId: 'image', status: 'ready', keywords: ['resize', 'scale', 'width', 'height'] },
+          { id: 'img-crop', name: 'Crop Image', description: 'Trim canvas boundaries to exact coordinates.', engineId: 'image', status: 'ready', keywords: ['crop', 'cut', 'trim'] },
+          { id: 'img-rotate', name: 'Rotate & Flip', description: 'Rotate 90/180/270 degrees or flip horizontally/vertically.', engineId: 'image', status: 'ready', keywords: ['rotate', 'flip', 'mirror'] },
+          { id: 'img-aspect', name: 'Aspect Ratio & Dimensions', description: 'Pad or fit image into standard 16:9, 4:3, or 1:1 ratios.', engineId: 'image', status: 'ready', keywords: ['aspect ratio', 'square', 'widescreen'] },
         ],
       },
       {
@@ -235,12 +235,12 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Convert between JPG, PNG, WebP, BMP, and TIFF formats.',
         icon: ArrowRightLeft,
         badgeGradient: 'var(--badge-img)',
-        features: [
-          { id: 'convert-jpg', name: 'Convert to JPG', description: 'Universal format with adjustable compression.', engineId: 'image', keywords: ['jpg', 'jpeg', 'convert'] },
-          { id: 'convert-png', name: 'Convert to PNG', description: 'Lossless format supporting full transparency.', engineId: 'image', keywords: ['png', 'transparency', 'lossless'] },
-          { id: 'convert-webp', name: 'Convert to WebP', description: 'Modern web format for maximum space savings.', engineId: 'image', keywords: ['webp', 'modern', 'compress'] },
-          { id: 'convert-bmp', name: 'Convert to BMP', description: 'Standard Windows uncompressed bitmap.', engineId: 'image', keywords: ['bmp', 'bitmap'] },
-          { id: 'convert-tiff', name: 'Convert to TIFF', description: 'High-fidelity archive and print graphic format.', engineId: 'image', keywords: ['tiff', 'tif', 'print'] },
+        utilities: [
+          { id: 'convert-jpg', name: 'Convert to JPG', description: 'Universal format with adjustable compression.', engineId: 'image', status: 'ready', keywords: ['jpg', 'jpeg', 'convert'] },
+          { id: 'convert-png', name: 'Convert to PNG', description: 'Lossless format supporting full transparency.', engineId: 'image', status: 'ready', keywords: ['png', 'transparency', 'lossless'] },
+          { id: 'convert-webp', name: 'Convert to WebP', description: 'Modern web format for maximum space savings.', engineId: 'image', status: 'ready', keywords: ['webp', 'modern', 'compress'] },
+          { id: 'convert-bmp', name: 'Convert to BMP', description: 'Standard Windows uncompressed bitmap.', engineId: 'image', status: 'ready', keywords: ['bmp', 'bitmap'] },
+          { id: 'convert-tiff', name: 'Convert to TIFF', description: 'High-fidelity archive and print graphic format.', engineId: 'image', status: 'ready', keywords: ['tiff', 'tif', 'print'] },
         ],
       },
       {
@@ -249,9 +249,9 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Compress images, adjust quality, and compare before/after file sizes.',
         icon: Minimize2,
         badgeGradient: 'var(--badge-img)',
-        features: [
-          { id: 'compress-image', name: 'Compress Image', description: 'Fine-tune quality slider to achieve target file size.', engineId: 'image', keywords: ['compress', 'quality', 'shrink', 'optimize'] },
-          { id: 'resize-compress', name: 'Resize during Compression', description: 'Scale down image dimensions while compressing.', engineId: 'image', keywords: ['downscale', 'batch compress'] },
+        utilities: [
+          { id: 'compress-image', name: 'Compress Image', description: 'Fine-tune quality slider to achieve target file size.', engineId: 'image', status: 'ready', keywords: ['compress', 'quality', 'shrink', 'optimize'] },
+          { id: 'resize-compress', name: 'Resize during Compression', description: 'Scale down image dimensions while compressing.', engineId: 'image', status: 'ready', keywords: ['downscale', 'batch compress'] },
         ],
       },
       {
@@ -260,10 +260,10 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Fine-tune brightness, contrast, saturation, sharpness, blur, and grayscale.',
         icon: Sliders,
         badgeGradient: 'var(--badge-img)',
-        features: [
-          { id: 'adjust-color', name: 'Brightness & Contrast', description: 'Adjust exposure, highlights, and shadow depth.', engineId: 'image', keywords: ['brightness', 'contrast', 'exposure'] },
-          { id: 'adjust-saturation', name: 'Saturation & Vibrance', description: 'Boost vividness or soften intense colors.', engineId: 'image', keywords: ['saturation', 'vibrance', 'color'] },
-          { id: 'adjust-filters', name: 'Blur & Grayscale', description: 'Apply Gaussian blur or convert to monochrome grayscale.', engineId: 'image', keywords: ['blur', 'grayscale', 'black and white'] },
+        utilities: [
+          { id: 'adjust-color', name: 'Brightness & Contrast', description: 'Adjust exposure, highlights, and shadow depth.', engineId: 'image', status: 'ready', keywords: ['brightness', 'contrast', 'exposure'] },
+          { id: 'adjust-saturation', name: 'Saturation & Vibrance', description: 'Boost vividness or soften intense colors.', engineId: 'image', status: 'ready', keywords: ['saturation', 'vibrance', 'color'] },
+          { id: 'adjust-filters', name: 'Blur & Grayscale', description: 'Apply Gaussian blur or convert to monochrome grayscale.', engineId: 'image', status: 'ready', keywords: ['blur', 'grayscale', 'black and white'] },
         ],
       },
       {
@@ -272,10 +272,10 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Inspect EXIF tags, view dimensions and color info, or strip EXIF.',
         icon: Info,
         badgeGradient: 'var(--badge-img)',
-        features: [
-          { id: 'exif-view', name: 'EXIF Viewer', description: 'Inspect camera model, focal length, aperture, and GPS.', engineId: 'exif', keywords: ['exif', 'camera', 'iso', 'gps', 'tags'] },
-          { id: 'exif-remove', name: 'Remove EXIF', description: 'Strip privacy-sensitive metadata from photos before sharing.', engineId: 'exif', keywords: ['strip exif', 'privacy', 'sanitize'] },
-          { id: 'img-info', name: 'Image Information', description: 'Inspect color depth, DPI, dimensions, and file format.', engineId: 'exif', keywords: ['dimensions', 'dpi', 'color depth'] },
+        utilities: [
+          { id: 'exif-view', name: 'EXIF Viewer', description: 'Inspect camera model, focal length, aperture, and GPS.', engineId: 'exif', status: 'ready', keywords: ['exif', 'camera', 'iso', 'gps', 'tags'] },
+          { id: 'exif-remove', name: 'Remove EXIF', description: 'Strip privacy-sensitive metadata from photos before sharing.', engineId: 'exif', status: 'ready', keywords: ['strip exif', 'privacy', 'sanitize'] },
+          { id: 'img-info', name: 'Image Information', description: 'Inspect color depth, DPI, dimensions, and file format.', engineId: 'exif', status: 'ready', keywords: ['dimensions', 'dpi', 'color depth'] },
         ],
       },
       {
@@ -284,8 +284,8 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Package multiple images into a multi-page PDF document.',
         icon: FileText,
         badgeGradient: 'var(--badge-img)',
-        features: [
-          { id: 'multi-img-pdf', name: 'Multiple Images → PDF', description: 'Select order, margins, page sizing, and orientation.', engineId: 'pdf', keywords: ['pdf', 'album', 'combine images'] },
+        utilities: [
+          { id: 'multi-img-pdf', name: 'Multiple Images → PDF', description: 'Select order, margins, page sizing, and orientation.', engineId: 'pdf', status: 'ready', keywords: ['pdf', 'album', 'combine images'] },
         ],
       },
     ],
@@ -298,19 +298,19 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     description: 'View, transform, validate and convert structured data.',
     icon: Database,
     badgeGradient: 'var(--badge-data)',
-    utilities: [
+    groups: [
       {
         id: 'data-viewer',
         name: 'Viewer',
         description: 'Interactive viewers for CSV tables, JSON trees, XML trees, and YAML/XLSX.',
         icon: Table,
         badgeGradient: 'var(--badge-data)',
-        features: [
-          { id: 'csv-viewer', name: 'CSV Table Viewer', description: 'Sort, filter, and paginate tabular CSV data.', engineId: 'data', keywords: ['csv', 'table', 'grid', 'columns'] },
-          { id: 'json-tree', name: 'JSON Tree Viewer', description: 'Collapsible hierarchical JSON tree navigator.', engineId: 'data', keywords: ['json', 'tree', 'nodes', 'object'] },
-          { id: 'xml-tree', name: 'XML Tree Viewer', description: 'Inspect XML node hierarchy, tags, and attributes.', engineId: 'data', keywords: ['xml', 'tree', 'attributes'] },
-          { id: 'yaml-viewer', name: 'YAML Viewer', description: 'Syntax-highlighted YAML structure viewer.', engineId: 'data', keywords: ['yaml', 'yml', 'config'] },
-          { id: 'xlsx-viewer', name: 'XLSX Viewer', description: 'Browse sheets and cells from Microsoft Excel workbooks.', engineId: 'data', keywords: ['xlsx', 'excel', 'sheets'] },
+        utilities: [
+          { id: 'csv-viewer', name: 'CSV Table Viewer', description: 'Sort, filter, and paginate tabular CSV data.', engineId: 'data', status: 'ready', keywords: ['csv', 'table', 'grid', 'columns'] },
+          { id: 'json-tree', name: 'JSON Tree Viewer', description: 'Collapsible hierarchical JSON tree navigator.', engineId: 'data', status: 'ready', keywords: ['json', 'tree', 'nodes', 'object'] },
+          { id: 'xml-tree', name: 'XML Tree Viewer', description: 'Inspect XML node hierarchy, tags, and attributes.', engineId: 'data', status: 'ready', keywords: ['xml', 'tree', 'attributes'] },
+          { id: 'yaml-viewer', name: 'YAML Viewer', description: 'Syntax-highlighted YAML structure viewer.', engineId: 'data', status: 'ready', keywords: ['yaml', 'yml', 'config'] },
+          { id: 'xlsx-viewer', name: 'XLSX Viewer', description: 'Browse sheets and cells from Microsoft Excel workbooks.', engineId: 'data', status: 'ready', keywords: ['xlsx', 'excel', 'sheets'] },
         ],
       },
       {
@@ -319,11 +319,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Convert between CSV, JSON, XLSX, XML, and YAML data structures.',
         icon: ArrowRightLeft,
         badgeGradient: 'var(--badge-data)',
-        features: [
-          { id: 'csv-to-json', name: 'CSV ↔ JSON', description: 'Convert tabular CSV to JSON array or back.', engineId: 'data', keywords: ['csv to json', 'json to csv'] },
-          { id: 'csv-to-xlsx', name: 'CSV ↔ XLSX', description: 'Convert CSV into Excel workbook or export sheets to CSV.', engineId: 'data', keywords: ['csv to excel', 'xlsx'] },
-          { id: 'json-to-yaml', name: 'JSON ↔ YAML', description: 'Convert JSON payloads into clean YAML and back.', engineId: 'data', keywords: ['json to yaml', 'yaml to json'] },
-          { id: 'xml-to-json', name: 'XML ↔ JSON', description: 'Convert XML tags to JSON objects and vice versa.', engineId: 'data', keywords: ['xml to json', 'json to xml'] },
+        utilities: [
+          { id: 'csv-to-json', name: 'CSV ↔ JSON', description: 'Convert tabular CSV to JSON array or back.', engineId: 'data', status: 'ready', keywords: ['csv to json', 'json to csv'] },
+          { id: 'csv-to-xlsx', name: 'CSV ↔ XLSX', description: 'Convert CSV into Excel workbook or export sheets to CSV.', engineId: 'data', status: 'ready', keywords: ['csv to excel', 'xlsx'] },
+          { id: 'json-to-yaml', name: 'JSON ↔ YAML', description: 'Convert JSON payloads into clean YAML and back.', engineId: 'data', status: 'ready', keywords: ['json to yaml', 'yaml to json'] },
+          { id: 'xml-to-json', name: 'XML ↔ JSON', description: 'Convert XML tags to JSON objects and vice versa.', engineId: 'data', status: 'ready', keywords: ['xml to json', 'json to xml'] },
         ],
       },
       {
@@ -332,11 +332,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Sort, filter, remove duplicates, select columns, and format values.',
         icon: Sliders,
         badgeGradient: 'var(--badge-data)',
-        features: [
-          { id: 'data-sort-filter', name: 'Sort & Filter', description: 'Apply multi-column sorting and filtering criteria.', engineId: 'data', keywords: ['sort', 'filter', 'rows'] },
-          { id: 'data-dedup', name: 'Remove Duplicates', description: 'Identify and remove identical rows or records.', engineId: 'data', keywords: ['deduplicate', 'distinct', 'unique'] },
-          { id: 'data-columns', name: 'Select & Rename Columns', description: 'Reorder fields, rename headers, and project columns.', engineId: 'data', keywords: ['columns', 'rename', 'headers', 'fields'] },
-          { id: 'data-format-values', name: 'Format Values', description: 'Change numbers, dates, strings, and types across rows.', engineId: 'data', keywords: ['types', 'cast', 'dates', 'numbers'] },
+        utilities: [
+          { id: 'data-sort-filter', name: 'Sort & Filter', description: 'Apply multi-column sorting and filtering criteria.', engineId: 'data', status: 'ready', keywords: ['sort', 'filter', 'rows'] },
+          { id: 'data-dedup', name: 'Remove Duplicates', description: 'Identify and remove identical rows or records.', engineId: 'data', status: 'ready', keywords: ['deduplicate', 'distinct', 'unique'] },
+          { id: 'data-columns', name: 'Select & Rename Columns', description: 'Reorder fields, rename headers, and project columns.', engineId: 'data', status: 'ready', keywords: ['columns', 'rename', 'headers', 'fields'] },
+          { id: 'data-format-values', name: 'Format Values', description: 'Change numbers, dates, strings, and types across rows.', engineId: 'data', status: 'ready', keywords: ['types', 'cast', 'dates', 'numbers'] },
         ],
       },
       {
@@ -345,11 +345,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Validate JSON, XML, CSV, and YAML syntax with line error tracking.',
         icon: CheckCircle,
         badgeGradient: 'var(--badge-data)',
-        features: [
-          { id: 'validate-json', name: 'JSON Validation', description: 'Check JSON syntax with exact line & column errors.', engineId: 'data', keywords: ['json validation', 'lint', 'syntax'] },
-          { id: 'validate-xml', name: 'XML Validation', description: 'Validate well-formed XML structure and tags.', engineId: 'data', keywords: ['xml validation', 'well-formed'] },
-          { id: 'validate-csv', name: 'CSV Validation', description: 'Verify uniform column counts and delimiters.', engineId: 'data', keywords: ['csv validation', 'delimiters'] },
-          { id: 'validate-yaml', name: 'YAML Validation', description: 'Check YAML indentation and typing syntax.', engineId: 'data', keywords: ['yaml validation', 'indentation'] },
+        utilities: [
+          { id: 'validate-json', name: 'JSON Validation', description: 'Check JSON syntax with exact line & column errors.', engineId: 'data', status: 'ready', keywords: ['json validation', 'lint', 'syntax'] },
+          { id: 'validate-xml', name: 'XML Validation', description: 'Validate well-formed XML structure and tags.', engineId: 'data', status: 'ready', keywords: ['xml validation', 'well-formed'] },
+          { id: 'validate-csv', name: 'CSV Validation', description: 'Verify uniform column counts and delimiters.', engineId: 'data', status: 'ready', keywords: ['csv validation', 'delimiters'] },
+          { id: 'validate-yaml', name: 'YAML Validation', description: 'Check YAML indentation and typing syntax.', engineId: 'data', status: 'ready', keywords: ['yaml validation', 'indentation'] },
         ],
       },
       {
@@ -358,10 +358,10 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Prettify and minify JSON, XML, and YAML.',
         icon: Code,
         badgeGradient: 'var(--badge-data)',
-        features: [
-          { id: 'json-pretty-minify', name: 'JSON Pretty & Minify', description: 'Beautify with 2/4 spaces or minify to single line.', engineId: 'data', keywords: ['pretty', 'minify', 'beautify', 'json'] },
-          { id: 'xml-formatting', name: 'XML Formatting', description: 'Indent and format XML tags with attributes.', engineId: 'data', keywords: ['format xml', 'indent xml'] },
-          { id: 'yaml-formatting', name: 'YAML Formatting', description: 'Normalize YAML structure and comments.', engineId: 'data', keywords: ['format yaml', 'beautify yaml'] },
+        utilities: [
+          { id: 'json-pretty-minify', name: 'JSON Pretty & Minify', description: 'Beautify with 2/4 spaces or minify to single line.', engineId: 'data', status: 'ready', keywords: ['pretty', 'minify', 'beautify', 'json'] },
+          { id: 'xml-formatting', name: 'XML Formatting', description: 'Indent and format XML tags with attributes.', engineId: 'data', status: 'ready', keywords: ['format xml', 'indent xml'] },
+          { id: 'yaml-formatting', name: 'YAML Formatting', description: 'Normalize YAML structure and comments.', engineId: 'data', status: 'ready', keywords: ['format yaml', 'beautify yaml'] },
         ],
       },
     ],
@@ -374,18 +374,18 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     description: 'Transform, clean, inspect and compare text.',
     icon: Type,
     badgeGradient: 'var(--badge-text)',
-    utilities: [
+    groups: [
       {
         id: 'text-transformer',
         name: 'Transformer',
         description: 'Uppercase, lowercase, title case, sentence case, reverse, sort, and deduplicate.',
         icon: Type,
         badgeGradient: 'var(--badge-text)',
-        features: [
-          { id: 'case-conversion', name: 'Case Conversion', description: 'Upper, lower, title, sentence, camel, kebab, and snake case.', engineId: 'text', keywords: ['case', 'uppercase', 'lowercase', 'titlecase', 'camelcase'] },
-          { id: 'reverse-text', name: 'Reverse Text', description: 'Reverse characters, words, or line order.', engineId: 'text', keywords: ['reverse', 'flip text', 'backwards'] },
-          { id: 'sort-lines', name: 'Sort Lines', description: 'Alphabetical, numerical, or length-based line sorting.', engineId: 'text', keywords: ['sort', 'alphabetical', 'lines', 'order'] },
-          { id: 'deduplicate-lines', name: 'Deduplicate Lines', description: 'Remove duplicate lines while preserving order.', engineId: 'text', keywords: ['deduplicate', 'unique', 'distinct'] },
+        utilities: [
+          { id: 'case-conversion', name: 'Case Conversion', description: 'Upper, lower, title, sentence, camel, kebab, and snake case.', engineId: 'text', status: 'ready', keywords: ['case', 'uppercase', 'lowercase', 'titlecase', 'camelcase'] },
+          { id: 'reverse-text', name: 'Reverse Text', description: 'Reverse characters, words, or line order.', engineId: 'text', status: 'ready', keywords: ['reverse', 'flip text', 'backwards'] },
+          { id: 'sort-lines', name: 'Sort Lines', description: 'Alphabetical, numerical, or length-based line sorting.', engineId: 'text', status: 'ready', keywords: ['sort', 'alphabetical', 'lines', 'order'] },
+          { id: 'deduplicate-lines', name: 'Deduplicate Lines', description: 'Remove duplicate lines while preserving order.', engineId: 'text', status: 'ready', keywords: ['deduplicate', 'unique', 'distinct'] },
         ],
       },
       {
@@ -394,11 +394,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Remove extra spaces, blank lines, invisible characters, and normalize line endings.',
         icon: Sparkles,
         badgeGradient: 'var(--badge-text)',
-        features: [
-          { id: 'remove-spaces', name: 'Remove Extra Spaces', description: 'Collapse consecutive spaces and trim edge whitespace.', engineId: 'text', keywords: ['spaces', 'trim', 'whitespace'] },
-          { id: 'remove-blank-lines', name: 'Remove Blank Lines', description: 'Strip empty lines and trailing carriage returns.', engineId: 'text', keywords: ['blank lines', 'empty lines'] },
-          { id: 'invisible-chars', name: 'Invisible Characters Cleanup', description: 'Remove zero-width spaces and unprintable control characters.', engineId: 'text', keywords: ['invisible', 'zero-width', 'unicode'] },
-          { id: 'line-endings', name: 'Line-Ending Normalization', description: 'Convert CRLF (Windows) to LF (Unix) or vice-versa.', engineId: 'text', keywords: ['crlf', 'lf', 'eol', 'line endings'] },
+        utilities: [
+          { id: 'remove-spaces', name: 'Remove Extra Spaces', description: 'Collapse consecutive spaces and trim edge whitespace.', engineId: 'text', status: 'ready', keywords: ['spaces', 'trim', 'whitespace'] },
+          { id: 'remove-blank-lines', name: 'Remove Blank Lines', description: 'Strip empty lines and trailing carriage returns.', engineId: 'text', status: 'ready', keywords: ['blank lines', 'empty lines'] },
+          { id: 'invisible-chars', name: 'Invisible Characters Cleanup', description: 'Remove zero-width spaces and unprintable control characters.', engineId: 'text', status: 'ready', keywords: ['invisible', 'zero-width', 'unicode'] },
+          { id: 'line-endings', name: 'Line-Ending Normalization', description: 'Convert CRLF (Windows) to LF (Unix) or vice-versa.', engineId: 'text', status: 'ready', keywords: ['crlf', 'lf', 'eol', 'line endings'] },
         ],
       },
       {
@@ -407,9 +407,9 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Word count, character count, line count, sentence count, and reading time.',
         icon: Info,
         badgeGradient: 'var(--badge-text)',
-        features: [
-          { id: 'text-statistics', name: 'Text Statistics', description: 'Count words, characters (with/without spaces), lines, and paragraphs.', engineId: 'text', keywords: ['word count', 'character count', 'stats'] },
-          { id: 'reading-time', name: 'Reading Time', description: 'Estimate reading and speaking duration at standard speeds.', engineId: 'text', keywords: ['reading time', 'speaking time', 'wpm'] },
+        utilities: [
+          { id: 'text-statistics', name: 'Text Statistics', description: 'Count words, characters (with/without spaces), lines, and paragraphs.', engineId: 'text', status: 'ready', keywords: ['word count', 'character count', 'stats'] },
+          { id: 'reading-time', name: 'Reading Time', description: 'Estimate reading and speaking duration at standard speeds.', engineId: 'text', status: 'ready', keywords: ['reading time', 'speaking time', 'wpm'] },
         ],
       },
       {
@@ -418,11 +418,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Base64, URL encoding, HTML entities, and Unicode conversion.',
         icon: Binary,
         badgeGradient: 'var(--badge-text)',
-        features: [
-          { id: 'base64-text', name: 'Base64 Text', description: 'Encode plain text to Base64 or decode Base64 strings.', engineId: 'dev', keywords: ['base64', 'encode', 'decode'] },
-          { id: 'url-encoding-text', name: 'URL Encoding', description: 'Percent-encode special characters or decode query strings.', engineId: 'dev', keywords: ['url encode', 'percent encode'] },
+        utilities: [
+          { id: 'base64-text', name: 'Base64 Text', description: 'Encode plain text to Base64 or decode Base64 strings.', engineId: 'dev', status: 'ready', keywords: ['base64', 'encode', 'decode'] },
+          { id: 'url-encoding-text', name: 'URL Encoding', description: 'Percent-encode special characters or decode query strings.', engineId: 'dev', status: 'ready', keywords: ['url encode', 'percent encode'] },
           { id: 'html-encoding', name: 'HTML Encoding', description: 'Escape HTML entities (&, <, >, ", \') and unescape entities.', engineId: 'dev', keywords: ['html escape', 'entities', 'sanitize'] },
-          { id: 'unicode-tool', name: 'Unicode Tool', description: 'Inspect Unicode code points, hex values, and glyphs.', engineId: 'dev', keywords: ['unicode', 'codepoints', 'utf8'] },
+          { id: 'unicode-tool', name: 'Unicode Tool', description: 'Inspect Unicode code points, hex values, and glyphs.', engineId: 'dev', status: 'ready', keywords: ['unicode', 'codepoints', 'utf8'] },
         ],
       },
       {
@@ -431,8 +431,8 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Side-by-side text diff tool highlighting additions and deletions.',
         icon: GitCompare,
         badgeGradient: 'var(--badge-text)',
-        features: [
-          { id: 'text-diff', name: 'Text Diff', description: 'Compare two text blocks line by line with color highlights.', engineId: 'diff', keywords: ['diff', 'compare text', 'changes'] },
+        utilities: [
+          { id: 'text-diff', name: 'Text Diff', description: 'Compare two text blocks line by line with color highlights.', engineId: 'diff', status: 'ready', keywords: ['diff', 'compare text', 'changes'] },
         ],
       },
     ],
@@ -445,20 +445,20 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     description: 'Technical utilities, formatters, and generators for developers.',
     icon: Code2,
     badgeGradient: 'var(--badge-dev)',
-    utilities: [
+    groups: [
       {
         id: 'dev-formatter',
         name: 'Formatter',
         description: 'Format and beautify JSON, HTML, CSS, JavaScript, XML, and SQL code.',
         icon: Code,
         badgeGradient: 'var(--badge-dev)',
-        features: [
-          { id: 'format-json-code', name: 'JSON Formatter', description: 'Format and indent JSON data with custom indentation.', engineId: 'dev', keywords: ['json', 'format', 'beautify'] },
-          { id: 'format-html-code', name: 'HTML Formatter', description: 'Beautify HTML markup with balanced tags and indenting.', engineId: 'dev', keywords: ['html', 'format', 'markup'] },
-          { id: 'format-css-code', name: 'CSS Formatter', description: 'Format CSS stylesheets, rules, and selectors.', engineId: 'dev', keywords: ['css', 'styles', 'format'] },
-          { id: 'format-js-code', name: 'JavaScript Formatter', description: 'Format JS/TS scripts and syntax.', engineId: 'dev', keywords: ['javascript', 'js', 'format'] },
-          { id: 'format-xml-code', name: 'XML Formatter', description: 'Format XML tags with custom indentation.', engineId: 'dev', keywords: ['xml', 'format'] },
-          { id: 'format-sql-code', name: 'SQL Formatter', description: 'Beautify SQL queries with standard keyword capitalization.', engineId: 'dev', keywords: ['sql', 'query', 'format'] },
+        utilities: [
+          { id: 'format-json-code', name: 'JSON Formatter', description: 'Format and indent JSON data with custom indentation.', engineId: 'dev', status: 'ready', keywords: ['json', 'format', 'beautify'] },
+          { id: 'format-html-code', name: 'HTML Formatter', description: 'Beautify HTML markup with balanced tags and indenting.', engineId: 'dev', status: 'ready', keywords: ['html', 'format', 'markup'] },
+          { id: 'format-css-code', name: 'CSS Formatter', description: 'Format CSS stylesheets, rules, and selectors.', engineId: 'dev', status: 'ready', keywords: ['css', 'styles', 'format'] },
+          { id: 'format-js-code', name: 'JavaScript Formatter', description: 'Format JS/TS scripts and syntax.', engineId: 'dev', status: 'ready', keywords: ['javascript', 'js', 'format'] },
+          { id: 'format-xml-code', name: 'XML Formatter', description: 'Format XML tags with custom indentation.', engineId: 'dev', status: 'ready', keywords: ['xml', 'format'] },
+          { id: 'format-sql-code', name: 'SQL Formatter', description: 'Beautify SQL queries with standard keyword capitalization.', engineId: 'dev', status: 'ready', keywords: ['sql', 'query', 'format'] },
         ],
       },
       {
@@ -467,11 +467,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Base64, URL encoding, JWT inspector, and URL components.',
         icon: Key,
         badgeGradient: 'var(--badge-dev)',
-        features: [
-          { id: 'dev-base64', name: 'Base64', description: 'Encode text/binary to Base64 or decode to UTF-8.', engineId: 'dev', keywords: ['base64', 'decode', 'encode'] },
-          { id: 'dev-url', name: 'URL Encoding', description: 'Percent-encode special URI characters.', engineId: 'dev', keywords: ['url encode', 'uri'] },
-          { id: 'dev-jwt', name: 'JWT Inspector', description: 'Decode JWT header, payload claims, and expiration date.', engineId: 'dev', keywords: ['jwt', 'token', 'auth', 'claims'] },
-          { id: 'dev-url-components', name: 'URL Components', description: 'Deconstruct URL into protocol, host, port, path, and params.', engineId: 'dev', keywords: ['url components', 'parse url'] },
+        utilities: [
+          { id: 'dev-base64', name: 'Base64', description: 'Encode text/binary to Base64 or decode to UTF-8.', engineId: 'dev', status: 'ready', keywords: ['base64', 'decode', 'encode'] },
+          { id: 'dev-url', name: 'URL Encoding', description: 'Percent-encode special URI characters.', engineId: 'dev', status: 'ready', keywords: ['url encode', 'uri'] },
+          { id: 'dev-jwt', name: 'JWT Inspector', description: 'Decode JWT header, payload claims, and expiration date.', engineId: 'dev', status: 'ready', keywords: ['jwt', 'token', 'auth', 'claims'] },
+          { id: 'dev-url-components', name: 'URL Components', description: 'Deconstruct URL into protocol, host, port, path, and params.', engineId: 'dev', status: 'ready', keywords: ['url components', 'parse url'] },
         ],
       },
       {
@@ -480,12 +480,12 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'UUID v4, random strings, timestamps, random numbers, and test data.',
         icon: Wand2,
         badgeGradient: 'var(--badge-dev)',
-        features: [
-          { id: 'gen-uuid', name: 'UUID Generator', description: 'Batch generate v4 UUIDs with 1-click copy.', engineId: 'dev', keywords: ['uuid', 'guid', 'v4', 'random'] },
-          { id: 'gen-random-string', name: 'Random String', description: 'Generate cryptographic passwords, salts, and API keys.', engineId: 'dev', keywords: ['random string', 'password', 'salt', 'key'] },
-          { id: 'gen-timestamp', name: 'Timestamp', description: 'Convert Unix epoch timestamps to human-readable dates.', engineId: 'dev', keywords: ['timestamp', 'epoch', 'unix', 'date'] },
-          { id: 'gen-random-number', name: 'Random Number', description: 'Generate random numbers within a min/max boundary.', engineId: 'dev', keywords: ['random number', 'integer', 'float'] },
-          { id: 'gen-test-data', name: 'Test Data', description: 'Generate sample JSON/CSV records (names, emails, dates).', engineId: 'dev', keywords: ['test data', 'mock', 'fake data'] },
+        utilities: [
+          { id: 'gen-uuid', name: 'UUID Generator', description: 'Batch generate v4 UUIDs with 1-click copy.', engineId: 'dev', status: 'ready', keywords: ['uuid', 'guid', 'v4', 'random'] },
+          { id: 'gen-random-string', name: 'Random String', description: 'Generate cryptographic passwords, salts, and API keys.', engineId: 'dev', status: 'ready', keywords: ['random string', 'password', 'salt', 'key'] },
+          { id: 'gen-timestamp', name: 'Timestamp', description: 'Convert Unix epoch timestamps to human-readable dates.', engineId: 'dev', status: 'ready', keywords: ['timestamp', 'epoch', 'unix', 'date'] },
+          { id: 'gen-random-number', name: 'Random Number', description: 'Generate random numbers within a min/max boundary.', engineId: 'dev', status: 'ready', keywords: ['random number', 'integer', 'float'] },
+          { id: 'gen-test-data', name: 'Test Data', description: 'Generate sample JSON/CSV records (names, emails, dates).', engineId: 'dev', status: 'ready', keywords: ['test data', 'mock', 'fake data'] },
         ],
       },
       {
@@ -494,8 +494,8 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Live regular expression tester with capture groups and match positions.',
         icon: Search,
         badgeGradient: 'var(--badge-dev)',
-        features: [
-          { id: 'regex-tester-feature', name: 'Regex Tester', description: 'Test patterns with flags (g, i, m, s) against sample text.', engineId: 'dev', keywords: ['regex', 'regular expression', 'pattern', 'test'] },
+        utilities: [
+          { id: 'regex-tester-feature', name: 'Regex Tester', description: 'Test patterns with flags (g, i, m, s) against sample text.', engineId: 'dev', status: 'ready', keywords: ['regex', 'regular expression', 'pattern', 'test'] },
         ],
       },
       {
@@ -504,11 +504,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'URL parser, HTTP headers, query string analyzer, and HTTP status reference.',
         icon: Globe,
         badgeGradient: 'var(--badge-dev)',
-        features: [
-          { id: 'web-url-parser', name: 'URL Parser', description: 'Deconstruct query parameters and paths into a table.', engineId: 'dev', keywords: ['url parser', 'query params'] },
-          { id: 'web-http-headers', name: 'HTTP Headers', description: 'Format and parse raw HTTP header blocks.', engineId: 'dev', keywords: ['headers', 'http'] },
-          { id: 'web-query-string', name: 'Query String', description: 'Serialize or parse URL query parameter strings.', engineId: 'dev', keywords: ['query string', 'params'] },
-          { id: 'web-status-codes', name: 'HTTP Status Reference', description: 'Searchable dictionary of HTTP status codes and semantics.', engineId: 'dev', keywords: ['status codes', '404', '200', '500'] },
+        utilities: [
+          { id: 'web-url-parser', name: 'URL Parser', description: 'Deconstruct query parameters and paths into a table.', engineId: 'dev', status: 'ready', keywords: ['url parser', 'query params'] },
+          { id: 'web-http-headers', name: 'HTTP Headers', description: 'Format and parse raw HTTP header blocks.', engineId: 'dev', status: 'ready', keywords: ['headers', 'http'] },
+          { id: 'web-query-string', name: 'Query String', description: 'Serialize or parse URL query parameter strings.', engineId: 'dev', status: 'ready', keywords: ['query string', 'params'] },
+          { id: 'web-status-codes', name: 'HTTP Status Reference', description: 'Searchable dictionary of HTTP status codes and semantics.', engineId: 'dev', status: 'ready', keywords: ['status codes', '404', '200', '500'] },
         ],
       },
     ],
@@ -521,18 +521,18 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     description: 'Comprehensive standard, scientific, engineering and unit calculators.',
     icon: Calculator,
     badgeGradient: 'var(--badge-calc)',
-    utilities: [
+    groups: [
       {
         id: 'calc-general',
         name: 'General',
         description: 'Basic arithmetic, percentage, discount, ratio, and proportion.',
         icon: Calculator,
         badgeGradient: 'var(--badge-calc)',
-        features: [
-          { id: 'calc-basic', name: 'Basic Calculator', description: 'Standard desktop arithmetic calculator.', engineId: 'calc', keywords: ['calculator', 'basic', 'math', 'arithmetic'] },
-          { id: 'calc-percentage', name: 'Percentage', description: 'Calculate percentage increases, decreases, and shares.', engineId: 'calc', keywords: ['percentage', 'percent', '%'] },
-          { id: 'calc-discount', name: 'Discount', description: 'Calculate sale prices, discounts, and tax totals.', engineId: 'calc', keywords: ['discount', 'sale', 'tax'] },
-          { id: 'calc-ratio', name: 'Ratio & Proportion', description: 'Solve proportional ratios (A:B = C:D).', engineId: 'calc', keywords: ['ratio', 'proportion', 'scale'] },
+        utilities: [
+          { id: 'calc-basic', name: 'Basic Calculator', description: 'Standard desktop arithmetic calculator.', engineId: 'calc', status: 'ready', keywords: ['calculator', 'basic', 'math', 'arithmetic'] },
+          { id: 'calc-percentage', name: 'Percentage', description: 'Calculate percentage increases, decreases, and shares.', engineId: 'calc', status: 'ready', keywords: ['percentage', 'percent', '%'] },
+          { id: 'calc-discount', name: 'Discount', description: 'Calculate sale prices, discounts, and tax totals.', engineId: 'calc', status: 'ready', keywords: ['discount', 'sale', 'tax'] },
+          { id: 'calc-ratio', name: 'Ratio & Proportion', description: 'Solve proportional ratios (A:B = C:D).', engineId: 'calc', status: 'ready', keywords: ['ratio', 'proportion', 'scale'] },
         ],
       },
       {
@@ -541,8 +541,8 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Trigonometry, logarithms, powers, roots, and physical constants.',
         icon: Sigma,
         badgeGradient: 'var(--badge-calc)',
-        features: [
-          { id: 'calc-trig-logs', name: 'Scientific Calculator', description: 'Sin, cos, tan, ln, log10, square roots, and powers.', engineId: 'calc', keywords: ['scientific', 'sin', 'cos', 'tan', 'log', 'sqrt'] },
+        utilities: [
+          { id: 'calc-trig-logs', name: 'Scientific Calculator', description: 'Sin, cos, tan, ln, log10, square roots, and powers.', engineId: 'calc', status: 'ready', keywords: ['scientific', 'sin', 'cos', 'tan', 'log', 'sqrt'] },
           { id: 'calc-constants', name: 'Constants', description: 'Quick lookup of Pi, Euler\'s e, speed of light, and constants.', engineId: 'calc', keywords: ['constants', 'pi', 'euler'] },
         ],
       },
@@ -552,10 +552,10 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Fractions, statistics, equations, average, median, and standard deviation.',
         icon: Sigma,
         badgeGradient: 'var(--badge-calc)',
-        features: [
-          { id: 'calc-fractions', name: 'Fractions', description: 'Simplify, add, subtract, multiply, and divide fractions.', engineId: 'calc', keywords: ['fractions', 'simplify', 'numerator'] },
-          { id: 'calc-statistics', name: 'Statistics', description: 'Calculate mean, median, mode, variance, and standard deviation.', engineId: 'calc', keywords: ['statistics', 'average', 'median', 'std dev'] },
-          { id: 'calc-equations', name: 'Equations', description: 'Solve linear and quadratic equations.', engineId: 'calc', keywords: ['equation', 'quadratic', 'solve'] },
+        utilities: [
+          { id: 'calc-fractions', name: 'Fractions', description: 'Simplify, add, subtract, multiply, and divide fractions.', engineId: 'calc', status: 'ready', keywords: ['fractions', 'simplify', 'numerator'] },
+          { id: 'calc-statistics', name: 'Statistics', description: 'Calculate mean, median, mode, variance, and standard deviation.', engineId: 'calc', status: 'ready', keywords: ['statistics', 'average', 'median', 'std dev'] },
+          { id: 'calc-equations', name: 'Equations', description: 'Solve linear and quadratic equations.', engineId: 'calc', status: 'ready', keywords: ['equation', 'quadratic', 'solve'] },
         ],
       },
       {
@@ -564,9 +564,9 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Ohm\'s law, voltage, current, resistance, and electrical power.',
         icon: Cpu,
         badgeGradient: 'var(--badge-calc)',
-        features: [
+        utilities: [
           { id: 'calc-ohms-law', name: 'Ohm\'s Law', description: 'Calculate Voltage (V), Current (I), and Resistance (R).', engineId: 'calc', keywords: ['ohms law', 'voltage', 'current', 'resistance'] },
-          { id: 'calc-power', name: 'Electrical Power', description: 'Calculate Watts (P = V * I) and energy consumption.', engineId: 'calc', keywords: ['power', 'watts', 'energy'] },
+          { id: 'calc-power', name: 'Electrical Power', description: 'Calculate Watts (P = V * I) and energy consumption.', engineId: 'calc', status: 'ready', keywords: ['power', 'watts', 'energy'] },
         ],
       },
       {
@@ -575,8 +575,8 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Length, mass, area, volume, temperature, time, speed, pressure, energy, data size.',
         icon: Ruler,
         badgeGradient: 'var(--badge-calc)',
-        features: [
-          { id: 'unit-converter-all', name: 'Unit Converter', description: 'Convert between physical, digital, and imperial/metric units.', engineId: 'calc', keywords: ['units', 'convert units', 'length', 'mass', 'bytes'] },
+        utilities: [
+          { id: 'unit-converter-all', name: 'Unit Converter', description: 'Convert between physical, digital, and imperial/metric units.', engineId: 'calc', status: 'ready', keywords: ['units', 'convert units', 'length', 'mass', 'bytes'] },
         ],
       },
     ],
@@ -589,17 +589,17 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     description: 'Analyze, compare, organize and work with local files and archives.',
     icon: FolderArchive,
     badgeGradient: 'var(--badge-files)',
-    utilities: [
+    groups: [
       {
         id: 'files-operations',
         name: 'File Operations',
         description: 'Batch rename, detect file types, file size, timestamps, and metadata.',
         icon: Files,
         badgeGradient: 'var(--badge-files)',
-        features: [
-          { id: 'batch-rename-files', name: 'Batch Rename', description: 'Rename files with prefix, suffix, find & replace, and numbering.', engineId: 'file-ops', keywords: ['rename', 'batch rename', 'numbering'] },
-          { id: 'file-type-detection', name: 'File Type Detection', description: 'Identify true MIME type from file header signatures.', engineId: 'file-ops', keywords: ['mime type', 'magic bytes', 'detect'] },
-          { id: 'file-metadata-ops', name: 'File Metadata & Size', description: 'Inspect exact size, created date, and modified timestamps.', engineId: 'file-ops', keywords: ['metadata', 'size', 'timestamps'] },
+        utilities: [
+          { id: 'batch-rename-files', name: 'Batch Rename', description: 'Rename files with prefix, suffix, find & replace, and numbering.', engineId: 'file-ops', status: 'ready', keywords: ['rename', 'batch rename', 'numbering'] },
+          { id: 'file-type-detection', name: 'File Type Detection', description: 'Identify true MIME type from file header signatures.', engineId: 'file-ops', status: 'ready', keywords: ['mime type', 'magic bytes', 'detect'] },
+          { id: 'file-metadata-ops', name: 'File Metadata & Size', description: 'Inspect exact size, created date, and modified timestamps.', engineId: 'file-ops', status: 'ready', keywords: ['metadata', 'size', 'timestamps'] },
         ],
       },
       {
@@ -608,8 +608,8 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Extension, MIME type, size, created/modified time, and cryptographic hashes.',
         icon: Search,
         badgeGradient: 'var(--badge-files)',
-        features: [
-          { id: 'file-analyzer-full', name: 'File Analyzer', description: 'Analyze files and compute SHA-256 and MD5 hashes.', engineId: 'file-ops', keywords: ['hash', 'sha256', 'analyzer'] },
+        utilities: [
+          { id: 'file-analyzer-full', name: 'File Analyzer', description: 'Analyze files and compute SHA-256 and MD5 hashes.', engineId: 'file-ops', status: 'ready', keywords: ['hash', 'sha256', 'analyzer'] },
         ],
       },
       {
@@ -618,8 +618,8 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Hash-based duplicate detection, duplicate groups, and selection for cleanup.',
         icon: Files,
         badgeGradient: 'var(--badge-files)',
-        features: [
-          { id: 'duplicate-finder-hash', name: 'Duplicate Finder', description: 'Scan multiple files and group exact matches by hash.', engineId: 'file-ops', keywords: ['duplicate', 'duplicates', 'cleanup'] },
+        utilities: [
+          { id: 'duplicate-finder-hash', name: 'Duplicate Finder', description: 'Scan multiple files and group exact matches by hash.', engineId: 'file-ops', status: 'ready', keywords: ['duplicate', 'duplicates', 'cleanup'] },
         ],
       },
       {
@@ -628,8 +628,8 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Compare file sizes, hashes, and text contents side-by-side.',
         icon: GitCompare,
         badgeGradient: 'var(--badge-files)',
-        features: [
-          { id: 'file-compare-hashes', name: 'File Comparison', description: 'Compare two files by hash, size, and binary equality.', engineId: 'file-ops', keywords: ['compare files', 'diff files'] },
+        utilities: [
+          { id: 'file-compare-hashes', name: 'File Comparison', description: 'Compare two files by hash, size, and binary equality.', engineId: 'file-ops', status: 'ready', keywords: ['compare files', 'diff files'] },
         ],
       },
       {
@@ -638,11 +638,11 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         description: 'Create ZIP, extract ZIP, inspect archive contents, TAR, and GZIP.',
         icon: Archive,
         badgeGradient: 'var(--badge-files)',
-        features: [
-          { id: 'create-zip-archive', name: 'Create ZIP', description: 'Compress files into a standard ZIP archive.', engineId: 'archive', keywords: ['zip', 'compress', 'create zip'] },
-          { id: 'extract-zip-archive', name: 'Extract ZIP', description: 'Inspect file list and extract contents of a ZIP file.', engineId: 'archive', keywords: ['extract zip', 'unzip'] },
-          { id: 'inspect-zip-archive', name: 'Inspect ZIP', description: 'View file listing and compression ratios without extracting.', engineId: 'archive', keywords: ['inspect zip', 'view archive'] },
-          { id: 'tar-gzip-manager', name: 'TAR & GZIP', description: 'Create and extract TAR and GZIP archives.', engineId: 'archive', keywords: ['tar', 'gzip', 'gz', 'tgz'] },
+        utilities: [
+          { id: 'create-zip-archive', name: 'Create ZIP', description: 'Compress files into a standard ZIP archive.', engineId: 'archive', status: 'ready', keywords: ['zip', 'compress', 'create zip'] },
+          { id: 'extract-zip-archive', name: 'Extract ZIP', description: 'Inspect file list and extract contents of a ZIP file.', engineId: 'archive', status: 'ready', keywords: ['extract zip', 'unzip'] },
+          { id: 'inspect-zip-archive', name: 'Inspect ZIP', description: 'View file listing and compression ratios without extracting.', engineId: 'archive', status: 'ready', keywords: ['inspect zip', 'view archive'] },
+          { id: 'tar-gzip-manager', name: 'TAR & GZIP', description: 'Create and extract TAR and GZIP archives.', engineId: 'archive', status: 'ready', keywords: ['tar', 'gzip', 'gz', 'tgz'] },
         ],
       },
     ],

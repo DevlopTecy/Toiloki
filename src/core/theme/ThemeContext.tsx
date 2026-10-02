@@ -40,9 +40,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const { showToast } = useToast();
   const initialSettings = SettingsService.getSettings();
 
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(
-    (initialSettings.theme as ThemeMode) || 'system'
-  );
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('theme');
+      if (p === 'light' || p === 'dark' || p === 'system') return p as ThemeMode;
+    }
+    return (initialSettings.theme as ThemeMode) || 'system';
+  });
 
   const [customThemes, setCustomThemes] = useState<AppTheme[]>(() => {
     try {

@@ -26,8 +26,8 @@ import {
 import './ImagesWorkspaceView.css';
 
 interface ImagesWorkspaceViewProps {
+  groupId: string;
   utilityId: string;
-  featureId: string;
   toolName: string;
   toolDescription: string;
   onBackToUtilities: () => void;
@@ -36,8 +36,8 @@ interface ImagesWorkspaceViewProps {
 }
 
 export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
+  groupId,
   utilityId,
-  featureId,
   toolName,
   toolDescription,
   onBackToUtilities,
@@ -210,8 +210,8 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
         HistoryService.record({
           toolName,
           workspaceId: 'images',
+          groupId,
           utilityId,
-          featureId,
           input: files[0].name,
           output: `Exported ${targetWidth}x${targetHeight} ${getFormatExtension().toUpperCase()}`,
           status: 'completed',
@@ -245,8 +245,8 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
         HistoryService.record({
           toolName: 'Strip EXIF Metadata',
           workspaceId: 'images',
-          utilityId: 'img-metadata',
-          featureId: 'strip-exif',
+          groupId: 'img-metadata',
+          utilityId: 'strip-exif',
           input: files[0].name,
           output: `Clean Image (${((res.outputBuffer?.length || 0) / 1024).toFixed(1)} KB, EXIF stripped)`,
           status: 'completed',
@@ -288,7 +288,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
           <div className="image-empty-dropzone">
             <FileDropzone
               accept={['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff']}
-              multiple={featureId === 'multi-img-pdf'}
+              multiple={utilityId === 'multi-img-pdf'}
               files={files}
               onFilesChanged={setFiles}
               label="Select or drop an image file"
@@ -385,7 +385,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
                 <h4 className="controls-panel-title">Tool Configuration</h4>
 
                 {/* Resize Controls with Presets */}
-                {(utilityId === 'img-transformer' || featureId === 'img-resize') && (
+                {(groupId === 'img-transformer' || groupId === 'image-editor' || utilityId === 'img-resize') && (
                   <div className="control-group-block">
                     <span className="group-heading">Dimensions & Presets</span>
                     <div className="preset-buttons-row">
@@ -470,7 +470,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
                 )}
 
                 {/* Crop & Aspect ratio */}
-                {featureId === 'img-crop' && (
+                {utilityId === 'img-crop' && (
                   <div className="control-group-block">
                     <span className="group-heading">Crop Aspect Ratio</span>
                     <div className="preset-buttons-row">
@@ -524,7 +524,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
                 )}
 
                 {/* Rotate & Flip */}
-                {(utilityId === 'img-transformer' || featureId === 'img-rotate') && (
+                {(groupId === 'img-transformer' || groupId === 'image-editor' || utilityId === 'img-rotate') && (
                   <div className="control-group-block">
                     <span className="group-heading">Orientation</span>
                     <div className="orientation-btns-row">
@@ -757,7 +757,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
           <>
             <ResultViewer
               title={`${toolName} Completed`}
-              outputName={`toiloki_${featureId}_output.${getFormatExtension()}`}
+              outputName={`toiloki_${utilityId}_output.${getFormatExtension()}`}
               outputBuffer={result.outputBuffer}
               originalSize={files[0]?.size}
               outputSize={result.outputBuffer?.length}

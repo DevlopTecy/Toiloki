@@ -22,6 +22,8 @@ import {
 import { WorkspaceId } from '../../core/types/workspace';
 import { WORKSPACES } from '../../core/registry/app-registry';
 import { SettingsService } from '../../core/services/settings.service';
+import { useTheme } from '../../core/theme/ThemeContext';
+import { ThemeMode } from '../../core/theme/theme.types';
 import './Sidebar.css';
 
 export type ActiveNav = 'home' | WorkspaceId | 'favorites' | 'history' | 'settings';
@@ -65,20 +67,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [currentTheme, setCurrentTheme] = useState<string>(() => {
-    return SettingsService.getSettings().theme || 'system';
-  });
+  const { themeMode, setThemeMode } = useTheme();
 
-  // Calculate tool counts per category from WORKSPACES
-  const categoryCounts: Record<string, number> = React.useMemo(() => {
-    const counts: Record<string, number> = {};
+  // Calculate utility statistics per workspace from WORKSPACES
+  const workspaceUtilityData: Record<string, { total: number; ready: number; beta: number; soon: number }> = React.useMemo(() => {
+    const data: Record<string, { total: number; ready: number; beta: number; soon: number }> = {};
     for (const ws of WORKSPACES) {
-      counts[ws.id] = ws.utilities.reduce((acc, u) => acc + u.features.length, 0);
+      const allUtils = ws.groups.flatMap((g) => g.utilities);
+      const uniqueUtils = Array.from(new Map(allUtils.map((u) => [u.id, u])).values());
+      const ready = uniqueUtils.filter((u) => u.status === 'ready' || !u.status).length;
+      const beta = uniqueUtils.filter((u) => u.status === 'beta').length;
+      const soon = uniqueUtils.filter((u) => u.status === 'soon').length;
+      data[ws.id] = { total: uniqueUtils.length, ready, beta, soon };
     }
-    return counts;
+    return data;
   }, []);
 
-  const totalTools = Object.values(categoryCounts).reduce((a, b) => a + b, 0);
+  const totalUtilities = Object.values(workspaceUtilityData).reduce((a, b) => a + b.total, 0);
+  const totalReady = Object.values(workspaceUtilityData).reduce((a, b) => a + b.ready, 0);
+  const totalBeta = Object.values(workspaceUtilityData).reduce((a, b) => a + b.beta, 0);
+  const totalSoon = Object.values(workspaceUtilityData).reduce((a, b) => a + b.soon, 0);
 
   const categories = [
     { id: 'pdf', label: 'PDF', icon: FileText, badgeClass: 'badge-pdf' },
@@ -92,27 +100,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ] as const;
 
   const cycleTheme = () => {
-    let nextTheme = 'dark';
-    if (currentTheme === 'dark' || currentTheme === 'dark-navy') {
+    let nextTheme: ThemeMode = 'dark';
+    if (themeMode === 'dark') {
       nextTheme = 'light';
-    } else if (currentTheme === 'light') {
+    } else if (themeMode === 'light') {
       nextTheme = 'system';
     } else {
       nextTheme = 'dark';
     }
-    setCurrentTheme(nextTheme);
+    setThemeMode(nextTheme);
     SettingsService.saveSettings({ theme: nextTheme });
   };
 
   const getThemeIcon = () => {
-    if (currentTheme === 'light') return <Sun size={13} />;
-    if (currentTheme === 'system') return <Monitor size={13} />;
+    if (themeMode === 'light') return <Sun size={13} />;
+    if (themeMode === 'system') return <Monitor size={13} />;
     return <Moon size={13} />;
   };
 
   const getThemeLabel = () => {
-    if (currentTheme === 'light') return 'Light';
-    if (currentTheme === 'system') return 'System';
+    if (themeMode === 'light') return 'Light';
+    if (themeMode === 'system') return 'System';
     return 'Dark';
   };
 
@@ -161,13 +169,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           data-nav="home"
           className={`sidebar-nav-btn home-nav-btn ${activeNav === 'home' ? 'active' : ''}`}
           onClick={() => onSelectNav('home')}
-          title="Home Dashboard"
+          title={`Home Dashboard (${totalUtilities} utilities: ${totalReady} ready · ${totalBeta} beta · ${totalSoon} coming soon)`}
         >
           <div className="nav-tile home-tile">
             <Home size={13} />
           </div>
           {!isCollapsed && <span className="sidebar-btn-label">Home</span>}
-          {!isCollapsed && <span className="nav-count-pill">{totalTools}</span>}
+          {!isCollapsed && <span className="nav-count-pill">{totalUtilities}</span>}
         </button>
       </div>
 
@@ -179,7 +187,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {categories.map((cat) => {
           const Icon = cat.icon;
           const isActive = activeNav === cat.id;
-          const count = categoryCounts[cat.id] || 0;
+          const stats = workspaceUtilityData[cat.id] || { total: 0, ready: 0, beta: 0, soon: 0 };
 
           return (
             <button
@@ -187,13 +195,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               data-nav={cat.id}
               className={`sidebar-nav-btn ${isActive ? 'active' : ''}`}
               onClick={() => onSelectNav(cat.id as ActiveNav)}
-              title={`${cat.label} (${count} tools)`}
+              title={`${cat.label} (${stats.total} utilities: ${stats.ready} ready · ${stats.beta} beta · ${stats.soon} coming soon)`}
             >
               <div className={`nav-tile ${cat.badgeClass}`}>
                 <Icon size={12} />
               </div>
               {!isCollapsed && <span className="sidebar-btn-label">{cat.label}</span>}
-              {!isCollapsed && <span className="nav-count-pill">{count}</span>}
+              {!isCollapsed && <span className="nav-count-pill">{stats.total}</span>}
             </button>
           );
         })}

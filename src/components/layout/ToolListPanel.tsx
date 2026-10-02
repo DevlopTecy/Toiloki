@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { WorkspaceDefinition, UtilityDefinition, FeatureDefinition } from '../../core/types/workspace';
-import { ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { WorkspaceDefinition, GroupDefinition, UtilityDefinition } from '../../core/types/workspace';
+import { ChevronRight, Search } from 'lucide-react';
 import './ToolListPanel.css';
 
 interface ToolListPanelProps {
   workspace: WorkspaceDefinition;
+  activeGroupId: string;
   activeUtilityId: string;
-  activeFeatureId: string;
-  onSelectFeature: (utility: UtilityDefinition, feature: FeatureDefinition) => void;
+  onSelectUtility: (group: GroupDefinition, utility: UtilityDefinition) => void;
 }
 
 export const ToolListPanel: React.FC<ToolListPanelProps> = ({
   workspace,
+  activeGroupId: _activeGroupId,
   activeUtilityId,
-  activeFeatureId,
-  onSelectFeature,
+  onSelectUtility,
 }) => {
   const [searchFilter, setSearchFilter] = useState('');
 
@@ -37,39 +37,47 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
     });
   };
 
-  // Calculate total tools in this workspace
-  const totalTools = useMemo(() => {
-    return workspace.utilities.reduce((sum, u) => sum + u.features.length, 0);
+  // Calculate utility statistics per workspace (unique IDs, tooltip: ready/beta/soon)
+  const utilityStats = useMemo(() => {
+    const all = workspace.groups.flatMap((g) => g.utilities);
+    const unique = Array.from(new Map(all.map((u) => [u.id, u])).values());
+    const ready = unique.filter((u) => u.status === 'ready' || !u.status).length;
+    const beta = unique.filter((u) => u.status === 'beta').length;
+    const soon = unique.filter((u) => u.status === 'soon').length;
+    return {
+      total: unique.length,
+      tooltip: `${ready} ready · ${beta} beta · ${soon} coming soon`,
+    };
   }, [workspace]);
 
-  // Filtered utilities & features
-  const filteredUtilities = useMemo(() => {
+  // Filtered groups & utilities
+  const filteredGroups = useMemo(() => {
     const q = searchFilter.trim().toLowerCase();
-    if (!q) return workspace.utilities;
+    if (!q) return workspace.groups;
 
-    return workspace.utilities
-      .map((u) => {
-        const matchingFeatures = u.features.filter(
-          (f) =>
-            f.name.toLowerCase().includes(q) ||
-            f.description.toLowerCase().includes(q) ||
-            f.keywords?.some((k) => k.toLowerCase().includes(q))
+    return workspace.groups
+      .map((g) => {
+        const matchingUtilities = g.utilities.filter(
+          (u) =>
+            u.name.toLowerCase().includes(q) ||
+            u.description.toLowerCase().includes(q) ||
+            u.keywords?.some((k) => k.toLowerCase().includes(q))
         );
         return {
-          ...u,
-          features: matchingFeatures,
+          ...g,
+          utilities: matchingUtilities,
         };
       })
-      .filter((u) => u.features.length > 0);
+      .filter((g) => g.utilities.length > 0);
   }, [workspace, searchFilter]);
 
   const scrollableRef = React.useRef<HTMLDivElement>(null);
   const [indicatorY, setIndicatorY] = useState<number>(-1);
 
-  // Track position of active tool for shared sliding indicator bar (180ms ease-standard)
+  // Track position of active utility for shared sliding indicator bar (180ms ease-standard)
   useEffect(() => {
     if (!scrollableRef.current) return;
-    const activeBtn = scrollableRef.current.querySelector<HTMLButtonElement>(`[data-tool-id="${activeFeatureId}"]`);
+    const activeBtn = scrollableRef.current.querySelector<HTMLButtonElement>(`[data-tool-id="${activeUtilityId}"]`);
     if (activeBtn) {
       const parentRect = scrollableRef.current.getBoundingClientRect();
       const btnRect = activeBtn.getBoundingClientRect();
@@ -78,24 +86,26 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
     } else {
       setIndicatorY(-1);
     }
-  }, [activeFeatureId, collapsedGroups, filteredUtilities]);
+  }, [activeUtilityId, collapsedGroups, filteredGroups]);
 
   return (
     <aside className="tool-list-panel no-drag">
-      {/* ─── Header: Category Name + Tool Count ─── */}
+      {/* ─── Header: Category Name + Utility Count ─── */}
       <div className="tool-list-header">
         <div className="tool-list-title-row">
           <h2 className="tool-list-cat-name">{workspace.name}</h2>
-          <span className="tool-list-count">{totalTools} tools</span>
+          <span className="tool-list-count" title={utilityStats.tooltip}>
+            {utilityStats.total} utilities
+          </span>
         </div>
 
-        {/* Small filter input if > 12 tools */}
-        {totalTools > 12 && (
+        {/* Small filter input if > 12 utilities */}
+        {utilityStats.total > 12 && (
           <div className="tool-list-search-wrap">
             <Search size={13} className="tool-list-search-icon" />
             <input
               type="text"
-              placeholder="Filter tools..."
+              placeholder="Filter utilities..."
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
               className="tool-list-search-input"
@@ -104,7 +114,7 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
         )}
       </div>
 
-      {/* ─── Scrollable Groups and Features ─── */}
+      {/* ─── Scrollable Groups and Utilities ─── */}
       <div ref={scrollableRef} className="tool-list-scrollable" style={{ position: 'relative' }}>
         {/* Shared Sliding 2px Accent Bar */}
         <div
@@ -116,19 +126,19 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
           aria-hidden="true"
         />
 
-        {filteredUtilities.map((utility) => {
-          const isCollapsed = Boolean(collapsedGroups[utility.id]);
+        {filteredGroups.map((group) => {
+          const isCollapsed = Boolean(collapsedGroups[group.id]);
 
           return (
-            <div key={utility.id} className="tool-list-group">
-              {/* Group Heading (12px / 500 Muted, Collapsible) */}
+            <div key={group.id} className="tool-list-group">
+              {/* Group Heading (Folder only: no screen, route, or count) */}
               <button
                 type="button"
                 className="tool-group-heading"
-                onClick={() => toggleGroupCollapse(utility.id)}
-                title={`${utility.name} (${utility.features.length})`}
+                onClick={() => toggleGroupCollapse(group.id)}
+                title={group.name}
               >
-                <span className="tool-group-title">{utility.name}</span>
+                <span className="tool-group-title">{group.name}</span>
                 <span className="tool-group-toggle-icon">
                   <ChevronRight
                     size={13}
@@ -137,23 +147,30 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
                 </span>
               </button>
 
-              {/* Group Features List (grid-template-rows 0fr -> 1fr, 180ms ease-standard) */}
+              {/* Group Utilities List */}
               <div className={`tool-group-collapse ${isCollapsed ? 'collapsed' : 'expanded'}`}>
                 <div className="tool-group-collapse-inner">
                   <div className="tool-group-items">
-                    {utility.features.map((feature) => {
-                      const isActive = feature.id === activeFeatureId;
+                    {group.utilities.map((utility) => {
+                      const isActive = utility.id === activeUtilityId;
 
                       return (
                         <button
-                          key={feature.id}
-                          data-tool-id={feature.id}
+                          key={utility.id}
+                          data-tool-id={utility.id}
+                          data-utility-id={utility.id}
                           type="button"
                           className={`tool-item-btn ${isActive ? 'active' : ''}`}
-                          onClick={() => onSelectFeature(utility, feature)}
-                          title={feature.description}
+                          onClick={() => onSelectUtility(group, utility)}
+                          title={utility.description}
                         >
-                          <span className="tool-item-name">{feature.name}</span>
+                          <span className="tool-item-name">{utility.name}</span>
+                          {utility.status === 'soon' && (
+                            <span className="status-badge status-soon" style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted, #888)', marginLeft: 'auto' }}>Soon</span>
+                          )}
+                          {utility.status === 'beta' && (
+                            <span className="status-badge status-beta" style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', marginLeft: 'auto' }}>Beta</span>
+                          )}
                         </button>
                       );
                     })}
@@ -164,12 +181,13 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
           );
         })}
 
-        {filteredUtilities.length === 0 && (
+        {filteredGroups.length === 0 && (
           <div className="tool-list-empty">
-            <span>No matching tools</span>
+            <span>No matching utilities</span>
           </div>
         )}
       </div>
     </aside>
   );
 };
+

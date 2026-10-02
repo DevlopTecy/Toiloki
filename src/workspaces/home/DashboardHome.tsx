@@ -21,7 +21,7 @@ let hasAnimatedHomeSession = false;
 
 interface DashboardHomeProps {
   onSelectWorkspace: (id: WorkspaceId) => void;
-  onSelectTool: (workspaceId: WorkspaceId, utilityId: string, featureId: string) => void;
+  onSelectUtility: (workspaceId: WorkspaceId, groupId: string, utilityId: string) => void;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -37,7 +37,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export const DashboardHome: React.FC<DashboardHomeProps> = ({
   onSelectWorkspace,
-  onSelectTool,
+  onSelectUtility,
 }) => {
   const shouldAnimate = React.useRef(!hasAnimatedHomeSession).current;
   const { activeTheme, resolvedMode } = useTheme();
@@ -59,12 +59,12 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
 
   // Pinned Quick Actions
   const quickActions = [
-    { name: 'Merge PDF', workspaceId: 'pdf' as WorkspaceId, utilityId: 'page-organizer', featureId: 'merge-pdf', badgeClass: 'badge-pdf', desc: 'Combine multiple PDF files' },
-    { name: 'Resize Images', workspaceId: 'images' as WorkspaceId, utilityId: 'image-editor', featureId: 'resize-rescale', badgeClass: 'badge-img', desc: 'Batch scale & reformat' },
-    { name: 'JSON Formatter', workspaceId: 'developer' as WorkspaceId, utilityId: 'formatters', featureId: 'json-beautifier', badgeClass: 'badge-dev', desc: 'Beautify, minify, validate' },
-    { name: 'Hash & Checksum', workspaceId: 'files' as WorkspaceId, utilityId: 'file-analysis', featureId: 'checksum-hash', badgeClass: 'badge-files', desc: 'MD5, SHA-256 integrity' },
-    { name: 'Text Diff / Compare', workspaceId: 'text' as WorkspaceId, utilityId: 'text-compare', featureId: 'side-by-side-diff', badgeClass: 'badge-text', desc: 'Side-by-side comparison' },
-    { name: 'Create ZIP Archive', workspaceId: 'files' as WorkspaceId, utilityId: 'archive-manager', featureId: 'create-archive', badgeClass: 'badge-files', desc: 'Compress folders and files' },
+    { name: 'Merge PDF', workspaceId: 'pdf' as WorkspaceId, groupId: 'page-organizer', utilityId: 'merge-pdf', badgeClass: 'badge-pdf', desc: 'Combine multiple PDF files' },
+    { name: 'Resize Images', workspaceId: 'images' as WorkspaceId, groupId: 'image-editor', utilityId: 'resize-rescale', badgeClass: 'badge-img', desc: 'Batch scale & reformat' },
+    { name: 'JSON Formatter', workspaceId: 'developer' as WorkspaceId, groupId: 'formatters', utilityId: 'json-beautifier', badgeClass: 'badge-dev', desc: 'Beautify, minify, validate' },
+    { name: 'Hash & Checksum', workspaceId: 'files' as WorkspaceId, groupId: 'file-analysis', utilityId: 'checksum-hash', badgeClass: 'badge-files', desc: 'MD5, SHA-256 integrity' },
+    { name: 'Text Diff / Compare', workspaceId: 'text' as WorkspaceId, groupId: 'text-compare', utilityId: 'side-by-side-diff', badgeClass: 'badge-text', desc: 'Side-by-side comparison' },
+    { name: 'Create ZIP Archive', workspaceId: 'files' as WorkspaceId, groupId: 'archive-manager', utilityId: 'create-archive', badgeClass: 'badge-files', desc: 'Compress folders and files' },
   ];
 
   return (
@@ -73,14 +73,20 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
       <section className="dashboard-section">
         <div className="section-header">
           <div className="section-title-wrap">
-            <h2 className="section-title">Tool categories</h2>
-            <span className="section-count">{WORKSPACES.length} Modules</span>
+            <h2 className="section-title">Utility categories</h2>
+            <span className="section-count">{WORKSPACES.length} Workspaces</span>
           </div>
         </div>
 
         <div className="categories-grid">
           {WORKSPACES.map((ws) => {
-            const toolCount = ws.utilities.reduce((acc, u) => acc + u.features.length, 0);
+            const allUtils = ws.groups.flatMap((g) => g.utilities);
+            const uniqueUtils = Array.from(new Map(allUtils.map((u) => [u.id, u])).values());
+            const utilityCount = uniqueUtils.length;
+            const ready = uniqueUtils.filter((u) => u.status === 'ready' || !u.status).length;
+            const beta = uniqueUtils.filter((u) => u.status === 'beta').length;
+            const soon = uniqueUtils.filter((u) => u.status === 'soon').length;
+            const tooltip = `${ready} ready · ${beta} beta · ${soon} coming soon`;
             const categoryColor = CATEGORY_COLORS[ws.id] || 'var(--cat-system, #64748B)';
             const pictureConfig = activeTheme.buttons?.pictures?.[ws.id];
 
@@ -90,7 +96,8 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                 id={ws.id}
                 title={ws.name}
                 description={ws.description}
-                toolCount={toolCount}
+                toolCount={utilityCount}
+                tooltip={tooltip}
                 icon={ws.icon}
                 categoryColor={categoryColor}
                 cardStyle={isImageStyle ? 'image' : 'flat'}
@@ -145,9 +152,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                     }
                     onClick={() =>
                       rec.workspaceId &&
+                      rec.groupId &&
                       rec.utilityId &&
-                      rec.featureId &&
-                      onSelectTool(rec.workspaceId as WorkspaceId, rec.utilityId, rec.featureId)
+                      onSelectUtility(rec.workspaceId as WorkspaceId, rec.groupId, rec.utilityId)
                     }
                   >
                     <div className="run-row-left">
@@ -189,8 +196,8 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                           title="More options"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (rec.workspaceId && rec.utilityId && rec.featureId) {
-                              onSelectTool(rec.workspaceId as WorkspaceId, rec.utilityId, rec.featureId);
+                            if (rec.workspaceId && rec.groupId && rec.utilityId) {
+                              onSelectUtility(rec.workspaceId as WorkspaceId, rec.groupId, rec.utilityId);
                             }
                           }}
                         >
@@ -201,8 +208,8 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                           className="run-open-btn"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (rec.workspaceId && rec.utilityId && rec.featureId) {
-                              onSelectTool(rec.workspaceId as WorkspaceId, rec.utilityId, rec.featureId);
+                            if (rec.workspaceId && rec.groupId && rec.utilityId) {
+                              onSelectUtility(rec.workspaceId as WorkspaceId, rec.groupId, rec.utilityId);
                             }
                           }}
                         >
@@ -217,12 +224,12 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
           </div>
         </section>
 
-        {/* Right Column: Pinned / Favorite Tools Mini-Grid */}
+        {/* Right Column: Pinned / Favorite Mini-Grid */}
         <section className="dashboard-section col-half">
           <div className="section-header">
             <div className="section-title-wrap">
               <h2 className="section-title">Quick actions</h2>
-              <span className="section-count">Pinned Tools</span>
+              <span className="section-count">Pinned Utilities</span>
             </div>
           </div>
 
@@ -246,11 +253,11 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                       : undefined
                   }
                   title={qa.desc}
-                  onClick={() => onSelectTool(qa.workspaceId, qa.utilityId, qa.featureId)}
+                  onClick={() => onSelectUtility(qa.workspaceId, qa.groupId, qa.utilityId)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') onSelectTool(qa.workspaceId, qa.utilityId, qa.featureId);
+                    if (e.key === 'Enter') onSelectUtility(qa.workspaceId, qa.groupId, qa.utilityId);
                   }}
                 >
                   {/* Faint background artwork in Image Style (opacity 0.25) */}

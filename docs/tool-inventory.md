@@ -1,6 +1,6 @@
 # Toiloki Suite Complete Tool Inventory
 
-**Hierarchy**: `Workspace > Group > Tool`  
+**Hierarchy**: `Workspace > Group > Utility > Feature > Engine`  
 **Total Registered Catalog Listings**: 145  
 **Total Unique Tool Definitions**: 137  
 **Sidebar Tooltip Status**: `121 ready - 8 beta - 16 coming soon` (reflects 145 raw catalog listings)  

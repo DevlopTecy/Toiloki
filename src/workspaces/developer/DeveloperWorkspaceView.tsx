@@ -20,8 +20,8 @@ import { SplitEditor } from '../../components/common/SplitEditor';
 import './DeveloperWorkspaceView.css';
 
 interface DeveloperWorkspaceViewProps {
+  groupId: string;
   utilityId: string;
-  featureId: string;
   toolName: string;
   toolDescription: string;
   onBackToUtilities: () => void;
@@ -30,8 +30,8 @@ interface DeveloperWorkspaceViewProps {
 }
 
 export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
+  groupId,
   utilityId,
-  featureId,
   toolName,
   toolDescription,
   onBackToUtilities,
@@ -115,24 +115,24 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
   ];
 
   useEffect(() => {
-    if (featureId === 'dev-jwt') {
+    if (utilityId === 'dev-jwt') {
       const res = DevEngine.decodeJwt(jwtInput);
       if (res.success) setJwtData(res.data);
-    } else if (featureId === 'gen-uuid') {
+    } else if (utilityId === 'gen-uuid') {
       const res = DevEngine.generateUuids(uuidCount);
       if (res.success && res.data) setUuids(res.data);
-    } else if (featureId === 'regex-tester-feature') {
+    } else if (utilityId === 'regex-tester-feature') {
       const res = DevEngine.testRegex(regexPattern, regexFlags, regexText);
       if (res.success && res.data) setRegexMatches(res.data.matches);
     }
-  }, [featureId]);
+  }, [utilityId]);
 
   const handleFormatCode = () => {
     try {
-      if (featureId.includes('json') || codeSnippet.trim().startsWith('{') || codeSnippet.trim().startsWith('[')) {
+      if (utilityId.includes('json') || codeSnippet.trim().startsWith('{') || codeSnippet.trim().startsWith('[')) {
         const parsed = JSON.parse(codeSnippet);
         setFormattedCode(JSON.stringify(parsed, null, 2));
-      } else if (featureId.includes('sql')) {
+      } else if (utilityId.includes('sql')) {
         const formatted = codeSnippet
           .replace(/\bSELECT\b/gi, 'SELECT\n ')
           .replace(/\bFROM\b/gi, '\nFROM')
@@ -146,8 +146,8 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
       HistoryService.record({
         toolName,
         workspaceId: 'developer',
+        groupId,
         utilityId,
-        featureId,
         input: `${codeSnippet.length} chars`,
         output: 'Formatted code payload',
         status: 'completed',
@@ -274,7 +274,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
 
 
         {/* JWT Inspector */}
-        {featureId === 'dev-jwt' && (
+        {utilityId === 'dev-jwt' && (
           <div className="jwt-container">
             <div className="jwt-input-header">
               <span className="field-label">Encoded JWT Token:</span>
@@ -344,7 +344,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         )}
 
         {/* Encode / Decode */}
-        {(featureId === 'dev-base64' || featureId === 'dev-url') && (
+        {(utilityId === 'dev-base64' || utilityId === 'dev-url') && (
           <div className="encode-container">
             <span className="field-label">Input Text:</span>
             <textarea
@@ -358,7 +358,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
                 onClick={() => {
                   const res = DevEngine.encodeDecode(
                     encodeInput,
-                    featureId === 'dev-base64' ? 'base64-encode' : 'url-encode'
+                    utilityId === 'dev-base64' ? 'base64-encode' : 'url-encode'
                   );
                   if (res.success && res.data) setEncodeOutput(res.data);
                 }}
@@ -371,7 +371,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
                 onClick={() => {
                   const res = DevEngine.encodeDecode(
                     encodeInput,
-                    featureId === 'dev-base64' ? 'base64-decode' : 'url-decode'
+                    utilityId === 'dev-base64' ? 'base64-decode' : 'url-decode'
                   );
                   if (res.success && res.data) setEncodeOutput(res.data);
                 }}
@@ -396,7 +396,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         )}
 
         {/* UUID Generator */}
-        {featureId === 'gen-uuid' && (
+        {utilityId === 'gen-uuid' && (
           <div className="generator-container">
             <div className="gen-controls-bar">
               <label>Count:</label>
@@ -447,7 +447,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         )}
 
         {/* Random String */}
-        {featureId === 'gen-random-string' && (
+        {utilityId === 'gen-random-string' && (
           <div className="generator-container">
             <div className="gen-controls-bar">
               <label>Length (characters):</label>
@@ -471,7 +471,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         )}
 
         {/* Timestamp Converter */}
-        {featureId === 'gen-timestamp' && (
+        {utilityId === 'gen-timestamp' && (
           <div className="generator-container">
             <div className="gen-controls-bar">
               <label>Epoch Timestamp (seconds or ms):</label>
@@ -494,7 +494,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         )}
 
         {/* Regex Tester */}
-        {featureId === 'regex-tester-feature' && (
+        {utilityId === 'regex-tester-feature' && (
           <div className="regex-tester-container">
             <div className="regex-inputs-strip">
               <span className="regex-slash">/</span>
@@ -550,7 +550,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         )}
 
         {/* HTTP Status Reference */}
-        {featureId === 'web-status-codes' && (
+        {utilityId === 'web-status-codes' && (
           <div className="http-status-container">
             <input
               type="text"

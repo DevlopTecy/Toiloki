@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WorkspaceDefinition, UtilityDefinition, FeatureDefinition } from '../core/types/workspace';
+import { WorkspaceDefinition, GroupDefinition, UtilityDefinition } from '../core/types/workspace';
 import { WorkspaceHeader } from './common/WorkspaceHeader';
 import { ToolListPanel } from '../components/layout/ToolListPanel';
 import { PdfWorkspaceView } from './pdf/PdfWorkspaceView';
@@ -14,68 +14,74 @@ import { FavoritesService } from '../core/services/favorites.service';
 
 interface WorkspaceViewProps {
   workspace: WorkspaceDefinition;
+  initialGroupId?: string;
   initialUtilityId?: string;
-  initialFeatureId?: string;
   onBackToHome: () => void;
 }
 
 export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
   workspace,
+  initialGroupId,
   initialUtilityId,
-  initialFeatureId,
   onBackToHome,
 }) => {
-  // Helper to load last-used tool per category
+  // Helper to load last-used utility per category
   const getInitialSelection = () => {
-    if (initialUtilityId) {
-      const foundUtil = workspace.utilities.find((u) => u.id === initialUtilityId);
-      if (foundUtil) {
-        if (initialFeatureId) {
-          const foundFeat = foundUtil.features.find((f) => f.id === initialFeatureId);
-          if (foundFeat) return { util: foundUtil, feat: foundFeat };
+    if (initialGroupId) {
+      const foundGroup = workspace.groups.find((g) => g.id === initialGroupId);
+      if (foundGroup) {
+        if (initialUtilityId) {
+          const foundUtil = foundGroup.utilities.find((u) => u.id === initialUtilityId);
+          if (foundUtil) return { group: foundGroup, utility: foundUtil };
         }
-        return { util: foundUtil, feat: foundUtil.features[0] };
+        return { group: foundGroup, utility: foundGroup.utilities[0] };
+      }
+    }
+    if (initialUtilityId) {
+      for (const group of workspace.groups) {
+        const found = group.utilities.find((u) => u.id === initialUtilityId);
+        if (found) return { group, utility: found };
       }
     }
 
     try {
-      const saved = localStorage.getItem(`toiloki_last_tool_${workspace.id}`);
+      const saved = localStorage.getItem(`toiloki_last_utility_${workspace.id}`);
       if (saved) {
         const parsed = JSON.parse(saved);
-        const u = workspace.utilities.find((util) => util.id === parsed.utilId);
-        if (u) {
-          const f = u.features.find((feat) => feat.id === parsed.featId);
-          if (f) return { util: u, feat: f };
+        const g = workspace.groups.find((grp) => grp.id === parsed.groupId);
+        if (g) {
+          const u = g.utilities.find((util) => util.id === parsed.utilityId);
+          if (u) return { group: g, utility: u };
         }
       }
     } catch {}
 
-    const defaultUtil = workspace.utilities[0];
-    return { util: defaultUtil, feat: defaultUtil.features[0] };
+    const defaultGroup = workspace.groups[0];
+    return { group: defaultGroup, utility: defaultGroup.utilities[0] };
   };
 
-  const [activeUtility, setActiveUtility] = useState<UtilityDefinition>(() => getInitialSelection().util);
-  const [activeFeature, setActiveFeature] = useState<FeatureDefinition>(() => getInitialSelection().feat);
-  const [isFav, setIsFav] = useState(() => FavoritesService.isFavorite(activeFeature.id));
+  const [activeGroup, setActiveGroup] = useState<GroupDefinition>(() => getInitialSelection().group);
+  const [activeUtility, setActiveUtility] = useState<UtilityDefinition>(() => getInitialSelection().utility);
+  const [isFav, setIsFav] = useState(() => FavoritesService.isFavorite(activeUtility.id));
 
   // Sync if workspace or initial params change
   useEffect(() => {
     const sel = getInitialSelection();
-    setActiveUtility(sel.util);
-    setActiveFeature(sel.feat);
-  }, [workspace, initialUtilityId, initialFeatureId]);
+    setActiveGroup(sel.group);
+    setActiveUtility(sel.utility);
+  }, [workspace, initialGroupId, initialUtilityId]);
 
   useEffect(() => {
-    setIsFav(FavoritesService.isFavorite(activeFeature.id));
-  }, [activeFeature.id]);
+    setIsFav(FavoritesService.isFavorite(activeUtility.id));
+  }, [activeUtility.id]);
 
-  const handleSelectFeature = (util: UtilityDefinition, feat: FeatureDefinition) => {
-    setActiveUtility(util);
-    setActiveFeature(feat);
+  const handleSelectUtility = (group: GroupDefinition, utility: UtilityDefinition) => {
+    setActiveGroup(group);
+    setActiveUtility(utility);
     try {
       localStorage.setItem(
-        `toiloki_last_tool_${workspace.id}`,
-        JSON.stringify({ utilId: util.id, featId: feat.id })
+        `toiloki_last_utility_${workspace.id}`,
+        JSON.stringify({ groupId: group.id, utilityId: utility.id })
       );
     } catch {}
   };
@@ -83,10 +89,10 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
   const handleToggleFavorite = () => {
     const updated = FavoritesService.toggleFavorite({
       workspaceId: workspace.id,
+      groupId: activeGroup.id,
       utilityId: activeUtility.id,
-      featureId: activeFeature.id,
-      name: activeFeature.name,
-      description: activeFeature.description,
+      name: activeUtility.name,
+      description: activeUtility.description,
       workspaceName: workspace.name,
     });
     setIsFav(updated);
@@ -94,16 +100,16 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
 
   const handleReset = () => {
     window.dispatchEvent(
-      new CustomEvent('toiloki_tool_reset', { detail: { featureId: activeFeature.id } })
+      new CustomEvent('toiloki_tool_reset', { detail: { utilityId: activeUtility.id } })
     );
   };
 
-  const renderActiveFeatureView = () => {
+  const renderActiveUtilityView = () => {
     const commonProps = {
+      groupId: activeGroup.id,
       utilityId: activeUtility.id,
-      featureId: activeFeature.id,
-      toolName: activeFeature.name,
-      toolDescription: activeFeature.description,
+      toolName: activeUtility.name,
+      toolDescription: activeUtility.description,
       onBackToUtilities: () => {},
       isFavorite: isFav,
       onToggleFavorite: handleToggleFavorite,
@@ -123,13 +129,13 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
       case 'developer':
         return <DeveloperWorkspaceView {...commonProps} />;
       case 'calculator':
-        return <CalculatorWorkspaceView featureId={activeFeature.id} />;
+        return <CalculatorWorkspaceView utilityId={activeUtility.id} />;
       case 'files':
-        return <FilesWorkspaceView featureId={activeFeature.id} />;
+        return <FilesWorkspaceView utilityId={activeUtility.id} />;
       default:
         return (
           <div style={{ padding: '32px', color: 'var(--text-secondary)' }}>
-            Select a utility feature to begin.
+            Select a utility to begin.
           </div>
         );
     }
@@ -146,12 +152,12 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
         overflow: 'hidden',
       }}
     >
-      {/* ─── Tool list panel 232px ─── */}
+      {/* ─── Utility list panel 232px ─── */}
       <ToolListPanel
         workspace={workspace}
+        activeGroupId={activeGroup.id}
         activeUtilityId={activeUtility.id}
-        activeFeatureId={activeFeature.id}
-        onSelectFeature={handleSelectFeature}
+        onSelectUtility={handleSelectUtility}
       />
 
       {/* ─── Main Workspace Area ─── */}
@@ -169,21 +175,22 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
       >
         <WorkspaceHeader
           workspace={workspace}
+          activeGroup={activeGroup}
           activeUtility={activeUtility}
-          activeFeature={activeFeature}
           isFavorite={isFav}
           onToggleFavorite={handleToggleFavorite}
           onReset={handleReset}
           onBackToHome={onBackToHome}
         />
         <div
-          key={activeFeature.id}
+          key={activeUtility.id}
           className="workspace-view-content motion-fade-in"
           style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}
         >
-          {renderActiveFeatureView()}
+          {renderActiveUtilityView()}
         </div>
       </div>
     </div>
   );
 };
+

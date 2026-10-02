@@ -2,8 +2,8 @@ import { WorkspaceId } from '../types/workspace';
 
 export interface FavoriteItem {
   workspaceId: WorkspaceId;
+  groupId: string;
   utilityId: string;
-  featureId: string;
   name: string;
   description: string;
   workspaceName: string;
@@ -13,7 +13,7 @@ const STORAGE_KEY = 'toiloki_favorites';
 
 export class FavoritesService {
   /**
-   * Get all pinned favorite tools
+   * Get all pinned favorite utilities
    */
   static getFavorites(): FavoriteItem[] {
     try {
@@ -27,32 +27,32 @@ export class FavoritesService {
     return [
       {
         workspaceId: 'pdf',
-        utilityId: 'page-organizer',
-        featureId: 'merge-pdf',
+        groupId: 'page-organizer',
+        utilityId: 'merge-pdf',
         name: 'Merge PDF',
         description: 'Combine multiple PDF files into one.',
         workspaceName: 'PDF',
       },
       {
         workspaceId: 'images',
-        utilityId: 'image-optimizer',
-        featureId: 'compress-image',
+        groupId: 'image-optimizer',
+        utilityId: 'compress-image',
         name: 'Compress Image',
         description: 'Reduce image file size with quality slider.',
         workspaceName: 'Images',
       },
       {
         workspaceId: 'text',
-        utilityId: 'text-cleaner',
-        featureId: 'remove-spaces',
+        groupId: 'text-cleaner',
+        utilityId: 'remove-spaces',
         name: 'Remove Extra Spaces',
         description: 'Collapse consecutive spaces and trim whitespace.',
         workspaceName: 'Text',
       },
       {
         workspaceId: 'files',
-        utilityId: 'files-operations',
-        featureId: 'batch-rename-files',
+        groupId: 'files-operations',
+        utilityId: 'batch-rename-files',
         name: 'Batch Rename',
         description: 'Rename files with prefix, suffix, and numbering.',
         workspaceName: 'Files & Archives',
@@ -61,11 +61,11 @@ export class FavoritesService {
   }
 
   /**
-   * Check if a feature is currently favorited
+   * Check if a utility is currently favorited
    */
-  static isFavorite(featureId: string): boolean {
+  static isFavorite(utilityId: string): boolean {
     const list = this.getFavorites();
-    return list.some((item) => item.featureId === featureId);
+    return list.some((item) => item.utilityId === utilityId);
   }
 
   /**
@@ -73,11 +73,11 @@ export class FavoritesService {
    */
   static toggleFavorite(item: FavoriteItem): boolean {
     const current = this.getFavorites();
-    const exists = current.some((f) => f.featureId === item.featureId);
+    const exists = current.some((f) => f.utilityId === item.utilityId);
     let updated: FavoriteItem[];
 
     if (exists) {
-      updated = current.filter((f) => f.featureId !== item.featureId);
+      updated = current.filter((f) => f.utilityId !== item.utilityId);
     } else {
       updated = [item, ...current];
     }
@@ -92,10 +92,10 @@ export class FavoritesService {
   }
 
   /**
-   * Remove a single favorite by featureId
+   * Remove a single favorite by utilityId
    */
-  static removeFavorite(featureId: string): void {
-    const updated = this.getFavorites().filter((f) => f.featureId !== featureId);
+  static removeFavorite(utilityId: string): void {
+    const updated = this.getFavorites().filter((f) => f.utilityId !== utilityId);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch (err) {

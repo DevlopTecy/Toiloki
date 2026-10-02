@@ -9,8 +9,8 @@ import { HistoryService } from '../../core/services/history.service';
 import './TextWorkspaceView.css';
 
 interface TextWorkspaceViewProps {
+  groupId: string;
   utilityId: string;
-  featureId: string;
   toolName: string;
   toolDescription: string;
   onBackToUtilities: () => void;
@@ -19,8 +19,8 @@ interface TextWorkspaceViewProps {
 }
 
 export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
+  groupId,
   utilityId,
-  featureId,
   toolName,
   toolDescription,
   onBackToUtilities,
@@ -33,7 +33,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
   const [outputText, setOutputText] = useState('');
   const [copied, setCopied] = useState(false);
   const [activeCaseOption, setActiveCaseOption] = useState<string>(() => {
-    if (featureId.startsWith('case-')) return featureId;
+    if (utilityId.startsWith('case-')) return utilityId;
     return 'case-upper';
   });
 
@@ -46,15 +46,15 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
   );
   const [diffChanges, setDiffChanges] = useState<DiffChange[] | null>(null);
 
-  // Sync activeCaseOption when featureId prop changes
+  // Sync activeCaseOption when utilityId prop changes
   useEffect(() => {
-    if (featureId.startsWith('case-')) {
-      setActiveCaseOption(featureId);
-      runTransform(featureId);
-    } else if (featureId.startsWith('clean-') || featureId.startsWith('remove-')) {
-      runTransform(featureId);
+    if (utilityId.startsWith('case-')) {
+      setActiveCaseOption(utilityId);
+      runTransform(utilityId);
+    } else if (utilityId.startsWith('clean-') || utilityId.startsWith('remove-')) {
+      runTransform(utilityId);
     }
-  }, [featureId]);
+  }, [utilityId]);
 
   // Text analysis metrics
   const metrics = useMemo(() => {
@@ -102,8 +102,8 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
     HistoryService.record({
       toolName,
       workspaceId: 'text',
-      utilityId,
-      featureId: actionId,
+      groupId,
+      utilityId: actionId || utilityId,
       input: `${inputText.length} chars`,
       output: `Completed ${actionId}`,
       status: 'completed',
@@ -137,7 +137,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `toiloki_${featureId}_output.txt`;
+    a.download = `toiloki_${utilityId}_output.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -185,7 +185,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
       onReset={handleClear}
     >
       <div className="text-tool-body">
-        {featureId === 'text-diff' ? (
+        {utilityId === 'text-diff' ? (
           /* Compare Diff Tool */
           <div className="text-compare-container">
             <div className="compare-editors-grid">

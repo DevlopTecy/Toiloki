@@ -61,7 +61,7 @@ const CATEGORY_DEFAULTS: Record<
   unsupported_format: {
     title: 'Unsupported Format',
     what: 'The file format or codec is not recognized by this tool.',
-    why: 'The file extension or MIME container is not in the supported feature matrix.',
+    why: 'The file extension or MIME container is not in the supported format matrix.',
     action: 'Convert the file to a supported format first or check supported extensions.',
     icon: <AlertTriangle size={18} />,
   },

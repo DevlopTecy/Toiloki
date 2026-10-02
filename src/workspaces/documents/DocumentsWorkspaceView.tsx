@@ -11,8 +11,8 @@ import { HistoryService } from '../../core/services/history.service';
 import './DocumentsWorkspaceView.css';
 
 interface DocumentsWorkspaceViewProps {
+  groupId: string;
   utilityId: string;
-  featureId: string;
   toolName: string;
   toolDescription: string;
   onBackToUtilities: () => void;
@@ -21,8 +21,8 @@ interface DocumentsWorkspaceViewProps {
 }
 
 export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
+  groupId,
   utilityId,
-  featureId,
   toolName,
   toolDescription,
   onBackToUtilities,
@@ -39,10 +39,10 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
 
   // Compare diff state
   const [docOriginal, setDocOriginal] = useState(
-    '1. Introduction\nToiloki is a desktop utility application.\n2. Architecture\nModular Workspace -> Utility -> Feature -> Engine structure.\n3. Processing\nProcessed locally on the user machine.'
+    '1. Introduction\nToiloki is a desktop utility application.\n2. Architecture\nModular Workspace -> Group -> Utility -> Feature -> Engine structure.\n3. Processing\nProcessed locally on the user machine.'
   );
   const [docModified, setDocModified] = useState(
-    '1. Introduction\nToiloki is a high-performance Windows desktop utility application.\n2. Architecture\nModular Workspace -> Utility -> Feature -> Engine structure.\n3. Processing\nProcessed 100% locally with zero cloud dependencies.\n4. Distribution\nPackaged as standalone Windows portable executable.'
+    '1. Introduction\nToiloki is a high-performance Windows desktop utility application.\n2. Architecture\nModular Workspace -> Group -> Utility -> Feature -> Engine structure.\n3. Processing\nProcessed 100% locally with zero cloud dependencies.\n4. Distribution\nPackaged as standalone Windows portable executable.'
   );
   const [diffChanges, setDiffChanges] = useState<DiffChange[] | null>(null);
 
@@ -72,16 +72,16 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
     setIsProcessing(true);
     setErrorMsg(null);
     try {
-      if (featureId.includes('export')) {
+      if (utilityId.includes('export')) {
         let ext = 'txt';
         let content = editorText;
-        if (featureId === 'export-html') {
+        if (utilityId === 'export-html') {
           ext = 'html';
           const conv = DocumentEngine.markdownToHtml(editorText);
           if (conv.success && conv.data) content = conv.data;
-        } else if (featureId === 'export-md') {
+        } else if (utilityId === 'export-md') {
           ext = 'md';
-        } else if (featureId === 'export-rtf') {
+        } else if (utilityId === 'export-rtf') {
           ext = 'rtf';
           const conv = DocumentEngine.textToRtf(editorText);
           if (conv.success && conv.data) content = conv.data;
@@ -96,7 +96,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
           fileName: `document_export.${ext}`,
         });
       } else {
-        // Converter feature
+        // Converter utility
         if (files.length === 0) return;
         const f = files[0];
         let outText = '';
@@ -104,7 +104,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
         const rawBuf = f.buffer || new Uint8Array();
 
         if (f.name.endsWith('.docx') && f.buffer) {
-          if (featureId === 'docx-to-html') {
+          if (utilityId === 'docx-to-html') {
             const res = await DocumentEngine.docxToHtml(f.buffer);
             outText = res.data || '';
             outExt = 'html';
@@ -145,10 +145,10 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
       HistoryService.record({
         toolName,
         workspaceId: 'documents',
+        groupId,
         utilityId,
-        featureId,
         input: files[0]?.name || 'Document Editor Text',
-        output: `Processed document (${featureId})`,
+        output: `Processed document (${utilityId})`,
         status: 'completed',
       });
     } catch (err) {
@@ -191,17 +191,17 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
     >
       <div className="documents-tool-body">
         {/* Converter Screens */}
-        {utilityId === 'doc-converter' && !outputResult && (
+        {groupId === 'doc-converter' && !outputResult && (
           <div className="doc-converter-pane">
             <FileDropzone
               accept={
-                featureId === 'docx-to-pdf'
+                utilityId === 'docx-to-pdf'
                   ? ['.docx', '.doc']
-                  : featureId === 'pdf-to-docx'
+                  : utilityId === 'pdf-to-docx'
                     ? ['.pdf']
-                    : featureId === 'md-to-pdf-doc'
+                    : utilityId === 'md-to-pdf-doc'
                       ? ['.md', '.markdown']
-                      : featureId === 'html-to-pdf-doc'
+                      : utilityId === 'html-to-pdf-doc'
                         ? ['.html', '.htm']
                         : ['.txt', '.rtf']
               }
@@ -218,14 +218,14 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                 disabled={isProcessing}
                 style={{ alignSelf: 'flex-start' }}
               >
-                <span>{isProcessing ? 'Converting...' : `Convert to ${featureId === 'pdf-to-docx' ? 'DOCX' : 'PDF'}`}</span>
+                <span>{isProcessing ? 'Converting...' : `Convert to ${utilityId === 'pdf-to-docx' ? 'DOCX' : 'PDF'}`}</span>
               </button>
             )}
           </div>
         )}
 
         {/* Document Editor Screen */}
-        {(utilityId === 'doc-editor' || utilityId === 'doc-export') && !outputResult && (
+        {(groupId === 'doc-editor' || groupId === 'doc-export') && !outputResult && (
           <div className="doc-editor-pane">
             {metrics && (
               <div className="doc-metrics-bar">
@@ -236,7 +236,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
               </div>
             )}
 
-            {featureId === 'find-replace' && (
+            {utilityId === 'find-replace' && (
               <div className="find-replace-bar">
                 <input
                   type="text"
@@ -268,7 +268,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
               placeholder="Start drafting or editing your document here..."
             />
 
-            {utilityId === 'doc-export' && (
+            {groupId === 'doc-export' && (
               <button
                 className="tool-btn primary"
                 onClick={handleConvertOrExport}
@@ -282,7 +282,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
         )}
 
         {/* Compare Screen */}
-        {utilityId === 'doc-compare' && (
+        {groupId === 'doc-compare' && (
           <div className="doc-compare-pane">
             <div className="compare-grid">
               <div className="compare-col">

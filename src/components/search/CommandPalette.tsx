@@ -1,50 +1,52 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, ChevronRight, CornerDownLeft } from 'lucide-react';
 import { WORKSPACES } from '../../core/registry/app-registry';
-import { WorkspaceId } from '../../core/types/workspace';
+import { WorkspaceId, UtilityStatus } from '../../core/types/workspace';
 import './CommandPalette.css';
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectFeature: (workspaceId: WorkspaceId, utilityId: string, featureId: string) => void;
+  onSelectUtility: (workspaceId: WorkspaceId, groupId: string, utilityId: string) => void;
 }
 
 interface SearchItem {
   workspaceId: WorkspaceId;
   workspaceName: string;
+  groupId: string;
+  groupName: string;
   utilityId: string;
   utilityName: string;
-  featureId: string;
-  featureName: string;
   description: string;
   badgeGradient: string;
+  status?: UtilityStatus;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
   isOpen,
   onClose,
-  onSelectFeature,
+  onSelectUtility,
 }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Flatten all features for instant searching
-  const allFeatures: SearchItem[] = React.useMemo(() => {
+  // Flatten all utilities for instant searching
+  const allUtilities: SearchItem[] = React.useMemo(() => {
     const items: SearchItem[] = [];
     for (const ws of WORKSPACES) {
-      for (const util of ws.utilities) {
-        for (const feat of util.features) {
+      for (const group of ws.groups) {
+        for (const util of group.utilities) {
           items.push({
             workspaceId: ws.id,
             workspaceName: ws.name,
+            groupId: group.id,
+            groupName: group.name,
             utilityId: util.id,
             utilityName: util.name,
-            featureId: feat.id,
-            featureName: feat.name,
-            description: feat.description,
-            badgeGradient: util.badgeGradient,
+            description: util.description,
+            badgeGradient: group.badgeGradient,
+            status: util.status,
           });
         }
       }
@@ -53,16 +55,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   }, []);
 
   const filtered = React.useMemo(() => {
-    if (!query.trim()) return allFeatures.slice(0, 10);
+    if (!query.trim()) return allUtilities.slice(0, 10);
     const q = query.toLowerCase();
-    return allFeatures.filter(
+    return allUtilities.filter(
       (item) =>
-        item.featureName.toLowerCase().includes(q) ||
         item.utilityName.toLowerCase().includes(q) ||
+        item.groupName.toLowerCase().includes(q) ||
         item.workspaceName.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q)
     );
-  }, [allFeatures, query]);
+  }, [allUtilities, query]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -93,7 +95,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         } else if (e.key === 'Enter' && filtered[selectedIndex]) {
           e.preventDefault();
           const item = filtered[selectedIndex];
-          onSelectFeature(item.workspaceId, item.utilityId, item.featureId);
+          onSelectUtility(item.workspaceId, item.groupId, item.utilityId);
           onClose();
         }
       }
@@ -101,7 +103,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, filtered, selectedIndex, onClose, onSelectFeature]);
+  }, [isOpen, filtered, selectedIndex, onClose, onSelectUtility]);
 
   if (!isOpen) return null;
 
@@ -114,7 +116,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             ref={inputRef}
             type="text"
             className="palette-input"
-            placeholder="Type a tool name, command or file format..."
+            placeholder="Type a utility name, command or file format..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -126,15 +128,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         <div className="palette-results-list">
           {filtered.length === 0 ? (
             <div className="palette-empty">
-              No matching tools found for "{query}".
+              No matching utilities found for "{query}".
             </div>
           ) : (
             filtered.map((item, index) => (
               <div
-                key={`${item.workspaceId}-${item.utilityId}-${item.featureId}`}
+                key={`${item.workspaceId}-${item.groupId}-${item.utilityId}`}
                 className={`palette-item ${index === selectedIndex ? 'selected' : ''}`}
                 onClick={() => {
-                  onSelectFeature(item.workspaceId, item.utilityId, item.featureId);
+                  onSelectUtility(item.workspaceId, item.groupId, item.utilityId);
                   onClose();
                 }}
                 onMouseEnter={() => setSelectedIndex(index)}
@@ -144,10 +146,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   <div className="palette-breadcrumbs">
                     <span>{item.workspaceName}</span>
                     <ChevronRight size={12} />
-                    <span>{item.utilityName}</span>
+                    <span>{item.groupName}</span>
                   </div>
-                  <span className="palette-feature-name">{item.featureName}</span>
-                  <span className="palette-feature-desc">{item.description}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="palette-utility-name">{item.utilityName}</span>
+                    {item.status === 'soon' && (
+                      <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted, #888)' }}>Soon</span>
+                    )}
+                    {item.status === 'beta' && (
+                      <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>Beta</span>
+                    )}
+                  </div>
+                  <span className="palette-utility-desc">{item.description}</span>
                 </div>
                 {index === selectedIndex && (
                   <div className="palette-enter-hint">
@@ -169,3 +179,4 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     </div>
   );
 };
+

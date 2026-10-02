@@ -1,4 +1,4 @@
-workspace,group,tool name,route/ID,status,template type,accepted formats,notes
+workspace,group,utility name,route/ID,status,template type,accepted formats,notes
 "PDF","Page Organizer","Merge PDF","pdf/page-organizer/merge-pdf","ready","file",".pdf","Combine multiple PDF files into one."
 "PDF","Page Organizer","Split PDF","pdf/page-organizer/split-pdf","ready","file",".pdf","Split a PDF into individual pages or ranges."
 "PDF","Page Organizer","Extract Pages","pdf/page-organizer/extract-pages","ready","file",".pdf","Extract chosen pages to a new PDF document."

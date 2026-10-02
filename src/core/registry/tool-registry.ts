@@ -1,126 +1,138 @@
 import { LucideIcon } from 'lucide-react';
 import { WORKSPACES } from './app-registry';
-import { WorkspaceId } from '../types/workspace';
+import { WorkspaceId, UtilityStatus } from '../types/workspace';
 
-export interface RegisteredTool {
-  toolId: string;
+export interface RegisteredUtility {
+  utilityId: string;
   name: string;
   description: string;
   workspaceId: WorkspaceId;
   workspaceName: string;
-  utilityId: string;
-  utilityName: string;
+  groupId: string;
+  groupName: string;
   badgeGradient: string;
   icon: LucideIcon;
   keywords: string[];
   engineId: string;
+  status: UtilityStatus;
 }
 
-const RECENT_TOOLS_KEY = 'toiloki_recent_tools';
+const RECENT_UTILITIES_KEY = 'toiloki_recent_utilities';
 const FAVORITES_KEY = 'toiloki_favorites_ids';
 
-export class ToolRegistry {
-  private static cachedTools: RegisteredTool[] | null = null;
+export class UtilityRegistry {
+  private static cachedUtilities: RegisteredUtility[] | null = null;
 
   /**
-   * Get all registered tools in the application from the authoritative WORKSPACES blueprint
+   * Get all registered utilities in the application from the authoritative WORKSPACES blueprint.
    */
-  static getAllTools(): RegisteredTool[] {
-    if (this.cachedTools) return this.cachedTools;
+  static getAllUtilities(): RegisteredUtility[] {
+    if (this.cachedUtilities) return this.cachedUtilities;
 
-    const list: RegisteredTool[] = [];
+    const list: RegisteredUtility[] = [];
     for (const ws of WORKSPACES) {
-      for (const util of ws.utilities) {
-        for (const feat of util.features) {
+      for (const group of ws.groups) {
+        for (const util of group.utilities) {
           list.push({
-            toolId: feat.id,
-            name: feat.name,
-            description: feat.description,
+            utilityId: util.id,
+            name: util.name,
+            description: util.description,
             workspaceId: ws.id,
             workspaceName: ws.name,
-            utilityId: util.id,
-            utilityName: util.name,
-            badgeGradient: util.badgeGradient,
-            icon: util.icon,
-            keywords: feat.keywords || [],
-            engineId: feat.engineId,
+            groupId: group.id,
+            groupName: group.name,
+            badgeGradient: group.badgeGradient,
+            icon: util.icon || group.icon,
+            keywords: util.keywords || [],
+            engineId: util.engineId,
+            status: util.status || 'ready',
           });
         }
       }
     }
-    this.cachedTools = list;
+    this.cachedUtilities = list;
     return list;
   }
 
   /**
-   * Lookup a tool by its unique feature ID
+   * Lookup a utility by its unique utility ID
    */
-  static getToolById(toolId: string): RegisteredTool | undefined {
-    return this.getAllTools().find((t) => t.toolId === toolId);
+  static getUtilityById(utilityId: string): RegisteredUtility | undefined {
+    return this.getAllUtilities().find((u) => u.utilityId === utilityId);
   }
 
   /**
-   * Search tools by name, description, category, or keywords
+   * Search utilities by name, description, workspace, group, or keywords
    */
-  static search(query: string): RegisteredTool[] {
-    const all = this.getAllTools();
-    if (!query.trim()) return all.slice(0, 10);
+  static search(query: string): RegisteredUtility[] {
+    const all = this.getAllUtilities();
+    if (!query.trim()) return all;
 
     const q = query.toLowerCase().trim();
-    return all.filter((tool) => {
+    return all.filter((util) => {
       return (
-        tool.name.toLowerCase().includes(q) ||
-        tool.description.toLowerCase().includes(q) ||
-        tool.workspaceName.toLowerCase().includes(q) ||
-        tool.utilityName.toLowerCase().includes(q) ||
-        tool.keywords.some((kw) => kw.toLowerCase().includes(q))
+        util.name.toLowerCase().includes(q) ||
+        util.description.toLowerCase().includes(q) ||
+        util.workspaceName.toLowerCase().includes(q) ||
+        util.groupName.toLowerCase().includes(q) ||
+        util.keywords.some((kw) => kw.toLowerCase().includes(q))
       );
     });
   }
 
   /**
-   * Record that a user accessed or used a tool
+   * Status breakdown for all utilities in the suite
    */
-  static recordToolUsage(toolId: string): void {
-    try {
-      const tool = this.getToolById(toolId);
-      if (!tool) return;
+  static getStatusBreakdown() {
+    const all = this.getAllUtilities();
+    const ready = all.filter((u) => u.status === 'ready').length;
+    const beta = all.filter((u) => u.status === 'beta').length;
+    const soon = all.filter((u) => u.status === 'soon').length;
+    return { ready, beta, soon, total: all.length };
+  }
 
-      const current = this.getRecentToolIds();
-      const updated = [toolId, ...current.filter((id) => id !== toolId)].slice(0, 10);
-      localStorage.setItem(RECENT_TOOLS_KEY, JSON.stringify(updated));
+  /**
+   * Record that a user accessed or used a utility
+   */
+  static recordUtilityUsage(utilityId: string): void {
+    try {
+      const util = this.getUtilityById(utilityId);
+      if (!util) return;
+
+      const current = this.getRecentUtilityIds();
+      const updated = [utilityId, ...current.filter((id) => id !== utilityId)].slice(0, 10);
+      localStorage.setItem(RECENT_UTILITIES_KEY, JSON.stringify(updated));
     } catch (err) {
-      console.error('Failed to record recent tool usage:', err);
+      console.error('Failed to record recent utility usage:', err);
     }
   }
 
   /**
-   * Get raw list of recent tool IDs
+   * Get recently used utility IDs
    */
-  static getRecentToolIds(): string[] {
+  static getRecentUtilityIds(): string[] {
     try {
-      const raw = localStorage.getItem(RECENT_TOOLS_KEY);
+      const raw = localStorage.getItem(RECENT_UTILITIES_KEY);
       if (raw) {
         return JSON.parse(raw);
       }
     } catch (err) {
-      console.error('Failed to get recent tool IDs:', err);
+      console.error('Failed to get recent utility IDs:', err);
     }
-    // Default seed tools
-    return ['merge-pdf', 'compress-image', 'remove-spaces', 'batch-rename-files'];
+    return ['merge-pdf', 'compress-image', 'csv-to-json'];
   }
 
   /**
-   * Get recent tools as full RegisteredTool objects
+   * Get recent utilities as full RegisteredUtility objects
    */
-  static getRecentTools(limit = 4): RegisteredTool[] {
-    const ids = this.getRecentToolIds();
-    const result: RegisteredTool[] = [];
+  static getRecentUtilities(limit = 4): RegisteredUtility[] {
+    const ids = this.getRecentUtilityIds();
+    const result: RegisteredUtility[] = [];
 
     for (const id of ids) {
-      const tool = this.getToolById(id);
-      if (tool) {
-        result.push(tool);
+      const util = this.getUtilityById(id);
+      if (util) {
+        result.push(util);
       }
       if (result.length >= limit) break;
     }
@@ -129,7 +141,7 @@ export class ToolRegistry {
   }
 
   /**
-   * Get favorite tool IDs
+   * Get favorite utility IDs
    */
   static getFavoriteIds(): string[] {
     try {
@@ -144,24 +156,24 @@ export class ToolRegistry {
   }
 
   /**
-   * Check if tool is favorited
+   * Check if utility is favorited
    */
-  static isFavorite(toolId: string): boolean {
-    return this.getFavoriteIds().includes(toolId);
+  static isFavorite(utilityId: string): boolean {
+    return this.getFavoriteIds().includes(utilityId);
   }
 
   /**
-   * Toggle favorite state of a tool
+   * Toggle favorite status
    */
-  static toggleFavorite(toolId: string): boolean {
+  static toggleFavorite(utilityId: string): boolean {
     const current = this.getFavoriteIds();
-    const exists = current.includes(toolId);
+    const exists = current.includes(utilityId);
     let updated: string[];
 
     if (exists) {
-      updated = current.filter((id) => id !== toolId);
+      updated = current.filter((id) => id !== utilityId);
     } else {
-      updated = [toolId, ...current];
+      updated = [utilityId, ...current];
     }
 
     try {
@@ -174,10 +186,14 @@ export class ToolRegistry {
   }
 
   /**
-   * Get full RegisteredTool objects for all favorited tools
+   * Get full RegisteredUtility objects for all favorited utilities
    */
-  static getFavoriteTools(): RegisteredTool[] {
+  static getFavoriteUtilities(): RegisteredUtility[] {
     const ids = this.getFavoriteIds();
-    return ids.map((id) => this.getToolById(id)).filter((t): t is RegisteredTool => !!t);
+    return ids.map((id) => this.getUtilityById(id)).filter((u): u is RegisteredUtility => !!u);
   }
 }
+
+// Synonyms for convenience
+export const ToolRegistry = UtilityRegistry;
+export type RegisteredTool = RegisteredUtility;

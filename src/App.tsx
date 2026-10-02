@@ -11,24 +11,27 @@ import { SettingsView } from './components/views/SettingsView';
 import { ToastProvider, useToast } from './core/context/ToastContext';
 import { ThemeProvider } from './core/theme/ThemeContext';
 import { SettingsService } from './core/services/settings.service';
+import { MigrationService } from './core/services/migration.service';
 import { WORKSPACES } from './core/registry/app-registry';
 import { WorkspaceId } from './core/types/workspace';
 import './styles/global.css';
 
 const AppContent: React.FC = () => {
   const [activeNav, setActiveNav] = useState<ActiveNav>('home');
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
   const [selectedUtilityId, setSelectedUtilityId] = useState<string | undefined>();
-  const [selectedFeatureId, setSelectedFeatureId] = useState<string | undefined>();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { showToast } = useToast();
 
-  // Initialize theme, density, and font scaling on boot (with optional URL params)
+  // Run one-time migration and initialize theme, density, and font scaling on boot
   useEffect(() => {
+    MigrationService.runMigration();
+
     const params = new URLSearchParams(window.location.search);
     const navParam = params.get('nav');
-    const utilParam = params.get('util');
-    const featParam = params.get('feat');
+    const groupParam = params.get('group') || params.get('util');
+    const utilParam = params.get('utility') || params.get('feat');
     const themeParam = params.get('theme');
 
     const settings = SettingsService.getSettings();
@@ -41,8 +44,8 @@ const AppContent: React.FC = () => {
 
     if (navParam) {
       setActiveNav(navParam as ActiveNav);
+      if (groupParam) setSelectedGroupId(groupParam);
       if (utilParam) setSelectedUtilityId(utilParam);
-      if (featParam) setSelectedFeatureId(featParam);
     }
 
     // Suppress initial flash: remove preload class after mount
@@ -93,24 +96,18 @@ const AppContent: React.FC = () => {
 
   const handleSelectWorkspace = (id: WorkspaceId) => {
     setActiveNav(id);
+    setSelectedGroupId(undefined);
     setSelectedUtilityId(undefined);
-    setSelectedFeatureId(undefined);
   };
 
-  const handleSelectUtility = (workspaceId: WorkspaceId, utilityId: string) => {
-    setActiveNav(workspaceId);
-    setSelectedUtilityId(utilityId);
-    setSelectedFeatureId(undefined);
-  };
-
-  const handleSelectFeatureFromSearch = (
+  const handleSelectUtility = (
     workspaceId: WorkspaceId,
-    utilityId: string,
-    featureId: string
+    groupId: string,
+    utilityId: string
   ) => {
     setActiveNav(workspaceId);
+    setSelectedGroupId(groupId);
     setSelectedUtilityId(utilityId);
-    setSelectedFeatureId(featureId);
   };
 
   const activeWorkspace = WORKSPACES.find((w) => w.id === activeNav);
@@ -137,7 +134,7 @@ const AppContent: React.FC = () => {
               />
               <DashboardHome
                 onSelectWorkspace={handleSelectWorkspace}
-                onSelectTool={handleSelectFeatureFromSearch}
+                onSelectUtility={handleSelectUtility}
               />
             </>
           )}
@@ -145,17 +142,17 @@ const AppContent: React.FC = () => {
           {activeWorkspace && (
             <WorkspaceView
               workspace={activeWorkspace}
+              initialGroupId={selectedGroupId}
               initialUtilityId={selectedUtilityId}
-              initialFeatureId={selectedFeatureId}
               onBackToHome={() => setActiveNav('home')}
             />
           )}
 
           {activeNav === 'history' && (
-            <HistoryView onOpenTool={handleSelectFeatureFromSearch} />
+            <HistoryView onOpenUtility={handleSelectUtility} />
           )}
           {activeNav === 'favorites' && (
-            <FavoritesView onSelectFeature={handleSelectFeatureFromSearch} />
+            <FavoritesView onSelectUtility={handleSelectUtility} />
           )}
           {activeNav === 'settings' && <SettingsView />}
         </main>
@@ -164,7 +161,7 @@ const AppContent: React.FC = () => {
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
-        onSelectFeature={handleSelectFeatureFromSearch}
+        onSelectUtility={handleSelectUtility}
       />
     </div>
   );
@@ -178,7 +175,6 @@ export const App: React.FC = () => {
       </ThemeProvider>
     </ToastProvider>
   );
-
 };
 
 export default App;

@@ -6,10 +6,10 @@ import { CalcKeypad } from '../../components/common/CalcKeypad';
 import './CalculatorWorkspaceView.css';
 
 interface CalculatorWorkspaceViewProps {
-  featureId: string;
+  utilityId: string;
 }
 
-export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = ({ featureId }) => {
+export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = ({ utilityId }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, key: string) => {
@@ -42,8 +42,8 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
         HistoryService.record({
           toolName: 'Calculator',
           workspaceId: 'calculator',
-          utilityId: 'calc-general',
-          featureId: 'calc-basic',
+          groupId: 'calc-general',
+          utilityId: 'calc-basic',
           input: calcDisplay,
           output: res.data,
           status: 'completed',
@@ -255,7 +255,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
   return (
     <div className="calc-workspace-container">
       {/* 1. BASIC CALCULATOR */}
-      {featureId === 'calc-basic' && (
+      {utilityId === 'calc-basic' && (
         <CalcKeypad
           displayValue={calcDisplay}
           expression={calcHistory.length > 0 ? calcHistory[0] : undefined}
@@ -267,7 +267,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 2. SCIENTIFIC CALCULATOR */}
-      {featureId === 'calc-trig-logs' && (
+      {utilityId === 'calc-trig-logs' && (
         <div className="calc-card-view">
           <div className="calc-desktop-frame scientific">
             <div className="calc-display-section">
@@ -335,7 +335,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 3. PERCENTAGE */}
-      {featureId === 'calc-percentage' && (
+      {utilityId === 'calc-percentage' && (
         <div className="calc-card-view single-col">
           <div className="calc-form-card">
             <h3 className="calc-card-title">Percentage Calculations</h3>
@@ -382,7 +382,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 4. DISCOUNT CALCULATOR */}
-      {featureId === 'calc-discount' && (
+      {utilityId === 'calc-discount' && (
         <div className="calc-card-view single-col">
           <div className="calc-form-card">
             <h3 className="calc-card-title">Discount & Sales Tax Calculator</h3>
@@ -437,7 +437,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 5. RATIO & PROPORTION */}
-      {featureId === 'calc-ratio' && (
+      {utilityId === 'calc-ratio' && (
         <div className="calc-card-view single-col">
           <div className="calc-form-card">
             <h3 className="calc-card-title">Ratio & Proportion Solver (A : B = C : X)</h3>
@@ -483,7 +483,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 6. CONSTANTS */}
-      {featureId === 'calc-constants' && (
+      {utilityId === 'calc-constants' && (
         <div className="calc-card-view single-col">
           <div className="calc-form-card">
             <h3 className="calc-card-title">Scientific & Mathematical Constants</h3>
@@ -513,7 +513,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 7. FRACTIONS */}
-      {featureId === 'calc-fractions' && (
+      {utilityId === 'calc-fractions' && (
         <div className="calc-card-view single-col">
           <div className="calc-form-card">
             <h3 className="calc-card-title">Fraction Arithmetic</h3>
@@ -573,7 +573,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 8. STATISTICS */}
-      {featureId === 'calc-statistics' && (
+      {utilityId === 'calc-statistics' && (
         <div className="calc-card-view single-col">
           <div className="calc-form-card">
             <h3 className="calc-card-title">Descriptive Statistics</h3>
@@ -627,7 +627,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 9. EQUATIONS */}
-      {featureId === 'calc-equations' && (
+      {utilityId === 'calc-equations' && (
         <div className="calc-card-view single-col">
           <div className="calc-form-card">
             <h3 className="calc-card-title">Quadratic Equation Solver (ax² + bx + c = 0)</h3>
@@ -664,7 +664,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 10. OHM'S LAW */}
-      {featureId === 'calc-ohms-law' && (
+      {utilityId === 'calc-ohms-law' && (
         <div className="calc-card-view single-col">
           <div className="calc-form-card">
             <h3 className="calc-card-title">Ohm's Law Calculator (V = I × R)</h3>
@@ -723,7 +723,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 11. ELECTRICAL POWER */}
-      {featureId === 'calc-power' && (
+      {utilityId === 'calc-power' && (
         <div className="calc-card-view single-col">
           <div className="calc-form-card">
             <h3 className="calc-card-title">Electrical Power & Energy Cost</h3>
@@ -786,7 +786,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       )}
 
       {/* 12. UNIT CONVERTER */}
-      {featureId === 'unit-converter-all' && (
+      {utilityId === 'unit-converter-all' && (
         <div className="calc-card-view single-col">
           <div className="calc-form-card">
             <div className="unit-category-tabs">

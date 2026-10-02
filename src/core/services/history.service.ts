@@ -4,8 +4,8 @@ export interface HistoryRecord {
   id: string;
   toolName: string;
   workspaceId: string;
+  groupId: string;
   utilityId: string;
-  featureId: string;
   input: string;
   output: string;
   timestamp: string;
@@ -72,8 +72,8 @@ export class HistoryService {
         id: 'seed-1',
         toolName: 'PDF Merger',
         workspaceId: 'pdf',
-        utilityId: 'page-organizer',
-        featureId: 'merge-pdf',
+        groupId: 'page-organizer',
+        utilityId: 'merge-pdf',
         input: 'Contract_Part1.pdf, Contract_Part2.pdf',
         output: 'merged_contract.pdf (1.8 MB)',
         timestamp: 'Today, 11:20 AM',
@@ -83,8 +83,8 @@ export class HistoryService {
         id: 'seed-2',
         toolName: 'Compress Image',
         workspaceId: 'images',
-        utilityId: 'image-optimizer',
-        featureId: 'compress-image',
+        groupId: 'image-optimizer',
+        utilityId: 'compress-image',
         input: 'banner_large.png (3.4 MB)',
         output: 'banner_large.webp (380 KB, -89%)',
         timestamp: 'Today, 09:45 AM',
@@ -94,8 +94,8 @@ export class HistoryService {
         id: 'seed-3',
         toolName: 'CSV to JSON',
         workspaceId: 'data',
-        utilityId: 'data-converter',
-        featureId: 'csv-to-json',
+        groupId: 'data-converter',
+        utilityId: 'csv-to-json',
         input: 'records_q3.csv (420 rows)',
         output: 'records_q3.json (84 KB)',
         timestamp: 'Yesterday, 04:15 PM',
@@ -110,8 +110,8 @@ export class HistoryService {
   static record(entry: {
     toolName: string;
     workspaceId: string;
+    groupId: string;
     utilityId: string;
-    featureId: string;
     input: string;
     output: string;
     status?: HistoryStatus;
@@ -125,8 +125,8 @@ export class HistoryService {
       id: `rec-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       toolName: entry.toolName,
       workspaceId: entry.workspaceId,
+      groupId: entry.groupId,
       utilityId: entry.utilityId,
-      featureId: entry.featureId,
       input: entry.input,
       output: entry.output,
       timestamp: `${dateStr}, ${timeStr}`,

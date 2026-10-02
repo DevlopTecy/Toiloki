@@ -1,89 +1,21 @@
 import React, { useState } from 'react';
 import { Star, Trash2, ArrowUpRight, Search } from 'lucide-react';
-import { WORKSPACES } from '../../core/registry/app-registry';
 import { WorkspaceId } from '../../core/types/workspace';
+import { FavoritesService, FavoriteItem } from '../../core/services/favorites.service';
 import './FavoritesView.css';
 
-interface FavoriteItem {
-  workspaceId: WorkspaceId;
-  utilityId: string;
-  featureId: string;
-  name: string;
-  description: string;
-  workspaceName: string;
-}
-
 interface FavoritesViewProps {
-  onSelectFeature?: (workspaceId: WorkspaceId, utilityId: string, featureId: string) => void;
+  onSelectUtility?: (workspaceId: WorkspaceId, groupId: string, utilityId: string) => void;
 }
 
-export const FavoritesView: React.FC<FavoritesViewProps> = ({ onSelectFeature }) => {
+export const FavoritesView: React.FC<FavoritesViewProps> = ({ onSelectUtility }) => {
   const [search, setSearch] = useState('');
-  const [favorites, setFavorites] = useState<FavoriteItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('toiloki_favorites');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // fallback
-    }
-    // Default seeded favorites
-    return [
-      {
-        workspaceId: 'pdf',
-        utilityId: 'page-organizer',
-        featureId: 'merge-pdf',
-        name: 'Merge PDF',
-        description: 'Combine multiple PDF files into one.',
-        workspaceName: 'PDF',
-      },
-      {
-        workspaceId: 'images',
-        utilityId: 'image-optimizer',
-        featureId: 'compress-image',
-        name: 'Compress Image',
-        description: 'Reduce image file size with quality slider.',
-        workspaceName: 'Images',
-      },
-      {
-        workspaceId: 'text',
-        utilityId: 'text-cleaner',
-        featureId: 'remove-spaces',
-        name: 'Remove Extra Spaces',
-        description: 'Collapse consecutive spaces and trim whitespace.',
-        workspaceName: 'Text',
-      },
-      {
-        workspaceId: 'files',
-        utilityId: 'files-operations',
-        featureId: 'batch-rename-files',
-        name: 'Batch Rename',
-        description: 'Rename files with prefix, suffix, and numbering.',
-        workspaceName: 'Files & Archives',
-      },
-      {
-        workspaceId: 'developer',
-        utilityId: 'dev-formatter',
-        featureId: 'format-json-code',
-        name: 'JSON Formatter',
-        description: 'Format and indent JSON data.',
-        workspaceName: 'Developer',
-      },
-      {
-        workspaceId: 'calculator',
-        utilityId: 'calc-general',
-        featureId: 'calc-basic',
-        name: 'Basic Calculator',
-        description: 'Standard desktop arithmetic calculator.',
-        workspaceName: 'Calculator & Converters',
-      },
-    ];
-  });
+  const [favorites, setFavorites] = useState<FavoriteItem[]>(() => FavoritesService.getFavorites());
 
-  const handleRemoveFavorite = (e: React.MouseEvent, featureId: string) => {
+  const handleRemoveFavorite = (e: React.MouseEvent, utilityId: string) => {
     e.stopPropagation();
-    const updated = favorites.filter((f) => f.featureId !== featureId);
-    setFavorites(updated);
-    localStorage.setItem('toiloki_favorites', JSON.stringify(updated));
+    FavoritesService.removeFavorite(utilityId);
+    setFavorites(FavoritesService.getFavorites());
   };
 
   const handleClearAll = () => {
@@ -102,7 +34,7 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({ onSelectFeature })
     <div className="favorites-view-container">
       <div className="favorites-header">
         <div>
-          <h2 className="section-title">Favorite Tools</h2>
+          <h2 className="section-title">Favorite Utilities</h2>
           <p className="favorites-subtitle">
             Quick access to your most frequently used desktop utilities.
           </p>
@@ -129,8 +61,8 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({ onSelectFeature })
       {favorites.length === 0 ? (
         <div className="favorites-empty">
           <Star size={36} color="var(--text-muted)" />
-          <h3>No favorite tools yet</h3>
-          <p>Click the star icon in any utility tool to pin it here for quick 1-click access.</p>
+          <h3>No favorite utilities yet</h3>
+          <p>Click the star icon in any utility to pin it here for quick 1-click access.</p>
         </div>
       ) : filteredFavorites.length === 0 ? (
         <div className="favorites-empty">
@@ -140,15 +72,15 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({ onSelectFeature })
         <div className="favorites-grid">
           {filteredFavorites.map((fav) => (
             <div
-              key={fav.featureId}
+              key={fav.utilityId}
               className="fav-card"
-              onClick={() => onSelectFeature?.(fav.workspaceId, fav.utilityId, fav.featureId)}
+              onClick={() => onSelectUtility?.(fav.workspaceId, fav.groupId, fav.utilityId)}
             >
               <div className="fav-card-top">
                 <span className="fav-workspace-pill">{fav.workspaceName}</span>
                 <button
                   className="fav-unstar-btn"
-                  onClick={(e) => handleRemoveFavorite(e, fav.featureId)}
+                  onClick={(e) => handleRemoveFavorite(e, fav.utilityId)}
                   title="Remove from favorites"
                 >
                   <Star size={16} fill="var(--color-warning)" color="var(--color-warning)" />
@@ -161,7 +93,7 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({ onSelectFeature })
               </div>
 
               <div className="fav-card-footer">
-                <span className="fav-launch-hint">Open Tool</span>
+                <span className="fav-launch-hint">Open Utility</span>
                 <ArrowUpRight size={14} />
               </div>
             </div>

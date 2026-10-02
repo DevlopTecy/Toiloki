@@ -11,22 +11,31 @@ export type WorkspaceId =
   | 'calculator'
   | 'files';
 
-export interface FeatureDefinition {
-  id: string;
+export type UtilityStatus = 'ready' | 'beta' | 'soon';
+
+export type UtilityTemplate = 'file' | 'text/code' | 'table' | 'calculator';
+
+export interface UtilityDefinition {
+  id: string; // unique utilityId
   name: string;
   description: string;
   engineId: string;
   component?: React.ComponentType;
   keywords?: string[];
+  icon?: LucideIcon;
+  status?: UtilityStatus;
+  template?: UtilityTemplate;
+  acceptedFormats?: string;
+  aliases?: string[];
 }
 
-export interface UtilityDefinition {
-  id: string;
+export interface GroupDefinition {
+  id: string; // unique groupId
   name: string;
   description: string;
   icon: LucideIcon;
   badgeGradient: string;
-  features: FeatureDefinition[];
+  utilities: UtilityDefinition[];
 }
 
 export interface WorkspaceDefinition {
@@ -35,5 +44,5 @@ export interface WorkspaceDefinition {
   description: string;
   icon: LucideIcon;
   badgeGradient: string;
-  utilities: UtilityDefinition[];
+  groups: GroupDefinition[];
 }

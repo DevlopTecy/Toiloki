@@ -5,10 +5,10 @@ import { HistoryService, HistoryRecord } from '../../core/services/history.servi
 import './HistoryView.css';
 
 interface HistoryViewProps {
-  onOpenTool?: (workspaceId: any, utilityId: string, featureId: string) => void;
+  onOpenUtility?: (workspaceId: any, groupId: string, utilityId: string) => void;
 }
 
-export const HistoryView: React.FC<HistoryViewProps> = ({ onOpenTool }) => {
+export const HistoryView: React.FC<HistoryViewProps> = ({ onOpenUtility }) => {
   const [filterText, setFilterText] = useState('');
   const [records, setRecords] = useState<HistoryRecord[]>(() => HistoryService.getRecords());
 
@@ -30,7 +30,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onOpenTool }) => {
   };
 
   const handleRepeatOperation = (rec: HistoryRecord) => {
-    onOpenTool?.(rec.workspaceId, rec.utilityId, rec.featureId);
+    onOpenUtility?.(rec.workspaceId, rec.groupId, rec.utilityId);
   };
 
   const filteredRecords = records.filter(
@@ -79,7 +79,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onOpenTool }) => {
             <thead>
               <tr>
                 <th className="col-status">Status</th>
-                <th className="col-tool">Tool</th>
+                <th className="col-tool">Utility</th>
                 <th className="col-input">Input</th>
                 <th className="col-output">Output</th>
                 <th className="col-date">Date / Time</th>
@@ -114,7 +114,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onOpenTool }) => {
                       <button
                         className="hist-action-btn"
                         onClick={() => handleRepeatOperation(rec)}
-                        title="Open Tool"
+                        title="Open Utility"
                       >
                         <ExternalLink size={13} />
                         <span>Open</span>

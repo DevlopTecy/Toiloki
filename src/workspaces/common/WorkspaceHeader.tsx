@@ -1,12 +1,12 @@
 import React from 'react';
 import { Star, RotateCcw } from 'lucide-react';
-import { WorkspaceDefinition, UtilityDefinition, FeatureDefinition } from '../../core/types/workspace';
+import { WorkspaceDefinition, GroupDefinition, UtilityDefinition } from '../../core/types/workspace';
 import './WorkspaceHeader.css';
 
 interface WorkspaceHeaderProps {
   workspace: WorkspaceDefinition;
+  activeGroup: GroupDefinition;
   activeUtility: UtilityDefinition;
-  activeFeature: FeatureDefinition;
   isFavorite: boolean;
   onToggleFavorite: () => void;
   onReset?: () => void;
@@ -15,8 +15,8 @@ interface WorkspaceHeaderProps {
 
 export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   workspace,
+  activeGroup: _activeGroup,
   activeUtility,
-  activeFeature,
   isFavorite,
   onToggleFavorite,
   onReset,
@@ -33,12 +33,12 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           <span className="breadcrumb-sep">/</span>
           <span className="breadcrumb-item">{workspace.name}</span>
           <span className="breadcrumb-sep">/</span>
-          <span className="breadcrumb-item active">{activeFeature.name}</span>
+          <span className="breadcrumb-item active">{activeUtility.name}</span>
         </nav>
 
-        {/* Tool Title 22px + Favorite Star */}
+        {/* Utility Title 22px + Favorite Star */}
         <div className="header-title-row">
-          <h1 className="header-tool-title">{activeFeature.name}</h1>
+          <h1 className="header-tool-title">{activeUtility.name}</h1>
           <button
             type="button"
             className={`header-star-btn ${isFavorite ? 'favorited' : ''}`}
@@ -51,7 +51,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         </div>
 
         {/* ONE Muted Line of Description */}
-        <p className="header-tool-desc">{activeFeature.description}</p>
+        <p className="header-tool-desc">{activeUtility.description}</p>
       </div>
 
       {/* Ghost Reset Button on the Right */}
@@ -61,7 +61,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             type="button"
             className="toiloki-btn toiloki-btn-ghost toiloki-btn-compact header-reset-btn"
             onClick={onReset}
-            title="Reset tool parameters to defaults"
+            title="Reset utility parameters to defaults"
           >
             <RotateCcw size={13} />
             <span>Reset</span>
@@ -71,3 +71,4 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     </header>
   );
 };
+

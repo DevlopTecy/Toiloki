@@ -35,7 +35,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenSearch }) => {
         {onOpenSearch ? (
           <button className="titlebar-search-trigger" onClick={onOpenSearch} title="Quick search (Ctrl+K)">
             <Search size={12} className="titlebar-search-icon" />
-            <span className="titlebar-search-text">Search tools & features...</span>
+            <span className="titlebar-search-text">Search utilities...</span>
             <kbd className="titlebar-kbd">Ctrl K</kbd>
           </button>
         ) : (
