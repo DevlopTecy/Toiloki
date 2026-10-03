@@ -129,6 +129,30 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         </div>
       </div>
 
+      {/* ─── 1.5. LAYOUT ─── */}
+      <div className="settings-row">
+        <div className="settings-row-info">
+          <label className="settings-label">Layout</label>
+          <span className="settings-helper">Choose between the new 3-zone Workbench or the Classic tool list layout.</span>
+        </div>
+        <div className="segmented-control">
+          <button
+            type="button"
+            className={`segmented-item ${settings.layout === 'workbench' || !settings.layout ? 'is-active' : ''}`}
+            onClick={() => onUpdateSettings({ layout: 'workbench' })}
+          >
+            <span>Workbench (Default)</span>
+          </button>
+          <button
+            type="button"
+            className={`segmented-item ${settings.layout === 'classic' ? 'is-active' : ''}`}
+            onClick={() => onUpdateSettings({ layout: 'classic' })}
+          >
+            <span>Classic (Fallback)</span>
+          </button>
+        </div>
+      </div>
+
       {/* ─── 2. INTERFACE DENSITY ─── */}
       <div className="settings-row">
         <div className="settings-row-info">
@@ -189,8 +213,11 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           {/* Custom color picker */}
           <label
             className={`accent-swatch-custom ${currentAccentId === 'custom' ? 'is-selected' : ''}`}
-            style={{ backgroundColor: customHex }}
-            title={`Custom Color (${customHex})`}
+            style={{ 
+              backgroundColor: currentAccentId === 'custom' ? customHex : 'transparent',
+              backgroundImage: currentAccentId === 'custom' ? 'none' : 'conic-gradient(from 90deg, red, yellow, lime, aqua, blue, magenta, red)'
+            }}
+            title={currentAccentId === 'custom' ? `Custom Color (${customHex})` : 'Choose custom color...'}
           >
             <input
               type="color"
@@ -405,8 +432,8 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', width: '100%' }}>
           {/* Core Workspaces */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px 14px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '0.04em' }}>
-              CORE WORKSPACES
+            <div style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: 0 }}>
+              Workspaces
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[
@@ -443,8 +470,8 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
 
           {/* More Workspaces */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px 14px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '0.04em' }}>
-              MORE WORKSPACES
+            <div style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: 0 }}>
+              More workspaces
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[

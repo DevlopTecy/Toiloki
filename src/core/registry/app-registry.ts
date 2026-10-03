@@ -139,6 +139,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 1. PDF WORKSPACE
   {
     id: 'pdf',
+    workbench: 'file',
     name: 'PDF',
     description: 'Manage, edit, convert and analyze PDF files.',
     icon: FileText,
@@ -151,6 +152,19 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         icon: Layers,
         badgeGradient: '',
         utilities: [
+          {
+            id: 'compress-pdf',
+            name: 'Compress PDF',
+            description: 'Reduce PDF file size while maintaining quality.',
+            engineId: 'pdf',
+            icon: Minimize2,
+            status: 'ready',
+            template: 'file',
+            acceptedFormats: ['.pdf'],
+            aliases: [],
+            mode: 'panel',
+            primaryLabel: 'Compress PDF',
+          },
           {
             id: 'merge-pdf',
             name: 'Merge PDF',

@@ -14,92 +14,99 @@ async function run() {
 
   const win = new BrowserWindow({
     width: 1280,
-    height: 800,
+    height: 720,
     show: false,
     frame: false,
     webPreferences: {
       offscreen: true,
+      preload: path.join(__dirname, '../electron/preload.cjs'),
+      contextIsolation: true,
     },
   });
 
-  const saveShot = async (filename) => {
-    await new Promise((r) => setTimeout(r, 800));
+  const saveShot = async (filename, delay = 1000) => {
+    await new Promise((r) => setTimeout(r, delay));
     const image = await win.webContents.capturePage();
     const filePath = path.join(outDir, filename);
     fs.writeFileSync(filePath, image.toPNG());
-    console.log('Saved:', filename);
+    console.log('Saved proof screenshot:', filename);
   };
 
-  const clickNav = async (navId) => {
-    await win.webContents.executeJavaScript(`(() => {
-      const btn = document.querySelector('[data-nav="${navId}"]');
-      if (btn) btn.click();
-    })()`);
-    await new Promise((r) => setTimeout(r, 600));
-  };
+  const distHtml = path.join(__dirname, '../dist/index.html');
 
-  const clickTool = async (toolId) => {
-    await win.webContents.executeJavaScript(`(() => {
-      const btn = document.querySelector('[data-tool-id="${toolId}"]');
-      if (btn) btn.click();
-    })()`);
-    await new Promise((r) => setTimeout(r, 600));
-  };
-
-  console.log('Loading app...');
-  await win.loadURL('http://localhost:4173/?theme=dark');
+  // 1. Classic Layout
+  console.log('Capturing Classic Layout...');
+  await win.loadFile(distHtml);
   await new Promise((r) => setTimeout(r, 2000));
-
-  // 1. Home Screen
-  console.log('Capturing Home screen...');
-  await clickNav('home');
-  await saveShot('phase2-home.png');
-
-  // 2. Documents Workspace: Single-tool group rendered flat (Document Diff)
-  console.log('Capturing Documents Workspace (Single-tool group flat render)...');
-  await clickNav('documents');
-  await clickTool('doc-diff');
-  await saveShot('phase2-flat-group.png');
-
-  // 3. PDF Workspace: 'Soon' utility (Replace Pages)
-  console.log('Capturing PDF Workspace Soon utility (Clean empty state)...');
-  await clickNav('pdf');
-  await clickTool('replace-pages');
-  await saveShot('phase2-soon-state.png');
-
-  // 4. PDF Workspace: 'Beta' utility (Compress PDF)
-  console.log('Capturing PDF Workspace Beta utility (Compress PDF)...');
-  await clickTool('compress-pdf');
-  await saveShot('phase2-beta-state.png');
-
-  // 5. Text Workspace: Secondary opening of Base64 (Developer tool in Text workspace)
-  console.log('Capturing Text Workspace Secondary Opening (Base64 with Also in Text chip)...');
-  await clickNav('text');
-  await clickTool('dev-base64');
-  await saveShot('phase2-secondary-opening.png');
-
-  // 6. Ctrl+K Search: Search 'base64'
-  console.log('Capturing Ctrl+K Search (Unique listing + Aliases indexed)...');
   await win.webContents.executeJavaScript(`(() => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
+    const current = JSON.parse(localStorage.getItem('toiloki_settings') || '{}');
+    current.layout = 'classic';
+    localStorage.setItem('toiloki_settings', JSON.stringify(current));
+    window.location.reload();
   })()`);
-  await new Promise((r) => setTimeout(r, 400));
+  await new Promise((r) => setTimeout(r, 2000));
+  await saveShot('phase2-classic-layout.png');
+
+  // 2. Workbench Layout - PDF Empty
+  console.log('Capturing Workbench Layout PDF Empty...');
   await win.webContents.executeJavaScript(`(() => {
-    const input = document.querySelector('.palette-input');
-    if (input) {
-      input.value = 'base64';
-      input.dispatchEvent(new Event('input', { bubbles: true }));
+    const current = JSON.parse(localStorage.getItem('toiloki_settings') || '{}');
+    current.layout = 'workbench';
+    localStorage.setItem('toiloki_settings', JSON.stringify(current));
+    window.location.reload();
+  })()`);
+  await new Promise((r) => setTimeout(r, 2000));
+  
+  // Navigate to PDF workspace
+  await win.webContents.executeJavaScript(`(() => {
+    const pdfBtn = document.querySelector('button[data-nav="pdf"]');
+    if (pdfBtn) pdfBtn.click();
+  })()`);
+  await saveShot('phase2-workbench-pdf-empty.png', 1000);
+
+  // 3. Workbench Layout - PDF with a file + Compress
+  console.log('Capturing Workbench Layout PDF Compress...');
+  // Click on "Compress PDF" if not already selected. The menu group is "Optimize".
+  await win.webContents.executeJavaScript(`(() => {
+    // We will select compress-pdf programmatically via the internal react state or mock a file drop
+    // Actually, we can just dispatch an event to the dropzone or mock state, but simpler is just clicking "Compress PDF"
+    const optimizeBtn = Array.from(document.querySelectorAll('.workbench-menu-btn')).find(b => b.textContent.includes('Optimize'));
+    if (optimizeBtn) optimizeBtn.click();
+  })()`);
+  await new Promise(r => setTimeout(r, 500));
+  
+  await win.webContents.executeJavaScript(`(() => {
+    const compressBtn = Array.from(document.querySelectorAll('.workbench-dropdown-item')).find(b => b.textContent.includes('Compress PDF'));
+    if (compressBtn) compressBtn.click();
+  })()`);
+  
+  // Mock dropping a file
+  await win.webContents.executeJavaScript(`(() => {
+    // Since we don't have a real file, we'll just inject one into the dropzone component's visual state 
+    // Wait, since we are doing integration test screenshot, we need a way to mock files.
+    // Let's create a fake File and dispatch a drop event.
+    const file = new File(['mock content'], 'report.pdf', { type: 'application/pdf' });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    
+    const dropzone = document.querySelector('.file-dropzone') || document.querySelector('.workbench-empty-dropzone-wrapper > div');
+    if (dropzone) {
+      dropzone.dispatchEvent(new DragEvent('drop', { dataTransfer }));
     }
   })()`);
-  await new Promise((r) => setTimeout(r, 600));
-  await saveShot('phase2-ctrlk-search.png');
+  
+  await saveShot('phase2-workbench-pdf-compress.png', 1000);
+  
+  // Also take 1920x1080 screenshot
+  console.log('Capturing 1920x1080...');
+  win.setContentSize(1920, 1080);
+  await saveShot('phase2-workbench-pdf-compress-1080p.png', 1000);
 
-  console.log('--- Phase 2 Proof Capture Completed ---');
-  win.destroy();
+  console.log('All Phase 2 proof screenshots captured successfully!');
   app.quit();
 }
 
 run().catch((err) => {
-  console.error('Error during proof capture:', err);
+  console.error('Error running proof capture:', err);
   process.exit(1);
 });

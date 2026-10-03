@@ -1,0 +1,428 @@
+/* Workbench Shell Layout */
+.workbench-shell-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ─── Top Menubar ─── */
+.workbench-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  min-height: 48px;
+}
+
+.workbench-top-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.workbench-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.workbench-menubar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.workbench-menu-container {
+  position: relative;
+}
+
+.workbench-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+}
+
+.workbench-menu-btn:hover,
+.workbench-menu-btn.is-active {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.workbench-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workbench-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.workbench-dropdown-item:hover {
+  background: var(--surface-hover);
+}
+
+.workbench-dropdown-item.is-selected {
+  background: var(--surface-hover);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.workbench-dropdown-item.is-selected::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  width: 2px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.workbench-top-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workbench-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.workbench-icon-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+/* ─── Main Area ─── */
+.workbench-main-area {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+.workbench-empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.workbench-empty-dropzone-wrapper {
+  width: 100%;
+  max-width: 600px;
+}
+
+/* 3-Zone Layout inside Main */
+.workbench-3-zone-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.workbench-zone-1 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+}
+
+.workbench-canvas-placeholder {
+  flex: 1;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md, 8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+}
+
+.canvas-file-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-2);
+}
+
+.file-icon-placeholder {
+  width: 64px;
+  height: 80px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.workbench-zone-2 {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  overflow-y: auto;
+}
+
+.options-panel-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.options-panel-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--text);
+}
+
+.options-panel-header p {
+  font-size: 13px;
+  color: var(--text-2);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.options-panel-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.placeholder-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.placeholder-options label {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.workbench-select {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+/* ─── Bottom Bar ─── */
+.workbench-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  min-height: 60px;
+}
+
+.bottom-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workbench-ghost-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.workbench-ghost-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.workbench-ghost-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.start-over-btn {
+  width: auto;
+  padding: 0 12px;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.version-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.version-chip {
+  font-size: 12px;
+  color: var(--text-2);
+  background: var(--surface-hover);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.version-chip.current-version {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.version-separator {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.bottom-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.workbench-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius-md, 8px);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+}
+
+.workbench-btn.primary {
+  background: var(--accent);
+  color: var(--text-inverse);
+  border: 1px solid var(--accent);
+}
+
+.workbench-btn.primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.workbench-btn.primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.workbench-btn.ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.workbench-btn.ghost:hover {
+  background: var(--surface-hover);
+}
+
+.workbench-progress-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.workbench-progress-track {
+  width: 160px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.workbench-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 200ms linear;
+}
+
+.workbench-cancel-btn {
+  font-size: 13px;
+  color: var(--text-2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.workbench-cancel-btn:hover {
+  color: var(--text);
+}
+
+.workbench-success-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-ready {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--success);
+  margin-right: 8px;
+}

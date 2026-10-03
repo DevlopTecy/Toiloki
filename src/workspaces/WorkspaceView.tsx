@@ -19,6 +19,8 @@ import { MediaWorkspaceView } from './media/MediaWorkspaceView';
 import { FavoritesService } from '../core/services/favorites.service';
 import { SoonState } from '../components/common/SoonState';
 import { findUtilityByFeatureId } from '../core/registry/app-registry';
+import { SettingsService, AppSettings } from '../core/services/settings.service';
+import { WorkbenchShell } from '../components/workbench/WorkbenchShell';
 
 interface WorkspaceViewProps {
   workspace: WorkspaceDefinition;
@@ -89,6 +91,12 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     return initialFeatureId || new URLSearchParams(window.location.search).get('feature');
   });
   const [isFav, setIsFav] = useState(() => FavoritesService.isFavorite(activeUtility.id));
+  
+  const [settings, setSettings] = useState<AppSettings>(() => SettingsService.getSettings());
+  useEffect(() => {
+    const unsubscribe = SettingsService.subscribe(setSettings);
+    return () => unsubscribe();
+  }, []);
 
   // Sync if workspace or initial params change
   useEffect(() => {
@@ -232,6 +240,17 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
         );
     }
   };
+
+  if (settings.layout === 'workbench' && (workspace.workbench === 'file' || workspace.workbench === 'editor' || workspace.workbench === 'standalone')) {
+    return (
+      <WorkbenchShell
+        workspace={workspace}
+        activeGroup={activeGroup}
+        activeUtility={activeUtility}
+        onSelectUtility={handleSelectUtility}
+      />
+    );
+  }
 
   return (
     <div

@@ -61,6 +61,11 @@ export interface UtilityDefinition {
   primaryGroupId?: string;
   isSecondaryListing?: boolean;
   features?: FeatureDefinition[];
+  mode?: 'pages' | 'tray' | 'markers' | 'panel' | 'annotate' | 'info' | 'editor' | 'standalone';
+  accepts?: 'one' | 'many';
+  inputTypes?: string[];
+  needsFile?: boolean;
+  primaryLabel?: string;
 }
 
 export interface GroupDefinition {
@@ -79,4 +84,5 @@ export interface WorkspaceDefinition {
   icon: LucideIcon;
   badgeGradient: string;
   groups: GroupDefinition[];
+  workbench?: 'file' | 'editor' | 'standalone';
 }

@@ -56,12 +56,12 @@ function CopyBtn({ text }: { text: string }) {
 
 // ─── 1. URL Builder ──────────────────────────────────────────────────────────
 function UrlBuilderView() {
-  const [base, setBase] = useState('https://toiloki.app/tools');
-  const [source, setSource] = useState('newsletter');
-  const [medium, setMedium] = useState('email');
-  const [campaign, setCampaign] = useState('launch_v1');
-  const [customKey, setCustomKey] = useState('ref');
-  const [customVal, setCustomVal] = useState('desktop');
+  const [base, setBase] = useState('');
+  const [source, setSource] = useState('');
+  const [medium, setMedium] = useState('');
+  const [campaign, setCampaign] = useState('');
+  const [customKey, setCustomKey] = useState('');
+  const [customVal, setCustomVal] = useState('');
 
   const fullUrl = React.useMemo(() => {
     const params: Record<string, string> = {};

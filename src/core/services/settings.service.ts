@@ -15,6 +15,7 @@ export interface AppSettings {
   windowEffect: 'none' | 'mica' | 'acrylic';
   windowOpacity: number;
   reduceMotion: 'auto' | 'on' | 'off';
+  layout: 'workbench' | 'classic';
 
   // Workspace Visibility (Appearance)
   visibleWorkspaces: string[];
@@ -67,6 +68,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   windowEffect: 'none',
   windowOpacity: 100,
   reduceMotion: 'auto',
+  layout: 'workbench',
 
   visibleWorkspaces: [
     'pdf',
