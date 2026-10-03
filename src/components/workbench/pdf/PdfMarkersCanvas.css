@@ -1,0 +1,254 @@
+.pdf-markers-canvas {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  padding: 20px 24px 80px 24px;
+  background-color: var(--bg);
+}
+
+.markers-control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin-bottom: 24px;
+}
+
+.markers-method-group {
+  display: inline-flex;
+  background-color: var(--bg);
+  border-radius: 6px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.marker-method-btn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.marker-method-btn:hover {
+  color: var(--text-primary);
+}
+
+.marker-method-btn.is-active {
+  background-color: var(--surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.markers-input-group {
+  display: flex;
+  align-items: center;
+}
+
+.marker-input-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.marker-num-input {
+  width: 50px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.marker-num-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.marker-text-input {
+  width: 160px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+.marker-text-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.marker-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.markers-live-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.scissors-icon {
+  color: var(--accent);
+}
+
+/* Flow of Pages & Cuts */
+.markers-pages-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 0;
+  padding: 8px 0;
+}
+
+.marker-page-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px;
+  width: 110px;
+  user-select: none;
+}
+
+.marker-card-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.marker-page-num {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.marker-sheet-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1.414;
+  background-color: #ffffff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-sheet-thumb .thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.mock-marker-sheet {
+  width: 100%;
+  height: 100%;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fcfcfc;
+}
+
+.mock-marker-sheet .sheet-h {
+  height: 5px;
+  width: 50%;
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.mock-marker-sheet .sheet-b {
+  height: 3px;
+  width: 100%;
+  background: #e2e8f0;
+  border-radius: 2px;
+}
+
+/* Cut Marker Slot */
+.marker-cut-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 140px;
+  cursor: pointer;
+  margin: 0 4px;
+}
+
+.cut-indicator-line {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background-color: transparent;
+  border-left: 2px dashed var(--border);
+  transition: all 0.15s ease;
+}
+
+.cut-marker-pill {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 600;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.15s ease;
+}
+
+.marker-cut-slot:hover .cut-indicator-line {
+  border-left-color: var(--accent);
+}
+
+.marker-cut-slot:hover .cut-marker-pill {
+  opacity: 1;
+  transform: scale(1);
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.marker-cut-slot.is-active-cut .cut-indicator-line {
+  border-left: 2px solid var(--accent);
+}
+
+.marker-cut-slot.is-active-cut .cut-marker-pill {
+  opacity: 1;
+  transform: scale(1);
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}

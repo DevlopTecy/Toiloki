@@ -6,6 +6,7 @@
   width: 100%;
   background: var(--bg);
   overflow: hidden;
+  position: relative;
 }
 
 /* ─── Top Menubar ─── */
@@ -17,18 +18,19 @@
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   min-height: 48px;
+  z-index: 10;
 }
 
 .workbench-top-left {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
 }
 
 .workbench-title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -50,17 +52,17 @@
   border-radius: var(--radius-sm, 6px);
   background: transparent;
   border: 1px solid transparent;
-  color: var(--text-2);
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--dur-fast) ease;
+  transition: all 0.15s ease;
 }
 
 .workbench-menu-btn:hover,
 .workbench-menu-btn.is-active {
   background: var(--surface-hover);
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .workbench-dropdown-menu {
@@ -68,11 +70,11 @@
   top: 100%;
   left: 0;
   margin-top: 4px;
-  min-width: 200px;
+  min-width: 220px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md, 8px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   padding: 4px;
   z-index: 500;
   display: flex;
@@ -81,6 +83,7 @@
 }
 
 .workbench-dropdown-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -88,10 +91,11 @@
   background: transparent;
   border: none;
   border-radius: var(--radius-sm, 6px);
-  color: var(--text);
+  color: var(--text-primary);
   font-size: 13px;
   text-align: left;
   cursor: pointer;
+  transition: all 0.12s ease;
 }
 
 .workbench-dropdown-item:hover {
@@ -100,7 +104,7 @@
 
 .workbench-dropdown-item.is-selected {
   background: var(--surface-hover);
-  color: var(--text);
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -124,26 +128,35 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: var(--radius-sm, 6px);
   background: transparent;
   border: 1px solid transparent;
-  color: var(--text-2);
+  color: var(--text-muted);
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .workbench-icon-btn:hover {
   background: var(--surface-hover);
-  color: var(--text);
+  color: var(--text-primary);
 }
 
-/* ─── Main Area ─── */
+/* ─── Main Content Canvas Wrapper ─── */
 .workbench-main-area {
   flex: 1;
   display: flex;
   overflow: hidden;
   position: relative;
+}
+
+.workbench-canvas-wrapper {
+  flex: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .workbench-empty-state {
@@ -159,7 +172,7 @@
   max-width: 600px;
 }
 
-/* 3-Zone Layout inside Main */
+/* 3-Zone Layout inside Main (for Panel and Info modes) */
 .workbench-3-zone-layout {
   display: flex;
   width: 100%;
@@ -170,35 +183,44 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 24px;
-  overflow-y: auto;
-  border-right: 1px solid var(--border);
-}
-
-.workbench-canvas-placeholder {
-  flex: 1;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-md, 8px);
-  display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--surface);
+  padding: 32px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background-color: var(--bg);
 }
 
-.canvas-file-preview {
+.canvas-file-preview-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  color: var(--text-2);
+  text-align: center;
+  gap: 16px;
+  padding: 40px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  max-width: 360px;
+  width: 100%;
 }
 
-.file-icon-placeholder {
-  width: 64px;
-  height: 80px;
-  background: var(--surface-hover);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+.preview-file-icon {
+  color: var(--accent);
+}
+
+.preview-file-details h3 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.preview-file-details p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .workbench-zone-2 {
@@ -211,66 +233,97 @@
 }
 
 .options-panel-header {
-  padding: 16px;
+  padding: 18px;
   border-bottom: 1px solid var(--border);
 }
 
 .options-panel-header h3 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   margin: 0 0 4px 0;
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .options-panel-header p {
-  font-size: 13px;
-  color: var(--text-2);
+  font-size: 12px;
+  color: var(--text-muted);
   margin: 0;
   line-height: 1.4;
 }
 
 .options-panel-body {
-  padding: 16px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
-.placeholder-options {
+.panel-options-section {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.placeholder-options label {
+.option-label {
   font-size: 12px;
-  color: var(--text-2);
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .workbench-select {
-  padding: 6px 8px;
+  padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm, 6px);
   background: var(--bg);
-  color: var(--text);
+  color: var(--text-primary);
   font-size: 13px;
 }
 
-.info-row {
+.workbench-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.workbench-text-input {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.workbench-text-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.info-stat-row {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
 }
 
-/* ─── Bottom Bar ─── */
+.info-stat-row span {
+  color: var(--text-muted);
+}
+
+.info-stat-row strong {
+  color: var(--text-primary);
+}
+
+/* ─── Bottom Action Bar ─── */
 .workbench-bottom-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
+  padding: 10px 24px;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  min-height: 60px;
+  min-height: 56px;
+  z-index: 20;
 }
 
 .bottom-bar-left {
@@ -288,13 +341,14 @@
   border-radius: var(--radius-sm, 6px);
   background: transparent;
   border: 1px solid transparent;
-  color: var(--text-2);
+  color: var(--text-muted);
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .workbench-ghost-btn:hover:not(:disabled) {
   background: var(--surface-hover);
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .workbench-ghost-btn:disabled {
@@ -304,7 +358,8 @@
 
 .start-over-btn {
   width: auto;
-  padding: 0 12px;
+  gap: 6px;
+  padding: 0 10px;
   font-size: 12px;
   margin-left: 8px;
 }
@@ -312,34 +367,52 @@
 .version-chips {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-left: 8px;
 }
 
 .version-chip {
-  font-size: 12px;
-  color: var(--text-2);
+  font-size: 11px;
+  color: var(--text-muted);
   background: var(--surface-hover);
   padding: 4px 8px;
   border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.version-chip:hover {
+  color: var(--text-primary);
 }
 
 .version-chip.current-version {
   background: var(--bg);
   border: 1px solid var(--border);
-  color: var(--text);
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .version-separator {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .bottom-bar-right {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.workbench-error-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 .workbench-btn {
@@ -349,20 +422,20 @@
   height: 36px;
   padding: 0 16px;
   border-radius: var(--radius-md, 8px);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--dur-fast) ease;
+  transition: all 0.15s ease;
 }
 
 .workbench-btn.primary {
   background: var(--accent);
-  color: var(--text-inverse);
+  color: #ffffff;
   border: 1px solid var(--accent);
 }
 
 .workbench-btn.primary:hover:not(:disabled) {
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .workbench-btn.primary:disabled {
@@ -373,7 +446,7 @@
 .workbench-btn.ghost {
   background: transparent;
   border: 1px solid var(--border);
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .workbench-btn.ghost:hover {
@@ -401,21 +474,21 @@
 }
 
 .workbench-cancel-btn {
-  font-size: 13px;
-  color: var(--text-2);
+  font-size: 12px;
+  color: var(--text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
 }
 
 .workbench-cancel-btn:hover {
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .workbench-success-strip {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .toast-ready {
@@ -423,6 +496,177 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: var(--success);
-  margin-right: 8px;
+  color: #10b981;
+  margin-right: 6px;
+}
+
+/* ─── Popovers & Modals ─── */
+.workbench-actions-popover {
+  position: absolute;
+  top: 48px;
+  right: 16px;
+  width: 440px;
+  max-height: 480px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  z-index: 600;
+  overflow: hidden;
+}
+
+.popover-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.popover-search-input {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.popover-close-btn {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.popover-actions-grid {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  padding: 8px;
+  gap: 4px;
+}
+
+.popover-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.popover-action-card:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--border);
+}
+
+.action-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.action-card-group {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.action-card-desc {
+  margin: 4px 0 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+/* "What this can do" Modal */
+.workbench-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.workbench-modal-card {
+  width: 480px;
+  max-width: 90vw;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close-btn {
+  font-size: 20px;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 18px;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.modal-body h4 {
+  margin: 16px 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.modal-features-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-features-list li {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.modal-features-list strong {
+  color: var(--text-primary);
 }

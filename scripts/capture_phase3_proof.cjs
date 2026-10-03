@@ -1,6 +1,7 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { PDFDocument } = require('pdf-lib');
 
 const outDir = path.join(__dirname, '..', 'screenshots');
 if (!fs.existsSync(outDir)) {
@@ -12,96 +13,415 @@ app.disableHardwareAcceleration();
 async function run() {
   await app.whenReady();
 
+  // Create valid PDF buffers
+  const makePdfB64 = async (pageCount = 4, title = 'Sample Document') => {
+    const doc = await PDFDocument.create();
+    for (let i = 1; i <= pageCount; i++) {
+      const page = doc.addPage([595.28, 841.89]);
+      page.drawText(`${title} - Page ${i}`, { x: 50, y: 800, size: 18 });
+      page.drawText(`Local-first high performance processing.`, { x: 50, y: 760, size: 12 });
+    }
+    const bytes = await doc.save();
+    return Buffer.from(bytes).toString('base64');
+  };
+
+  const sampleB64 = await makePdfB64(4, 'Quarterly Report');
+  const file1B64 = await makePdfB64(3, 'Section 1');
+  const file2B64 = await makePdfB64(2, 'Section 2');
+  const file3B64 = await makePdfB64(4, 'Appendix');
+
   const win = new BrowserWindow({
     width: 1280,
-    height: 820,
+    height: 720,
     show: false,
     frame: false,
     webPreferences: {
       offscreen: true,
+      preload: path.join(__dirname, '../electron/preload.cjs'),
+      contextIsolation: true,
     },
   });
 
-  const saveShot = async (filename, delay = 800) => {
+  const saveShot = async (filename, delay = 1000) => {
     await new Promise((r) => setTimeout(r, delay));
     const image = await win.webContents.capturePage();
     const filePath = path.join(outDir, filename);
     fs.writeFileSync(filePath, image.toPNG());
-    console.log('Saved:', filename);
+    console.log('Saved proof screenshot:', filename);
   };
 
-  const setInputValue = async (selector, value) => {
+  const distHtml = path.join(__dirname, '../dist/index.html');
+
+  // Helper to set theme and resolution with clean reload
+  const setEnvironment = async (theme = 'dark', width = 1280, height = 720) => {
+    win.setSize(width, height);
     await win.webContents.executeJavaScript(`(() => {
-      const input = document.querySelector('${selector}');
+      const s = JSON.parse(localStorage.getItem('toiloki_settings') || '{}');
+      s.theme = '${theme}';
+      s.activeThemeId = 'default-clean';
+      s.colorMode = '${theme}';
+      s.layout = 'workbench';
+      localStorage.setItem('toiloki_settings', JSON.stringify(s));
+    })()`);
+    await win.webContents.reload();
+    await new Promise((r) => setTimeout(r, 1200));
+  };
+
+  // Helper to drop a single valid PDF
+  const mockDropFile = async (name = 'annual-report.pdf', b64 = sampleB64) => {
+    await win.webContents.executeJavaScript(`(() => {
+      const b64 = "${b64}";
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const file = new File([bytes], '${name}', { type: 'application/pdf' });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      const input = document.querySelector('.file-dropzone-wrapper input[type="file"]') || document.querySelector('input[type="file"]');
       if (input) {
-        const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-        nativeSetter.call(input, '${value}');
-        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.files = dt.files;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
       }
     })()`);
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 1600));
   };
 
-  console.log('Loading app for Phase 3 verification...');
-  await win.loadURL('http://localhost:4173/?nav=pdf&group=page-organizer&utility=merge-pdf&theme=dark');
-  await new Promise((r) => setTimeout(r, 2200));
+  // Helper to drop multiple valid PDFs
+  const mockDropMultiple = async () => {
+    await win.webContents.executeJavaScript(`(() => {
+      const addFile = (dt, b64, name) => {
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        dt.items.add(new File([bytes], name, { type: 'application/pdf' }));
+      };
+      const dt = new DataTransfer();
+      addFile(dt, "${file1B64}", 'report-section-1.pdf');
+      addFile(dt, "${file2B64}", 'report-section-2.pdf');
+      addFile(dt, "${file3B64}", 'appendix.pdf');
 
-  // 1. Merge PDF with Grouped Features in Options Panel
-  console.log('Capturing 1: Merge PDF grouped features controls panel...');
-  await saveShot('phase3-grouped-controls.png', 1000);
+      const input = document.querySelector('.file-dropzone-wrapper input[type="file"]') || document.querySelector('input[type="file"]');
+      if (input) {
+        input.files = dt.files;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    })()`);
+    await new Promise((r) => setTimeout(r, 1600));
+  };
 
-  // 2. What this can do Modal
-  console.log('Capturing 2: Opening "What this can do" modal...');
+  console.log('Loading dist/index.html...');
+  await win.loadFile(distHtml);
+  await new Promise((r) => setTimeout(r, 2000));
+
+  // Initialize Dark Theme
+  await setEnvironment('dark', 1280, 720);
+
+  // ==========================================
+  // 1. PDF Pages Mode (Dark & Light, 1280x720 & 1920x1080)
+  // ==========================================
+  console.log('Capturing PDF Pages mode...');
   await win.webContents.executeJavaScript(`(() => {
-    const infoBtn = document.querySelector('.header-info-btn');
-    if (infoBtn) infoBtn.click();
+    const btn = document.querySelector('button[data-nav="pdf"]');
+    if (btn) btn.click();
   })()`);
-  await saveShot('phase3-what-this-can-do-modal.png', 800);
+  await new Promise((r) => setTimeout(r, 800));
 
-  // Close modal
+  // Select "Delete Pages" under Page Organizer (mode: pages)
   await win.webContents.executeJavaScript(`(() => {
-    const closeBtn = document.querySelector('.what-modal-close');
-    if (closeBtn) closeBtn.click();
+    const btns = Array.from(document.querySelectorAll('.workbench-menu-btn'));
+    const org = btns.find(b => b.textContent.includes('Page Organizer'));
+    if (org) org.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 400));
+  await win.webContents.executeJavaScript(`(() => {
+    const items = Array.from(document.querySelectorAll('.workbench-dropdown-item'));
+    const del = items.find(i => i.textContent.includes('Delete Pages'));
+    if (del) del.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 500));
+
+  // Drop a file
+  await mockDropFile('Quarterly-Report.pdf');
+
+  // Select page 2 to show floating toolbar
+  await win.webContents.executeJavaScript(`(() => {
+    const cards = document.querySelectorAll('.pdf-page-card');
+    if (cards.length > 1) cards[1].click();
+  })()`);
+  await saveShot('phase3-pdf-pages-dark-1280x720.png');
+
+  // Dark 1920x1080
+  win.setSize(1920, 1080);
+  await new Promise((r) => setTimeout(r, 600));
+  await saveShot('phase3-pdf-pages-dark-1920x1080.png');
+
+  // Light 1280x720
+  await setEnvironment('light', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const btn = document.querySelector('button[data-nav="pdf"]');
+    if (btn) btn.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 800));
+  await mockDropFile('Quarterly-Report.pdf');
+  await win.webContents.executeJavaScript(`(() => {
+    const cards = document.querySelectorAll('.pdf-page-card');
+    if (cards.length > 1) cards[1].click();
+  })()`);
+  await saveShot('phase3-pdf-pages-light-1280x720.png');
+
+  // Light 1920x1080
+  win.setSize(1920, 1080);
+  await new Promise((r) => setTimeout(r, 600));
+  await saveShot('phase3-pdf-pages-light-1920x1080.png');
+
+  // ==========================================
+  // 2. Chaining Proof: Delete Pages -> Result -> Compress PDF
+  // ==========================================
+  console.log('Capturing Chaining Proof...');
+  await setEnvironment('dark', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const btn = document.querySelector('button[data-nav="pdf"]');
+    if (btn) btn.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 800));
+  await mockDropFile('Quarterly-Report.pdf');
+
+  // Select page 2
+  await win.webContents.executeJavaScript(`(() => {
+    const cards = document.querySelectorAll('.pdf-page-card');
+    if (cards.length > 1) cards[1].click();
   })()`);
   await new Promise((r) => setTimeout(r, 400));
 
-  // 3. Deep link with ?feature=id pulse highlight
-  console.log('Capturing 3: Deep linking to ?feature=page-range-per-file...');
-  await win.loadURL('http://localhost:4173/?feature=page-range-per-file&theme=dark');
-  await saveShot('phase3-deep-link-pulse.png', 1200);
-
-  // 4. Ctrl+K Search for feature ("Reorder by drag")
-  console.log('Capturing 4: Ctrl+K search indexing features ("Reorder by drag — Merge PDF")...');
+  // Click Delete button on floating toolbar
   await win.webContents.executeJavaScript(`(() => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
+    const delBtn = document.querySelector('.floating-tool-btn.danger');
+    if (delBtn) delBtn.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 1200));
+
+  // Switch to Compress PDF without re-dropping file
+  await win.webContents.executeJavaScript(`(() => {
+    const btns = Array.from(document.querySelectorAll('.workbench-menu-btn'));
+    const optBtn = btns.find(b => b.textContent.includes('Page Organizer') || b.textContent.includes('Optimize'));
+    if (optBtn) optBtn.click();
   })()`);
   await new Promise((r) => setTimeout(r, 400));
-  await setInputValue('.palette-input', 'reorder');
-  await saveShot('phase3-ctrlk-feature-search.png', 800);
 
-  // 5. Ctrl+K Search for soon feature ("Bookmarks per file")
-  console.log('Capturing 5: Ctrl+K search indexing Soon feature ("Bookmarks per file — Merge PDF")...');
-  await setInputValue('.palette-input', 'bookmarks');
-  await saveShot('phase3-ctrlk-soon-feature-search.png', 800);
-
-  // Close palette
   await win.webContents.executeJavaScript(`(() => {
-    const closeBtn = document.querySelector('.palette-close-btn');
-    if (closeBtn) closeBtn.click();
+    const items = Array.from(document.querySelectorAll('.workbench-dropdown-item'));
+    const compress = items.find(i => i.textContent.includes('Compress PDF'));
+    if (compress) compress.click();
   })()`);
-  await new Promise((r) => setTimeout(r, 300));
+  await new Promise((r) => setTimeout(r, 800));
 
-  // 6. JSON Formatter seed tool
-  console.log('Capturing 6: JSON Formatter features...');
-  await win.loadURL('http://localhost:4173/?nav=developer&group=dev-formatters&utility=json-prettify&theme=dark');
-  await saveShot('phase3-json-formatter-features.png', 1200);
+  // Click Compress PDF in bottom bar to run compression
+  await win.webContents.executeJavaScript(`(() => {
+    const runBtn = document.querySelector('.workbench-btn.primary');
+    if (runBtn) runBtn.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 1200));
+  await saveShot('phase3-chaining-delete-to-compress-dark-1280x720.png');
 
-  // 7. Batch Rename seed tool
-  console.log('Capturing 7: Batch Rename features...');
-  await win.loadURL('http://localhost:4173/?nav=files&group=files-batch&utility=batch-rename&theme=dark');
-  await saveShot('phase3-batch-rename-features.png', 1200);
+  // ==========================================
+  // 3. PDF Tray Mode (Merge PDF)
+  // ==========================================
+  console.log('Capturing PDF Tray mode (Merge PDF)...');
+  await win.webContents.executeJavaScript(`(() => {
+    const startOver = document.querySelector('.start-over-btn');
+    if (startOver) startOver.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 600));
 
-  console.log('--- Phase 3 Proof Capture Completed Successfully ---');
+  // Navigate to Merge PDF
+  await win.webContents.executeJavaScript(`(() => {
+    const btns = Array.from(document.querySelectorAll('.workbench-menu-btn'));
+    const org = btns.find(b => b.textContent.includes('Page Organizer'));
+    if (org) org.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 400));
+
+  await win.webContents.executeJavaScript(`(() => {
+    const items = Array.from(document.querySelectorAll('.workbench-dropdown-item'));
+    const merge = items.find(i => i.textContent.includes('Merge PDF'));
+    if (merge) merge.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 600));
+
+  // Drop multiple files into tray
+  await mockDropMultiple();
+  await saveShot('phase3-pdf-tray-dark-1280x720.png');
+
+  await setEnvironment('light', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const btn = document.querySelector('button[data-nav="pdf"]');
+    if (btn) btn.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 800));
+  await mockDropMultiple();
+  await saveShot('phase3-pdf-tray-light-1280x720.png');
+
+  // ==========================================
+  // 4. PDF Markers Mode (Split PDF)
+  // ==========================================
+  console.log('Capturing PDF Markers mode (Split PDF)...');
+  await setEnvironment('dark', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const btn = document.querySelector('button[data-nav="pdf"]');
+    if (btn) btn.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 800));
+
+  await win.webContents.executeJavaScript(`(() => {
+    const btns = Array.from(document.querySelectorAll('.workbench-menu-btn'));
+    const org = btns.find(b => b.textContent.includes('Page Organizer'));
+    if (org) org.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 400));
+
+  await win.webContents.executeJavaScript(`(() => {
+    const items = Array.from(document.querySelectorAll('.workbench-dropdown-item'));
+    const split = items.find(i => i.textContent.includes('Split PDF'));
+    if (split) split.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 600));
+
+  await mockDropFile('Multi-chapter-book.pdf');
+
+  // Toggle cut markers
+  await win.webContents.executeJavaScript(`(() => {
+    const slots = document.querySelectorAll('.marker-cut-slot');
+    if (slots.length > 0) slots[0].click();
+    if (slots.length > 2) slots[2].click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 600));
+  await saveShot('phase3-pdf-markers-dark-1280x720.png');
+
+  await setEnvironment('light', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const btn = document.querySelector('button[data-nav="pdf"]');
+    if (btn) btn.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 800));
+  await mockDropFile('Multi-chapter-book.pdf');
+  await win.webContents.executeJavaScript(`(() => {
+    const slots = document.querySelectorAll('.marker-cut-slot');
+    if (slots.length > 0) slots[0].click();
+    if (slots.length > 2) slots[2].click();
+  })()`);
+  await saveShot('phase3-pdf-markers-light-1280x720.png');
+
+  // ==========================================
+  // 5. Default Required Screens (Dark & Light)
+  // ==========================================
+  console.log('Capturing Default Required Screens...');
+
+  // Home
+  await setEnvironment('dark', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const homeBtn = document.querySelector('button[data-nav="home"]');
+    if (homeBtn) homeBtn.click();
+  })()`);
+  await saveShot('default-home-dark-1280x720.png');
+
+  await setEnvironment('light', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const homeBtn = document.querySelector('button[data-nav="home"]');
+    if (homeBtn) homeBtn.click();
+  })()`);
+  await saveShot('default-home-light-1280x720.png');
+
+  // Text > Case Conversion
+  await setEnvironment('dark', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const textNav = document.querySelector('button[data-nav="text"]');
+    if (textNav) textNav.click();
+  })()`);
+  await saveShot('default-text-case-dark-1280x720.png');
+
+  await setEnvironment('light', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const textNav = document.querySelector('button[data-nav="text"]');
+    if (textNav) textNav.click();
+  })()`);
+  await saveShot('default-text-case-light-1280x720.png');
+
+  // Calculator > Basic Calculator
+  await setEnvironment('dark', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const calcNav = document.querySelector('button[data-nav="calculator"]');
+    if (calcNav) calcNav.click();
+  })()`);
+  await saveShot('default-calculator-dark-1280x720.png');
+
+  await setEnvironment('light', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const calcNav = document.querySelector('button[data-nav="calculator"]');
+    if (calcNav) calcNav.click();
+  })()`);
+  await saveShot('default-calculator-light-1280x720.png');
+
+  // Developer > JSON Formatter
+  await setEnvironment('dark', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const devNav = document.querySelector('button[data-nav="developer"]');
+    if (devNav) devNav.click();
+  })()`);
+  await saveShot('default-developer-json-dark-1280x720.png');
+
+  await setEnvironment('light', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const devNav = document.querySelector('button[data-nav="developer"]');
+    if (devNav) devNav.click();
+  })()`);
+  await saveShot('default-developer-json-light-1280x720.png');
+
+  // Images > Resize & Scale
+  await setEnvironment('dark', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const imgNav = document.querySelector('button[data-nav="images"]');
+    if (imgNav) imgNav.click();
+  })()`);
+  await saveShot('default-images-resize-dark-1280x720.png');
+
+  await setEnvironment('light', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const imgNav = document.querySelector('button[data-nav="images"]');
+    if (imgNav) imgNav.click();
+  })()`);
+  await saveShot('default-images-resize-light-1280x720.png');
+
+  // Settings > Appearance
+  await setEnvironment('dark', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const setNav = document.querySelector('button[data-nav="settings"]');
+    if (setNav) setNav.click();
+  })()`);
+  await saveShot('default-settings-appearance-dark-1280x720.png');
+
+  await setEnvironment('light', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const setNav = document.querySelector('button[data-nav="settings"]');
+    if (setNav) setNav.click();
+  })()`);
+  await saveShot('default-settings-appearance-light-1280x720.png');
+
+  // Recent History
+  await setEnvironment('dark', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const histNav = document.querySelector('button[data-nav="history"]');
+    if (histNav) histNav.click();
+  })()`);
+  await saveShot('default-history-dark-1280x720.png');
+
+  await setEnvironment('light', 1280, 720);
+  await win.webContents.executeJavaScript(`(() => {
+    const histNav = document.querySelector('button[data-nav="history"]');
+    if (histNav) histNav.click();
+  })()`);
+  await saveShot('default-history-light-1280x720.png');
+
+  console.log('=== All Phase 3 Proof Screenshots Captured Successfully ===');
   win.destroy();
   app.quit();
 }
