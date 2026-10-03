@@ -2,7 +2,7 @@ export interface AppSettings {
   // Appearance & Theme
   theme: string; // 'light' | 'dark' | 'system'
   activeThemeId: string;
-  density: 'compact' | 'comfortable';
+  density: 'compact' | 'default' | 'comfortable';
   fontSize: 'small' | 'medium' | 'large';
   fontSizeScale: '90%' | '100%' | '110%' | '125%';
   interfaceFont: string;
@@ -16,6 +16,12 @@ export interface AppSettings {
   windowOpacity: number;
   reduceMotion: 'auto' | 'on' | 'off';
 
+  // Workspace Visibility (Appearance)
+  visibleWorkspaces: string[];
+
+  // Advanced & Roadmap
+  showUpcomingUtilities: boolean;
+
   // Processing
   threads: string;
   memoryLimit: string;
@@ -23,8 +29,12 @@ export interface AppSettings {
 
   // Files & Storage
   outputDir: string;
+  namingTemplate: string;
   conflictBehavior: 'auto-rename' | 'overwrite' | 'ask' | 'prompt';
   preserveTimestamps: boolean;
+  tempCleanupPolicy: 'manual' | 'daily' | 'on-exit';
+  portableMode: boolean;
+  fileAssociationsEnabled: boolean;
 
   // History & Privacy
   keepHistory: boolean;
@@ -44,7 +54,7 @@ const STORAGE_KEY = 'toiloki_settings';
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   activeThemeId: 'default-clean',
-  density: 'compact',
+  density: 'default',
   fontSize: 'medium',
   fontSizeScale: '100%',
   interfaceFont: 'Inter',
@@ -58,13 +68,34 @@ export const DEFAULT_SETTINGS: AppSettings = {
   windowOpacity: 100,
   reduceMotion: 'auto',
 
+  visibleWorkspaces: [
+    'pdf',
+    'documents',
+    'images',
+    'data',
+    'text',
+    'developer',
+    'calculator',
+    'files',
+    'security',
+    'media',
+    'network',
+    'design',
+    'system',
+  ],
+  showUpcomingUtilities: false,
+
   threads: '4',
   memoryLimit: '1024',
   hardwareAccel: true,
 
   outputDir: 'C:\\Users\\User\\Downloads\\Toiloki Output',
+  namingTemplate: '{name}_{tool}_{date}',
   conflictBehavior: 'auto-rename',
   preserveTimestamps: true,
+  tempCleanupPolicy: 'on-exit',
+  portableMode: false,
+  fileAssociationsEnabled: true,
 
   keepHistory: true,
   retentionDays: '30',
@@ -115,7 +146,17 @@ export class SettingsService {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       if (data) {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(data) };
+        const parsed = JSON.parse(data);
+        return {
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          visibleWorkspaces: Array.isArray(parsed.visibleWorkspaces) && parsed.visibleWorkspaces.length > 0
+            ? parsed.visibleWorkspaces
+            : DEFAULT_SETTINGS.visibleWorkspaces,
+          showUpcomingUtilities: typeof parsed.showUpcomingUtilities === 'boolean'
+            ? parsed.showUpcomingUtilities
+            : DEFAULT_SETTINGS.showUpcomingUtilities,
+        };
       }
     } catch (err) {
       console.error('Failed to load settings:', err);

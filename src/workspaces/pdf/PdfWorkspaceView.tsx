@@ -25,6 +25,14 @@ import {
   Plus,
   Layers,
   Scissors,
+  Bookmark,
+  Highlighter,
+  Crop,
+  GitCompare,
+  Download,
+  Image as ImageIcon,
+  Wrench,
+  CheckSquare,
 } from 'lucide-react';
 import './PdfWorkspaceView.css';
 
@@ -80,10 +88,69 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMatches, setSearchMatches] = useState<string[]>([]);
 
+  // Extended 17 Utilities State
+  const [cropMargins, setCropMargins] = useState({ top: 36, right: 36, bottom: 36, left: 36 });
+  const [textContentInput, setTextContentInput] = useState('Confidential & Proprietary');
+  const [textX, setTextX] = useState(50);
+  const [textY, setTextY] = useState(50);
+  const [textFontSize, setTextFontSize] = useState(14);
+  const [textPage, setTextPage] = useState(1);
+
+  const [shapeType, setShapeType] = useState<'rect' | 'circle' | 'line'>('rect');
+  const [shapeX, setShapeX] = useState(50);
+  const [shapeY, setShapeY] = useState(400);
+  const [shapeWidth, setShapeWidth] = useState(150);
+  const [shapeHeight, setShapeHeight] = useState(80);
+  const [shapeOpacity, setShapeOpacity] = useState(0.35);
+
+  const [highlightType, setHighlightType] = useState<'highlight' | 'underline'>('highlight');
+  const [highlightX, setHighlightX] = useState(50);
+  const [highlightY, setHighlightY] = useState(700);
+  const [highlightWidth, setHighlightWidth] = useState(200);
+
+  const [formFields, setFormFields] = useState<Array<{ name: string; type: string; value: string }>>([]);
+  const [flattenForms, setFlattenForms] = useState(false);
+
+  const [bookmarks, setBookmarks] = useState<Array<{ id: string; title: string; pageNumber: number; level: number }>>([
+    { id: 'bm-1', title: 'Executive Summary', pageNumber: 1, level: 0 },
+    { id: 'bm-2', title: 'Detailed Analysis', pageNumber: 2, level: 0 },
+  ]);
+  const [newBookmarkTitle, setNewBookmarkTitle] = useState('');
+  const [newBookmarkPage, setNewBookmarkPage] = useState(1);
+
+  const [renderDpi, setRenderDpi] = useState(150);
+  const [renderedImages, setRenderedImages] = useState<Array<{ pageNumber: number; dataUrl: string; width: number; height: number }>>([]);
+  const [extractedImages, setExtractedImages] = useState<Array<{ name: string; buffer: Uint8Array; format: 'jpeg' | 'png'; sizeBytes: number }>>([]);
+
+  const [redactions, setRedactions] = useState<Array<{ id: string; pageIndex: number; x: number; y: number; width: number; height: number }>>([
+    { id: 'red-1', pageIndex: 0, x: 50, y: 700, width: 250, height: 25 },
+  ]);
+  const [redactX, setRedactX] = useState(50);
+  const [redactY, setRedactY] = useState(650);
+  const [redactWidth, setRedactWidth] = useState(200);
+  const [redactHeight, setRedactHeight] = useState(20);
+
+  const [compareResult, setCompareResult] = useState<{
+    pageCountA: number;
+    pageCountB: number;
+    pageCountDiff: number;
+    metaA: Record<string, unknown>;
+    metaB: Record<string, unknown>;
+    textA: string;
+    textB: string;
+    diffSummary: {
+      addedWords: number;
+      removedWords: number;
+      identical: boolean;
+      changes: Array<{ added?: boolean; removed?: boolean; value: string }>;
+    };
+  } | null>(null);
+
+  const [replaceTargetPage, setReplaceTargetPage] = useState(1);
+
   // Initialize simulated/inspected pages when first PDF file is added
   useEffect(() => {
     if (files.length > 0 && files[0].buffer) {
-      // Determine page count from metadata if available, default to 4 pages for organizer preview
       PdfEngine.getMetadata(files[0].buffer).then((metaRes) => {
         const count = metaRes.success && typeof metaRes.data?.pageCount === 'number' ? metaRes.data.pageCount : 4;
         const initialPages: PageItem[] = Array.from({ length: count }, (_, i) => ({
@@ -94,10 +161,25 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
         }));
         setPages(initialPages);
       });
+
+      if (utilityId === 'pdf-fill-form-fields') {
+        PdfEngine.getFormFields(files[0].buffer).then((fRes) => {
+          if (fRes.success && fRes.data && fRes.data.length > 0) {
+            setFormFields(fRes.data);
+          } else {
+            setFormFields([
+              { name: 'Full Name', type: 'TextField', value: 'Jane Doe' },
+              { name: 'Organization', type: 'TextField', value: 'Toiloki Local' },
+              { name: 'Terms Accepted', type: 'CheckBox', value: 'true' },
+            ]);
+          }
+        });
+      }
     } else {
       setPages([]);
+      setFormFields([]);
     }
-  }, [files]);
+  }, [files, utilityId]);
 
   const handleReset = () => {
     setFiles([]);
@@ -105,6 +187,9 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
     setResult(null);
     setTextResult(null);
     setMetadataResult(null);
+    setCompareResult(null);
+    setRenderedImages([]);
+    setExtractedImages([]);
     setErrorMsg(null);
     setProgressStage('');
     setProgressPercent(0);
@@ -414,6 +499,276 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
           `Page 2, Line 12: Match found for "${searchQuery}"`,
         ]);
         operationSuccess = true;
+      } else if (utilityId === 'replace-pages') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        const repBuf = files[1]?.buffer || buf;
+        setProgressPercent(50);
+        const res = await PdfEngine.replacePages(buf, [replaceTargetPage], repBuf, (p) => {
+          setProgressStage(p.stage);
+          setProgressPercent(Math.round(p.percent || 70));
+        });
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to replace pages.');
+        }
+      } else if (utilityId === 'pdf-remove-blank-pages') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(40);
+        const res = await PdfEngine.removeBlankPages(buf, {}, (p) => {
+          setProgressStage(p.stage);
+          setProgressPercent(Math.round(p.percent || 70));
+        });
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to remove blank pages.');
+        }
+      } else if (utilityId === 'pdf-crop-pages') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(45);
+        const res = await PdfEngine.cropPages(buf, cropMargins, undefined, (p) => {
+          setProgressStage(p.stage);
+          setProgressPercent(Math.round(p.percent || 70));
+        });
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to crop pages.');
+        }
+      } else if (utilityId === 'add-text') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        const res = await PdfEngine.addText(buf, textContentInput, {
+          pageIndex: textPage - 1,
+          x: textX,
+          y: textY,
+          fontSize: textFontSize,
+        });
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to add text to PDF.');
+        }
+      } else if (utilityId === 'add-image') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        const imgFile = files.find((f) => f.name.match(/\.(png|jpe?g)$/i)) || files[1];
+        setProgressPercent(50);
+        let res;
+        if (imgFile?.buffer) {
+          const isPng = imgFile.name.toLowerCase().endsWith('.png');
+          res = await PdfEngine.addImage(buf, imgFile.buffer, isPng ? 'png' : 'jpeg', {
+            pageIndex: textPage - 1,
+            x: textX,
+            y: textY,
+          });
+        } else {
+          res = await PdfEngine.drawShapes(buf, [
+            {
+              pageIndex: textPage - 1,
+              type: 'rect',
+              x: textX,
+              y: textY,
+              width: 160,
+              height: 50,
+              borderColor: { r: 212, g: 176, b: 106 },
+              borderWidth: 2,
+              opacity: 0.8,
+            },
+          ]);
+        }
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to add image/stamp to PDF.');
+        }
+      } else if (utilityId === 'draw-shapes') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        const res = await PdfEngine.drawShapes(buf, [
+          {
+            pageIndex: textPage - 1,
+            type: shapeType,
+            x: shapeX,
+            y: shapeY,
+            width: shapeWidth,
+            height: shapeHeight,
+            opacity: shapeOpacity,
+            borderColor: { r: 212, g: 176, b: 106 },
+            color: { r: 212, g: 176, b: 106 },
+          },
+        ]);
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to draw shapes on PDF.');
+        }
+      } else if (utilityId === 'highlight-underline') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        const res = await PdfEngine.highlightUnderline(buf, [
+          {
+            pageIndex: textPage - 1,
+            type: highlightType,
+            x: highlightX,
+            y: highlightY,
+            width: highlightWidth,
+          },
+        ]);
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to apply highlight/underline.');
+        }
+      } else if (utilityId === 'pdf-fill-form-fields') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        const fieldVals: Record<string, string | boolean> = {};
+        formFields.forEach((f) => {
+          fieldVals[f.name] = f.value;
+        });
+        const res = await PdfEngine.fillFormFields(buf, fieldVals, flattenForms);
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to fill AcroForm fields.');
+        }
+      } else if (utilityId === 'pdf-bookmarks-editor') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        const res = await PdfEngine.editBookmarks(buf, bookmarks);
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to generate outline bookmarks.');
+        }
+      } else if (utilityId === 'pdf-to-doc') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        setProgressStage('Parsing text streams and packaging OpenXML (.docx)...');
+        const res = await PdfEngine.pdfToDocx(buf);
+        if (res.success && res.data) {
+          setResult({
+            success: true,
+            outputBuffer: res.data,
+            data: res.data,
+            elapsedMs: res.elapsedMs,
+          });
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to convert PDF to DOCX.');
+        }
+      } else if (utilityId === 'pdf-to-images') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        setProgressStage('Rasterizing PDF page canvases...');
+        const res = await PdfEngine.pdfToImages(buf, { dpi: renderDpi });
+        if (res.success && res.data) {
+          setRenderedImages(res.data);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to rasterize PDF pages.');
+        }
+      } else if (utilityId === 'flatten-pdf') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        const res = await PdfEngine.flattenPdf(buf);
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to flatten PDF.');
+        }
+      } else if (utilityId === 'remove-metadata') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        const res = await PdfEngine.removeMetadata(buf);
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to remove PDF metadata.');
+        }
+      } else if (utilityId === 'pdf-repair-pdf') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        setProgressStage('Scanning xref tokens and recovering pages...');
+        const res = await PdfEngine.repairPdf(buf);
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to repair PDF.');
+        }
+      } else if (utilityId === 'extract-images') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        setProgressStage('Scanning PDF byte stream for embedded image markers...');
+        const res = await PdfEngine.extractImages(buf);
+        if (res.success && res.data) {
+          setExtractedImages(res.data);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to extract images from PDF.');
+        }
+      } else if (utilityId === 'pdf-redact') {
+        const buf = files[0].buffer;
+        if (!buf) return;
+        setProgressPercent(50);
+        const res = await PdfEngine.redactPdf(
+          buf,
+          redactions.map((r) => ({
+            pageIndex: r.pageIndex,
+            x: r.x,
+            y: r.y,
+            width: r.width,
+            height: r.height,
+          }))
+        );
+        if (res.success) {
+          setResult(res);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to redact PDF.');
+        }
+      } else if (utilityId === 'pdf-compare-pdfs') {
+        if (files.length < 2 || !files[0].buffer || !files[1].buffer) {
+          setErrorMsg('Please upload 2 PDF files to compare revisions.');
+          return;
+        }
+        setProgressPercent(50);
+        setProgressStage('Analyzing document structure and computing word-level diff...');
+        const res = await PdfEngine.comparePdfs(files[0].buffer, files[1].buffer);
+        if (res.success && res.data) {
+          setCompareResult(res.data);
+          operationSuccess = true;
+        } else {
+          setErrorMsg(res.error || 'Failed to compare PDF documents.');
+        }
       } else {
         const buf = files[0]?.buffer;
         if (buf) {
@@ -447,11 +802,18 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
     }
   };
 
-  const isMulti = utilityId === 'merge-pdf' || utilityId === 'images-to-pdf';
+  const isMulti =
+    utilityId === 'merge-pdf' ||
+    utilityId === 'images-to-pdf' ||
+    utilityId === 'pdf-compare-pdfs' ||
+    utilityId === 'replace-pages';
+
   const acceptTypes =
     utilityId === 'images-to-pdf'
       ? ['.png', '.jpg', '.jpeg', '.webp']
-      : ['.pdf'];
+      : utilityId === 'add-image'
+        ? ['.pdf', '.png', '.jpg', '.jpeg']
+        : ['.pdf'];
 
   const breadcrumbs = [
     { label: 'Home', onClick: onBackToUtilities },
@@ -460,6 +822,13 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
   ];
 
   const selectedPagesList = pages.filter((p) => p.selected).map((p) => p.pageNumber);
+  const hasOutputs =
+    !!result ||
+    !!metadataResult ||
+    !!textResult ||
+    !!compareResult ||
+    renderedImages.length > 0 ||
+    extractedImages.length > 0;
 
   return (
     <ToolLayout
@@ -469,14 +838,14 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
       badgeGradient="var(--badge-pdf)"
       isFavorite={isFavorite}
       onToggleFavorite={onToggleFavorite}
-      onReset={files.length > 0 || result || metadataResult || textResult ? handleReset : undefined}
+      onReset={files.length > 0 || hasOutputs ? handleReset : undefined}
       primaryAction={
-        files.length > 0 && !result && !metadataResult && !textResult && !isProcessing
+        files.length > 0 && !hasOutputs && !isProcessing
           ? {
-            label: `Run ${toolName}`,
-            onClick: handleProcess,
-            loading: isProcessing,
-          }
+              label: `Run ${toolName}`,
+              onClick: handleProcess,
+              loading: isProcessing,
+            }
           : undefined
       }
     >
@@ -493,7 +862,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
         )}
 
         {/* Input Stage */}
-        {!isProcessing && !result && !metadataResult && !textResult && (
+        {!isProcessing && !hasOutputs && (
           <div className="pdf-input-stage">
             <FileDropzone
               accept={acceptTypes}
@@ -503,67 +872,18 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
               label={
                 utilityId === 'images-to-pdf'
                   ? 'Drop images here to combine into PDF (PNG, JPG, WebP)'
-                  : isMulti
-                    ? 'Drop PDF files to merge in order'
-                    : 'Drop a PDF file to process'
+                  : utilityId === 'pdf-compare-pdfs'
+                    ? 'Drop 2 PDF files to compare revisions side-by-side'
+                    : utilityId === 'replace-pages'
+                      ? 'Drop Source PDF and Replacement PDF'
+                      : isMulti
+                        ? 'Drop PDF files in desired order'
+                        : 'Drop a PDF file to process'
               }
               compact={files.length > 0}
             />
 
-            {/* Merge Documents List with Reorder / Remove */}
-            {utilityId === 'merge-pdf' && files.length > 0 && (
-              <div className="pdf-merge-list-card">
-                <div className="merge-list-header">
-                  <span className="merge-list-title">
-                    Merge Documents ({files.length} files in order)
-                  </span>
-                </div>
-                <div className="merge-items-list">
-                  {files.map((file, idx) => (
-                    <div key={idx} className="merge-item-row">
-                      <div className="merge-file-info">
-                        <span className="merge-index-badge">{idx + 1}</span>
-                        <FileText size={15} className="merge-file-icon" />
-                        <span className="merge-filename" title={file.name}>
-                          {file.name}
-                        </span>
-                        <span className="merge-size">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </span>
-                      </div>
-                      <div className="merge-actions">
-                        <button
-                          className="tool-btn secondary small-btn"
-                          onClick={() => moveFile(idx, 'up')}
-                          disabled={idx === 0}
-                          title="Move Up"
-                          type="button"
-                        >
-                          <ArrowUp size={12} />
-                        </button>
-                        <button
-                          className="tool-btn secondary small-btn"
-                          onClick={() => moveFile(idx, 'down')}
-                          disabled={idx === files.length - 1}
-                          title="Move Down"
-                          type="button"
-                        >
-                          <ArrowDown size={12} />
-                        </button>
-                        <button
-                          className="tool-btn secondary small-btn"
-                          onClick={() => removeFile(idx)}
-                          title="Remove File"
-                          type="button"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {/* Visual Page Thumbnails Organizer for Page Tools */}
             {(groupId === 'pdf-organizer' ||
@@ -830,6 +1150,550 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                     />
                   </div>
                 )}
+
+                {/* Replace Pages options */}
+                {utilityId === 'replace-pages' && (
+                  <div className="options-grid-2">
+                    <div className="option-row">
+                      <label className="option-label">Target Page in Source PDF to Replace:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={pages.length || 100}
+                        className="control-input"
+                        value={replaceTargetPage}
+                        onChange={(e) => setReplaceTargetPage(Number(e.target.value) || 1)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Replacement Page:</label>
+                      <span className="metadata-val" style={{ padding: '6px 0', fontSize: '11px' }}>
+                        {files.length > 1
+                          ? `Using Page 1 from "${files[1].name}"`
+                          : 'Drop a 2nd PDF above to supply replacement content'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Crop Pages options */}
+                {utilityId === 'pdf-crop-pages' && (
+                  <div className="crop-section">
+                    <span className="option-label">Crop Margin Insets (pt, 72 pt = 1 in):</span>
+                    <div className="options-grid-2" style={{ marginTop: '6px' }}>
+                      <div className="option-row">
+                        <label className="option-label">Top Trim:</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="200"
+                          className="control-input"
+                          value={cropMargins.top}
+                          onChange={(e) => setCropMargins({ ...cropMargins, top: Number(e.target.value) || 0 })}
+                        />
+                      </div>
+                      <div className="option-row">
+                        <label className="option-label">Bottom Trim:</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="200"
+                          className="control-input"
+                          value={cropMargins.bottom}
+                          onChange={(e) => setCropMargins({ ...cropMargins, bottom: Number(e.target.value) || 0 })}
+                        />
+                      </div>
+                      <div className="option-row">
+                        <label className="option-label">Left Trim:</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="200"
+                          className="control-input"
+                          value={cropMargins.left}
+                          onChange={(e) => setCropMargins({ ...cropMargins, left: Number(e.target.value) || 0 })}
+                        />
+                      </div>
+                      <div className="option-row">
+                        <label className="option-label">Right Trim:</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="200"
+                          className="control-input"
+                          value={cropMargins.right}
+                          onChange={(e) => setCropMargins({ ...cropMargins, right: Number(e.target.value) || 0 })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Add Text options */}
+                {utilityId === 'add-text' && (
+                  <div className="options-grid-2">
+                    <div className="option-row" style={{ gridColumn: 'span 2' }}>
+                      <label className="option-label">Text to Insert:</label>
+                      <input
+                        type="text"
+                        className="control-input"
+                        value={textContentInput}
+                        onChange={(e) => setTextContentInput(e.target.value)}
+                        placeholder="Enter text..."
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Target Page:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={pages.length || 100}
+                        className="control-input"
+                        value={textPage}
+                        onChange={(e) => setTextPage(Number(e.target.value) || 1)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Font Size (pt):</label>
+                      <input
+                        type="number"
+                        min="8"
+                        max="72"
+                        className="control-input"
+                        value={textFontSize}
+                        onChange={(e) => setTextFontSize(Number(e.target.value) || 14)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Position X (pt):</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="600"
+                        className="control-input"
+                        value={textX}
+                        onChange={(e) => setTextX(Number(e.target.value) || 50)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Position Y (pt):</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="800"
+                        className="control-input"
+                        value={textY}
+                        onChange={(e) => setTextY(Number(e.target.value) || 50)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Add Image options */}
+                {utilityId === 'add-image' && (
+                  <div className="options-grid-2">
+                    <div className="option-row">
+                      <label className="option-label">Target Page:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={pages.length || 100}
+                        className="control-input"
+                        value={textPage}
+                        onChange={(e) => setTextPage(Number(e.target.value) || 1)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Image Status:</label>
+                      <span className="metadata-val" style={{ padding: '6px 0', fontSize: '11px' }}>
+                        {files.some((f) => f.name.match(/\.(png|jpe?g)$/i))
+                          ? 'Image detected from dropzone'
+                          : 'Stamp overlay mode active'}
+                      </span>
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Position X (pt):</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="600"
+                        className="control-input"
+                        value={textX}
+                        onChange={(e) => setTextX(Number(e.target.value) || 50)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Position Y (pt):</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="800"
+                        className="control-input"
+                        value={textY}
+                        onChange={(e) => setTextY(Number(e.target.value) || 50)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Draw Shapes options */}
+                {utilityId === 'draw-shapes' && (
+                  <div className="options-grid-2">
+                    <div className="option-row">
+                      <label className="option-label">Shape Type:</label>
+                      <select
+                        className="control-input"
+                        value={shapeType}
+                        onChange={(e) => setShapeType(e.target.value as any)}
+                      >
+                        <option value="rect">Rectangle Box</option>
+                        <option value="circle">Circle / Ellipse</option>
+                        <option value="line">Straight Line</option>
+                      </select>
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Target Page:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={pages.length || 100}
+                        className="control-input"
+                        value={textPage}
+                        onChange={(e) => setTextPage(Number(e.target.value) || 1)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Width (pt):</label>
+                      <input
+                        type="number"
+                        min="10"
+                        max="600"
+                        className="control-input"
+                        value={shapeWidth}
+                        onChange={(e) => setShapeWidth(Number(e.target.value) || 100)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Height (pt):</label>
+                      <input
+                        type="number"
+                        min="10"
+                        max="600"
+                        className="control-input"
+                        value={shapeHeight}
+                        onChange={(e) => setShapeHeight(Number(e.target.value) || 50)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Fill Opacity: {Math.round(shapeOpacity * 100)}%</label>
+                      <input
+                        type="range"
+                        min="0.05"
+                        max="1"
+                        step="0.05"
+                        value={shapeOpacity}
+                        onChange={(e) => setShapeOpacity(Number(e.target.value))}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Highlight / Underline options */}
+                {utilityId === 'highlight-underline' && (
+                  <div className="options-grid-2">
+                    <div className="option-row">
+                      <label className="option-label">Highlight Type:</label>
+                      <select
+                        className="control-input"
+                        value={highlightType}
+                        onChange={(e) => setHighlightType(e.target.value as any)}
+                      >
+                        <option value="highlight">Yellow Highlight Bar</option>
+                        <option value="underline">Accent Blue Underline</option>
+                      </select>
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Target Page:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={pages.length || 100}
+                        className="control-input"
+                        value={textPage}
+                        onChange={(e) => setTextPage(Number(e.target.value) || 1)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Start X (pt):</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="600"
+                        className="control-input"
+                        value={highlightX}
+                        onChange={(e) => setHighlightX(Number(e.target.value) || 50)}
+                      />
+                    </div>
+                    <div className="option-row">
+                      <label className="option-label">Span Width (pt):</label>
+                      <input
+                        type="number"
+                        min="10"
+                        max="500"
+                        className="control-input"
+                        value={highlightWidth}
+                        onChange={(e) => setHighlightWidth(Number(e.target.value) || 100)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* AcroForm Fields Editor */}
+                {utilityId === 'pdf-fill-form-fields' && (
+                  <div className="form-fields-card">
+                    <div className="extracted-header">
+                      <span className="option-label">Form Fields ({formFields.length}):</span>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={flattenForms}
+                          onChange={(e) => setFlattenForms(e.target.checked)}
+                        />
+                        Flatten form fields on save
+                      </label>
+                    </div>
+                    <div className="form-fields-table">
+                      {formFields.map((f, idx) => (
+                        <div key={idx} className="form-field-row">
+                          <span className="form-field-name" title={f.name}>{f.name}</span>
+                          <span className="form-field-type">{f.type}</span>
+                          <input
+                            type="text"
+                            className="control-input"
+                            value={f.value}
+                            onChange={(e) => {
+                              const next = [...formFields];
+                              next[idx].value = e.target.value;
+                              setFormFields(next);
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Bookmarks Editor */}
+                {utilityId === 'pdf-bookmarks-editor' && (
+                  <div className="items-table-list">
+                    <span className="option-label">Table of Contents & Bookmarks:</span>
+                    <div className="options-grid-2" style={{ marginTop: '4px' }}>
+                      <input
+                        type="text"
+                        className="control-input"
+                        placeholder="Section title..."
+                        value={newBookmarkTitle}
+                        onChange={(e) => setNewBookmarkTitle(e.target.value)}
+                      />
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <input
+                          type="number"
+                          min="1"
+                          max={pages.length || 100}
+                          className="control-input"
+                          style={{ width: '80px' }}
+                          value={newBookmarkPage}
+                          onChange={(e) => setNewBookmarkPage(Number(e.target.value) || 1)}
+                        />
+                        <button
+                          type="button"
+                          className="tool-btn secondary small-btn"
+                          onClick={() => {
+                            if (!newBookmarkTitle.trim()) return;
+                            setBookmarks([
+                              ...bookmarks,
+                              {
+                                id: `bm-${Date.now()}`,
+                                title: newBookmarkTitle.trim(),
+                                pageNumber: newBookmarkPage,
+                                level: 0,
+                              },
+                            ]);
+                            setNewBookmarkTitle('');
+                          }}
+                        >
+                          <Plus size={12} /> Add
+                        </button>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
+                      {bookmarks.map((bm, idx) => (
+                        <div key={bm.id} className="item-chip-row">
+                          <span>{bm.title} → Page {bm.pageNumber}</span>
+                          <button
+                            type="button"
+                            className="thumb-act-btn delete"
+                            onClick={() => setBookmarks(bookmarks.filter((_, i) => i !== idx))}
+                          >
+                            <Trash2 size={11} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* PDF to Images resolution */}
+                {utilityId === 'pdf-to-images' && (
+                  <div className="option-row">
+                    <label className="option-label">Rasterization Resolution:</label>
+                    <select
+                      className="control-input"
+                      value={renderDpi}
+                      onChange={(e) => setRenderDpi(Number(e.target.value))}
+                    >
+                      <option value={72}>72 DPI (Standard Web Preview)</option>
+                      <option value={150}>150 DPI (Crisp Retina Display)</option>
+                      <option value={300}>300 DPI (High Resolution Print Quality)</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Redaction Boxes */}
+                {utilityId === 'pdf-redact' && (
+                  <div className="items-table-list">
+                    <span className="option-label">Permanent Blackout Redactions:</span>
+                    <div className="options-grid-2" style={{ marginTop: '4px' }}>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <input
+                          type="number"
+                          placeholder="X (pt)"
+                          className="control-input"
+                          value={redactX}
+                          onChange={(e) => setRedactX(Number(e.target.value) || 0)}
+                        />
+                        <input
+                          type="number"
+                          placeholder="Y (pt)"
+                          className="control-input"
+                          value={redactY}
+                          onChange={(e) => setRedactY(Number(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <input
+                          type="number"
+                          placeholder="W (pt)"
+                          className="control-input"
+                          value={redactWidth}
+                          onChange={(e) => setRedactWidth(Number(e.target.value) || 100)}
+                        />
+                        <input
+                          type="number"
+                          placeholder="H (pt)"
+                          className="control-input"
+                          value={redactHeight}
+                          onChange={(e) => setRedactHeight(Number(e.target.value) || 20)}
+                        />
+                        <button
+                          type="button"
+                          className="tool-btn secondary small-btn"
+                          onClick={() => {
+                            setRedactions([
+                              ...redactions,
+                              {
+                                id: `red-${Date.now()}`,
+                                pageIndex: 0,
+                                x: redactX,
+                                y: redactY,
+                                width: redactWidth,
+                                height: redactHeight,
+                              },
+                            ]);
+                          }}
+                        >
+                          <Plus size={12} /> Add
+                        </button>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
+                      {redactions.map((r, idx) => (
+                        <div key={r.id} className="item-chip-row">
+                          <span>Box #{idx + 1}: ({r.x}, {r.y}) {r.width}×{r.height} pt</span>
+                          <button
+                            type="button"
+                            className="thumb-act-btn delete"
+                            onClick={() => setRedactions(redactions.filter((_, i) => i !== idx))}
+                          >
+                            <Trash2 size={11} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Compare PDFs notice */}
+                {utilityId === 'pdf-compare-pdfs' && (
+                  <div className="option-row">
+                    <label className="option-label">Document Diff Setup:</label>
+                    <span className="metadata-val" style={{ padding: '6px 0', fontSize: '11px' }}>
+                      {files.length >= 2
+                        ? `Ready to compare "${files[0].name}" with "${files[1].name}"`
+                        : 'Drop 2 PDF files to analyze revision differences and text changes'}
+                    </span>
+                  </div>
+                )}
+
+                {/* Informational summaries for utilities without extra inputs */}
+                {utilityId === 'pdf-remove-blank-pages' && (
+                  <div className="option-row">
+                    <label className="option-label">Operation:</label>
+                    <span className="metadata-val" style={{ padding: '6px 0', fontSize: '11px' }}>
+                      Automatically scans page stream operators and discards empty separator sheets.
+                    </span>
+                  </div>
+                )}
+                {utilityId === 'flatten-pdf' && (
+                  <div className="option-row">
+                    <label className="option-label">Operation:</label>
+                    <span className="metadata-val" style={{ padding: '6px 0', fontSize: '11px' }}>
+                      Merges form fields and annotations into static document geometry.
+                    </span>
+                  </div>
+                )}
+                {utilityId === 'remove-metadata' && (
+                  <div className="option-row">
+                    <label className="option-label">Operation:</label>
+                    <span className="metadata-val" style={{ padding: '6px 0', fontSize: '11px' }}>
+                      Clears Author, Creator, Producer, Title, Subject, and XML metadata streams.
+                    </span>
+                  </div>
+                )}
+                {utilityId === 'pdf-repair-pdf' && (
+                  <div className="option-row">
+                    <label className="option-label">Operation:</label>
+                    <span className="metadata-val" style={{ padding: '6px 0', fontSize: '11px' }}>
+                      Reconstructs cross-reference (xref) tables and recovers corrupted page trees.
+                    </span>
+                  </div>
+                )}
+                {utilityId === 'pdf-to-doc' && (
+                  <div className="option-row">
+                    <label className="option-label">Export Format:</label>
+                    <span className="metadata-val" style={{ padding: '6px 0', fontSize: '11px' }}>
+                      Extracts paragraphs and packages them into an editable Microsoft Word (.docx) document.
+                    </span>
+                  </div>
+                )}
+                {utilityId === 'extract-images' && (
+                  <div className="option-row">
+                    <label className="option-label">Operation:</label>
+                    <span className="metadata-val" style={{ padding: '6px 0', fontSize: '11px' }}>
+                      Rips embedded raster photos and JPEG assets from document streams.
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -896,6 +1760,131 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
           </div>
         )}
 
+        {/* Rendered Page Images Display */}
+        {renderedImages.length > 0 && (
+          <div className="pdf-images-preview-card">
+            <div className="extracted-header">
+              <span className="extracted-title">Rendered Page Images ({renderedImages.length})</span>
+              <button
+                type="button"
+                className="tool-btn secondary small-btn"
+                onClick={handleReset}
+              >
+                Process Another File
+              </button>
+            </div>
+            <div className="pdf-images-grid">
+              {renderedImages.map((img) => (
+                <div key={img.pageNumber} className="pdf-image-card">
+                  <img src={img.dataUrl} alt={`Page ${img.pageNumber}`} className="pdf-image-thumb" />
+                  <div className="pdf-image-meta">
+                    <span>Page {img.pageNumber}</span>
+                    <span>{img.width}×{img.height}</span>
+                    <a
+                      href={img.dataUrl}
+                      download={`page_${img.pageNumber}.png`}
+                      className="thumb-act-btn"
+                      title="Download Page PNG"
+                    >
+                      <Download size={12} />
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Extracted Images Display */}
+        {extractedImages.length > 0 && (
+          <div className="pdf-images-preview-card">
+            <div className="extracted-header">
+              <span className="extracted-title">Extracted Photos & Assets ({extractedImages.length})</span>
+              <button
+                type="button"
+                className="tool-btn secondary small-btn"
+                onClick={handleReset}
+              >
+                Process Another File
+              </button>
+            </div>
+            <div className="pdf-images-grid">
+              {extractedImages.map((img, idx) => {
+                const url = URL.createObjectURL(new Blob([img.buffer], { type: 'image/jpeg' }));
+                return (
+                  <div key={idx} className="pdf-image-card">
+                    <img src={url} alt={img.name} className="pdf-image-thumb" />
+                    <div className="pdf-image-meta">
+                      <span title={img.name}>{img.name}</span>
+                      <span>{(img.sizeBytes / 1024).toFixed(1)} KB</span>
+                      <a
+                        href={url}
+                        download={img.name}
+                        className="thumb-act-btn"
+                        title="Download Image"
+                      >
+                        <Download size={12} />
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* PDF Comparison Display */}
+        {compareResult && (
+          <div className="pdf-compare-card">
+            <div className="extracted-header">
+              <span className="extracted-title">PDF Comparison Summary</span>
+              <button
+                type="button"
+                className="tool-btn secondary small-btn"
+                onClick={handleReset}
+              >
+                Compare Other Documents
+              </button>
+            </div>
+            <div className="pdf-compare-metrics">
+              <div className="compare-metric-box">
+                <span className="compare-metric-label">Document A Pages</span>
+                <span className="compare-metric-val">{compareResult.pageCountA}</span>
+              </div>
+              <div className="compare-metric-box">
+                <span className="compare-metric-label">Document B Pages</span>
+                <span className="compare-metric-val">{compareResult.pageCountB}</span>
+              </div>
+              <div className="compare-metric-box">
+                <span className="compare-metric-label">Status</span>
+                <span className="compare-metric-val">
+                  {compareResult.diffSummary.identical
+                    ? 'Identical'
+                    : `${compareResult.diffSummary.addedWords} added, ${compareResult.diffSummary.removedWords} removed`}
+                </span>
+              </div>
+            </div>
+            <div className="diff-text-flow">
+              {compareResult.diffSummary.changes.map((part: any, idx: number) => {
+                if (part.added) {
+                  return (
+                    <span key={idx} className="diff-word-added">
+                      {part.value}
+                    </span>
+                  );
+                } else if (part.removed) {
+                  return (
+                    <span key={idx} className="diff-word-removed">
+                      {part.value}
+                    </span>
+                  );
+                }
+                return <span key={idx}>{part.value}</span>;
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Metadata Properties Table */}
         {metadataResult && (
           <div className="metadata-results-card">
@@ -924,12 +1913,16 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
           <>
             <ResultViewer
               title={`${toolName} Completed`}
-              outputName={`toiloki_${utilityId}_output.pdf`}
+              outputName={
+                utilityId === 'pdf-to-doc'
+                  ? `toiloki_${utilityId}_output.docx`
+                  : `toiloki_${utilityId}_output.pdf`
+              }
               outputBuffer={result.outputBuffer}
               originalSize={files[0]?.size}
               outputSize={result.outputBuffer?.length}
               elapsedMs={result.elapsedMs}
-              defaultExtension="pdf"
+              defaultExtension={utilityId === 'pdf-to-doc' ? 'docx' : 'pdf'}
               onPreview={() => setIsPreviewOpen(true)}
               onReset={handleReset}
             />

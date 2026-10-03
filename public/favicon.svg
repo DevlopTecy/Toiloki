@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="fav-stem" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FFA726" />
+      <stop offset="50%" stop-color="#F4511E" />
+      <stop offset="100%" stop-color="#BF360C" />
+    </linearGradient>
+
+    <linearGradient id="fav-left" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#BF360C" />
+      <stop offset="100%" stop-color="#F4511E" />
+    </linearGradient>
+
+    <linearGradient id="fav-right" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD54F" />
+      <stop offset="50%" stop-color="#FFA726" />
+      <stop offset="100%" stop-color="#F4511E" />
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="32" height="32" rx="7" fill="#14161C" />
+
+  <g transform="translate(4, 4) scale(0.24)">
+    <rect x="37" y="24" width="26" height="64" rx="13" fill="url(#fav-stem)" />
+    <path d="M 24 13 L 50 13 L 50 39 L 24 39 C 16.8 39 11 33.2 11 26 C 11 18.8 16.8 13 24 13 Z" fill="url(#fav-left)" />
+    <path d="M 47 13 L 76 13 C 83.2 13 89 18.8 89 26 C 89 33.2 83.2 39 76 39 L 39 39 C 47.5 32 48 20 47 13 Z" fill="url(#fav-right)" />
+  </g>
+</svg>

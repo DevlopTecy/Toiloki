@@ -24,36 +24,23 @@
   gap: 8px;
 }
 
-.app-logo-badge {
-  width: 20px;
-  height: 20px;
-  background: var(--accent);
-  color: #111111;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 11px;
-  line-height: 1;
-}
-
 .app-wordmark {
   font-family: var(--font-sans);
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   color: var(--text);
+  line-height: 1;
 }
 
 .app-suite-caption {
-  font-size: 11px;
+  font-size: 10px;
   font-family: var(--font-sans);
-  font-weight: 400;
+  font-weight: 500;
   color: var(--text-muted);
-  letter-spacing: 0;
+  letter-spacing: 0.08em;
   padding: 1px 4px;
+  line-height: 1;
 }
 
 /* ─── Center Section: Search (10px Radius, Accent Focus Ring) ─── */

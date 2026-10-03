@@ -1,0 +1,109 @@
+.toiloki-tab-bar {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  background-color: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+  padding: 0 10px;
+  gap: 4px;
+  user-select: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.toiloki-tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.toiloki-tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 180px;
+  transition: all 0.12s ease;
+  position: relative;
+}
+
+.toiloki-tab-item:hover {
+  color: var(--text);
+  background-color: var(--hover-surface);
+}
+
+.toiloki-tab-item.active {
+  color: var(--text);
+  background-color: var(--surface);
+  border-color: var(--border);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toiloki-tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 6px;
+  right: 6px;
+  height: 2px;
+  background-color: var(--color-accent);
+  border-radius: 1px;
+}
+
+.toiloki-tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toiloki-tab-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.toiloki-tab-item:hover .toiloki-tab-close {
+  opacity: 1;
+}
+
+.toiloki-tab-close:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+.toiloki-new-tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.toiloki-new-tab-btn:hover {
+  color: var(--text);
+  background-color: var(--hover-surface);
+}

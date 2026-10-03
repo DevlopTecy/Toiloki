@@ -234,3 +234,38 @@
   font-size: 12px;
   color: var(--text-muted);
 }
+
+/* ─── Status Badges (Soon / Beta) ─── */
+.tool-status-badge {
+  font-size: 9.5px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: auto;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.tool-status-soon {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted, #8A8F98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tool-status-beta {
+  background: rgba(212, 176, 106, 0.15);
+  color: var(--accent, #D4B06A);
+  border: 1px solid rgba(212, 176, 106, 0.28);
+}
+
+.tool-list-single-tool-group {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.tool-list-single-tool-group .single-utility-btn {
+  font-weight: 500;
+}
+

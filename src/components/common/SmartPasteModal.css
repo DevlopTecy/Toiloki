@@ -1,0 +1,232 @@
+.smart-paste-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(11, 12, 15, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 24px;
+}
+
+.smart-paste-modal-container {
+  width: 100%;
+  max-width: 620px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: smartPasteAppear 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes smartPasteAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.smart-paste-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface-raised);
+}
+
+.smart-paste-title-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.smart-paste-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.smart-paste-format-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(212, 176, 106, 0.14);
+  color: var(--color-accent);
+  border: 1px solid rgba(212, 176, 106, 0.28);
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.smart-paste-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.smart-paste-close-btn:hover {
+  color: var(--text);
+  background-color: var(--hover-surface);
+}
+
+.smart-paste-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.smart-paste-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.smart-paste-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.smart-paste-preview-box {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.smart-paste-matches-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.smart-paste-matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.smart-paste-utility-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background-color 0.15s, transform 0.1s;
+}
+
+.smart-paste-utility-card:hover {
+  background-color: var(--hover-surface);
+  border-color: var(--color-accent);
+}
+
+.smart-paste-utility-card.primary {
+  border-color: rgba(212, 176, 106, 0.4);
+  background-color: rgba(212, 176, 106, 0.05);
+}
+
+.smart-paste-utility-card.primary:hover {
+  background-color: rgba(212, 176, 106, 0.1);
+  border-color: var(--color-accent);
+}
+
+.smart-paste-util-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.smart-paste-util-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.smart-paste-primary-tag {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background-color: var(--color-accent);
+  color: #0b0c0f;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.smart-paste-util-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.smart-paste-open-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-accent);
+}
+
+.smart-paste-footer {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+  background-color: var(--surface-raised);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.smart-paste-kbd {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-secondary);
+}

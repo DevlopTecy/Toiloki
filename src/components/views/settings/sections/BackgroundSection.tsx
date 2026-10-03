@@ -1,13 +1,16 @@
 import React, { useRef, useState } from 'react';
-import { Image, Upload, Trash2, Eye, ShieldCheck, Layers, RotateCcw } from 'lucide-react';
+import { Upload, Trash2, RotateCcw, Image } from 'lucide-react';
 import { useTheme } from '../../../../core/theme/ThemeContext';
-import { ThemeBackground, BackgroundType, PatternType, ImageFit, ApplyBackgroundTo } from '../../../../core/theme/theme.types';
+import { ThemeBackground, ImageFit } from '../../../../core/theme/theme.types';
 import { Button } from '../../../common/Button';
-import { ContrastBadge } from '../components/ContrastBadge';
 
-export const BackgroundSection: React.FC = () => {
-  const { activeTheme, saveCustomTheme, resolvedMode } = useTheme();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+interface BackgroundSectionProps {
+  onError?: (msg: string) => void;
+}
+
+export const BackgroundSection: React.FC<BackgroundSectionProps> = ({ onError }) => {
+  const { activeTheme, saveCustomTheme } = useTheme();
+  const [isPickingImage, setIsPickingImage] = useState(false);
 
   const bgConfig: ThemeBackground = activeTheme.background || { type: 'solid' };
 
@@ -19,47 +22,53 @@ export const BackgroundSection: React.FC = () => {
     });
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Background image must be smaller than 10MB.');
+  // Use Electron IPC to open native dialog, copy to appData, get toiloki-bg:// URL
+  const handlePickImage = async () => {
+    const toiloki = (window as any).toiloki;
+    if (!toiloki?.background?.pickImage) {
+      // Fallback: show a warning if not in Electron
+      onError?.('Background images require the desktop app.');
       return;
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
+    setIsPickingImage(true);
+    try {
+      const result = await toiloki.background.pickImage();
+      if (result.canceled) {
+        setIsPickingImage(false);
+        return;
+      }
       updateBackground({
         type: 'image',
-        imageUrl: dataUrl,
+        imageUrl: result.url,           // e.g. "toiloki-bg://bg_abc123.jpg"
+        imageFileName: result.fileName, // keep filename for removal
         imageFit: 'cover',
-        imagePosition: 'center',
         imageBlur: 0,
         imageDim: 40,
         applyTo: 'window',
-        scrimOpacity: 85,
       });
-    };
-    reader.readAsDataURL(file);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err: any) {
+      onError?.(`Failed to load image: ${err?.message || 'Unknown error'}`);
+    } finally {
+      setIsPickingImage(false);
+    }
   };
 
-  const handleClearImage = () => {
-    updateBackground({
-      type: 'solid',
-      imageUrl: undefined,
-    });
+  const handleRemoveImage = async () => {
+    const toiloki = (window as any).toiloki;
+    const fileName = (bgConfig as any).imageFileName;
+    if (toiloki?.background?.removeImage && fileName) {
+      await toiloki.background.removeImage(fileName).catch(() => {});
+    }
+    updateBackground({ type: 'solid', imageUrl: undefined, imageFileName: undefined });
   };
 
   return (
     <div className="settings-section">
       <div className="section-header-row">
         <div>
-          <h2 className="settings-section-title">Custom Background</h2>
+          <h2 className="settings-section-title">Background</h2>
           <p className="settings-section-desc">
-            Configure application backdrop materials, geometric patterns, or local image wallpapers.
+            Configure backdrop type: solid surface, subtle pattern, or a local image.
           </p>
         </div>
         <button
@@ -69,15 +78,15 @@ export const BackgroundSection: React.FC = () => {
           title="Reset background to solid"
         >
           <RotateCcw size={13} />
-          <span>Reset background</span>
+          <span>Reset</span>
         </button>
       </div>
 
       {/* ─── 1. BACKGROUND TYPE ─── */}
       <div className="settings-row">
         <div className="settings-row-info">
-          <label className="settings-label">Backdrop surface type</label>
-          <span className="settings-helper">Choose between clean solid surface, generated low-contrast pattern, or local wallpaper.</span>
+          <label className="settings-label">Backdrop type</label>
+          <span className="settings-helper">Choose between solid, a subtle pattern, or a local image wallpaper.</span>
         </div>
         <div className="segmented-control">
           <button
@@ -98,14 +107,14 @@ export const BackgroundSection: React.FC = () => {
             type="button"
             className={`segmented-item ${bgConfig.type === 'image' ? 'is-active' : ''}`}
             onClick={() => {
-              if (!bgConfig.imageUrl && fileInputRef.current) {
-                fileInputRef.current.click();
+              if (!bgConfig.imageUrl) {
+                handlePickImage();
               } else {
                 updateBackground({ type: 'image' });
               }
             }}
           >
-            <span>Image wallpaper</span>
+            <span>Image</span>
           </button>
         </div>
       </div>
@@ -115,7 +124,7 @@ export const BackgroundSection: React.FC = () => {
         <div className="settings-row">
           <div className="settings-row-info">
             <label className="settings-label">Pattern style</label>
-            <span className="settings-helper">Ultra low-contrast mathematically generated vectors.</span>
+            <span className="settings-helper">Ultra low-contrast mathematically generated pattern.</span>
           </div>
           <div className="segmented-control">
             <button
@@ -123,14 +132,14 @@ export const BackgroundSection: React.FC = () => {
               className={`segmented-item ${bgConfig.patternType === 'dots' || !bgConfig.patternType ? 'is-active' : ''}`}
               onClick={() => updateBackground({ patternType: 'dots' })}
             >
-              <span>Subtle dots</span>
+              <span>Dots</span>
             </button>
             <button
               type="button"
               className={`segmented-item ${bgConfig.patternType === 'grid' ? 'is-active' : ''}`}
               onClick={() => updateBackground({ patternType: 'grid' })}
             >
-              <span>Technical grid</span>
+              <span>Grid</span>
             </button>
           </div>
         </div>
@@ -142,33 +151,36 @@ export const BackgroundSection: React.FC = () => {
           <div className="settings-row">
             <div className="settings-row-info">
               <label className="settings-label">Local image file</label>
-              <span className="settings-helper">PNG, JPG, WebP up to 10MB. Stored purely locally on your device.</span>
+              <span className="settings-helper">PNG, JPG, or WebP. Copied to app data — stays on your device.</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImageUpload}
-                accept="image/png,image/jpeg,image/webp"
-                style={{ display: 'none' }}
-              />
+              {bgConfig.imageUrl && (
+                <div style={{
+                  width: 48,
+                  height: 32,
+                  borderRadius: 'var(--radius-xs)',
+                  background: `center/cover no-repeat url('${bgConfig.imageUrl}')`,
+                  border: '1px solid var(--border)',
+                  flexShrink: 0,
+                }} />
+              )}
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={handlePickImage}
+                disabled={isPickingImage}
               >
-                <Upload size={13} style={{ marginRight: '6px' }} />
-                {bgConfig.imageUrl ? 'Change image...' : 'Choose image...'}
+                <Upload size={13} style={{ marginRight: 6 }} />
+                {isPickingImage ? 'Picking…' : bgConfig.imageUrl ? 'Change image…' : 'Choose image…'}
               </Button>
-
               {bgConfig.imageUrl && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleClearImage}
-                  style={{ color: 'var(--color-danger)' }}
+                  onClick={handleRemoveImage}
+                  style={{ color: 'var(--danger)' }}
                 >
-                  <Trash2 size={13} style={{ marginRight: '6px' }} />
+                  <Trash2 size={13} style={{ marginRight: 6 }} />
                   Remove
                 </Button>
               )}
@@ -177,92 +189,63 @@ export const BackgroundSection: React.FC = () => {
 
           {bgConfig.imageUrl && (
             <>
-              {/* Wallpaper adjustments */}
+              {/* Fit */}
               <div className="settings-row">
                 <div className="settings-row-info">
-                  <label className="settings-label">Fit & positioning</label>
-                  <span className="settings-helper">Scaling mode and position of the backdrop.</span>
+                  <label className="settings-label">Image fit</label>
+                  <span className="settings-helper">How the image fills the window.</span>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <select
-                    className="settings-select"
-                    value={bgConfig.imageFit || 'cover'}
-                    onChange={(e) => updateBackground({ imageFit: e.target.value as ImageFit })}
-                  >
-                    <option value="cover">Cover (Fill screen)</option>
-                    <option value="contain">Contain (Fit aspect)</option>
-                    <option value="tile">Tile (Repeat pattern)</option>
-                  </select>
+                <select
+                  className="settings-select"
+                  value={bgConfig.imageFit || 'cover'}
+                  onChange={(e) => updateBackground({ imageFit: e.target.value as ImageFit })}
+                >
+                  <option value="cover">Cover (fill screen)</option>
+                  <option value="contain">Contain (fit aspect ratio)</option>
+                  <option value="tile">Tile (repeat)</option>
+                </select>
+              </div>
 
-                  <select
-                    className="settings-select"
-                    value={bgConfig.applyTo || 'window'}
-                    onChange={(e) => updateBackground({ applyTo: e.target.value as ApplyBackgroundTo })}
-                  >
-                    <option value="window">Whole window</option>
-                    <option value="workspace">Workspace area only</option>
-                    <option value="sidebar">Sidebar only</option>
-                  </select>
+              {/* Blur */}
+              <div className="settings-row">
+                <div className="settings-row-info">
+                  <label className="settings-label">Blur</label>
+                  <span className="settings-helper">Soften the background image (0–20px).</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 200 }}>
+                  <input
+                    type="range"
+                    min="0"
+                    max="20"
+                    value={bgConfig.imageBlur ?? 0}
+                    onChange={(e) => updateBackground({ imageBlur: parseInt(e.target.value, 10) })}
+                    style={{ flex: 1, accentColor: 'var(--accent)' }}
+                  />
+                  <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', minWidth: 32, color: 'var(--text-2)' }}>
+                    {bgConfig.imageBlur ?? 0}px
+                  </span>
                 </div>
               </div>
 
-              {/* Sliders for Blur & Dimming Overlay */}
+              {/* Dim */}
               <div className="settings-row">
                 <div className="settings-row-info">
-                  <label className="settings-label">Dim overlay & blur</label>
-                  <span className="settings-helper">Darkens and softens the background so utility text remains razor sharp.</span>
+                  <label className="settings-label">Dim overlay</label>
+                  <span className="settings-helper">Darken the image so text stays readable (0–80%).</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '240px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', minWidth: '55px' }}>Dim:</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="80"
-                      value={bgConfig.imageDim ?? 40}
-                      onChange={(e) => updateBackground({ imageDim: parseInt(e.target.value, 10) })}
-                      style={{ flex: 1, accentColor: 'var(--accent)' }}
-                    />
-                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', minWidth: '32px' }}>
-                      {bgConfig.imageDim ?? 40}%
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', minWidth: '55px' }}>Blur:</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="20"
-                      value={bgConfig.imageBlur ?? 0}
-                      onChange={(e) => updateBackground({ imageBlur: parseInt(e.target.value, 10) })}
-                      style={{ flex: 1, accentColor: 'var(--accent)' }}
-                    />
-                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', minWidth: '32px' }}>
-                      {bgConfig.imageBlur ?? 0}px
-                    </span>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 200 }}>
+                  <input
+                    type="range"
+                    min="0"
+                    max="80"
+                    value={bgConfig.imageDim ?? 40}
+                    onChange={(e) => updateBackground({ imageDim: parseInt(e.target.value, 10) })}
+                    style={{ flex: 1, accentColor: 'var(--accent)' }}
+                  />
+                  <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', minWidth: 32, color: 'var(--text-2)' }}>
+                    {bgConfig.imageDim ?? 40}%
+                  </span>
                 </div>
-              </div>
-
-              {/* Mandatory Readability Scrim Notice */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  backgroundColor: 'rgba(74, 222, 128, 0.08)',
-                  border: '1px solid rgba(74, 222, 128, 0.22)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '10px 14px',
-                  fontSize: '12px',
-                  color: 'var(--text-2)',
-                }}
-              >
-                <ShieldCheck size={18} color="var(--color-success)" />
-                <span>
-                  <strong>Mandatory Readability Scrim active:</strong> UI surfaces above the image maintain at least 85% opacity to guarantee WCAG AA text contrast.
-                </span>
               </div>
             </>
           )}

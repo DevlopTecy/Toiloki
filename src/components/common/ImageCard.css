@@ -136,9 +136,13 @@
   transform: translateX(2px);
 }
 
-:root[data-motion='on'] .image-card-launcher:hover .image-card-chevron-icon,
+:root[data-motion='on'] .image-card-launcher:hover .image-card-chevron-icon {
+  transform: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .image-card-launcher:hover .image-card-chevron-icon {
     transform: none !important;
   }
 }
+

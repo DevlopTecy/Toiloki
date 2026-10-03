@@ -1,0 +1,175 @@
+/* ═══════════════════════════════════════════════════
+   SoonState — Clean "Not available yet" Screen
+   Calm, restrained, zero pass-through, WCAG AA
+   ═══════════════════════════════════════════════════ */
+
+.soon-state-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  min-height: 480px;
+  width: 100%;
+}
+
+.soon-state-card {
+  max-width: 480px;
+  width: 100%;
+  background: var(--surface, #14171F);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.soon-icon-badge {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: rgba(212, 176, 106, 0.08);
+  border: 1px solid rgba(212, 176, 106, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: var(--accent, #D4B06A);
+}
+
+.soon-mini-indicator {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--sidebar, #0E1013);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted, #8C95A0);
+}
+
+.soon-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.soon-pill-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted, #94A3B8);
+}
+
+.soon-status-text {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted, #94A3B8);
+}
+
+.soon-title {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text, #F4F5F7);
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+
+.soon-description {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted, #A3A9B5);
+  margin-bottom: 20px;
+}
+
+.soon-planned-scope {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg, #0B0C0F);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.soon-scope-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted, #8C95A0);
+}
+
+.soon-scope-text {
+  font-size: 12px;
+  color: var(--text, #F4F5F7);
+  line-height: 1.4;
+}
+
+.soon-meta-pills {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.soon-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  border-radius: 9999px;
+}
+
+.soon-meta-item .meta-key {
+  color: var(--text-muted, #8C95A0);
+  font-weight: 500;
+}
+
+.soon-meta-item .meta-val {
+  color: var(--text, #F4F5F7);
+  font-family: var(--font-mono, monospace);
+  font-weight: 500;
+}
+
+.soon-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  color: var(--text, #F4F5F7);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.soon-back-btn:hover {
+  background: var(--surface-hover, rgba(255, 255, 255, 0.06));
+  border-color: var(--border, rgba(255, 255, 255, 0.2));
+}

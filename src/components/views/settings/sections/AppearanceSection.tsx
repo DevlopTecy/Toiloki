@@ -133,7 +133,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       <div className="settings-row">
         <div className="settings-row-info">
           <label className="settings-label">Interface density</label>
-          <span className="settings-helper">Controls row heights, control sizing (28px / 32px / 40px), and spacing.</span>
+          <span className="settings-helper">Controls row heights and spacing (Compact 28px · Default 32px · Comfortable 40px).</span>
         </div>
         <div className="segmented-control">
           <button
@@ -141,14 +141,23 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             className={`segmented-item ${settings.density === 'compact' ? 'is-active' : ''}`}
             onClick={() => onUpdateSettings({ density: 'compact' })}
           >
-            <span>Compact (28px)</span>
+            <span>Compact</span>
+          </button>
+          <button
+            type="button"
+            className={`segmented-item ${
+              !settings.density || settings.density === 'default' || (settings.density !== 'compact' && settings.density !== 'comfortable') ? 'is-active' : ''
+            }`}
+            onClick={() => onUpdateSettings({ density: 'default' as any })}
+          >
+            <span>Default</span>
           </button>
           <button
             type="button"
             className={`segmented-item ${settings.density === 'comfortable' ? 'is-active' : ''}`}
             onClick={() => onUpdateSettings({ density: 'comfortable' })}
           >
-            <span>Comfortable (40px)</span>
+            <span>Comfortable</span>
           </button>
         </div>
       </div>
@@ -381,6 +390,91 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           >
             <span>Off (Full)</span>
           </button>
+        </div>
+      </div>
+
+      {/* ─── 9. VISIBLE WORKSPACES TOGGLES ─── */}
+      <div className="settings-row" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '12px' }}>
+        <div className="settings-row-info">
+          <label className="settings-label">Visible workspaces</label>
+          <span className="settings-helper">
+            Toggle which workspaces appear in the sidebar and navigation. Changes take effect immediately.
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', width: '100%' }}>
+          {/* Core Workspaces */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px 14px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '0.04em' }}>
+              CORE WORKSPACES
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {[
+                { id: 'pdf', label: 'PDF' },
+                { id: 'documents', label: 'Documents' },
+                { id: 'images', label: 'Images' },
+                { id: 'data', label: 'Data' },
+                { id: 'text', label: 'Text' },
+                { id: 'developer', label: 'Developer' },
+                { id: 'calculator', label: 'Calculator' },
+                { id: 'files', label: 'Files & Archives' },
+              ].map((ws) => {
+                const isVisible = (settings.visibleWorkspaces || []).includes(ws.id);
+                return (
+                  <label key={ws.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: '13px', color: 'var(--text)' }}>
+                    <span>{ws.label}</span>
+                    <input
+                      type="checkbox"
+                      checked={isVisible}
+                      onChange={(e) => {
+                        const current = settings.visibleWorkspaces || [];
+                        const next = e.target.checked
+                          ? [...current, ws.id]
+                          : current.filter((id) => id !== ws.id);
+                        onUpdateSettings({ visibleWorkspaces: next });
+                      }}
+                      style={{ cursor: 'pointer', accentColor: 'var(--accent)' }}
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* More Workspaces */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px 14px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '0.04em' }}>
+              MORE WORKSPACES
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {[
+                { id: 'security', label: 'Security & Privacy' },
+                { id: 'media', label: 'Audio & Video' },
+                { id: 'network', label: 'Network & Web' },
+                { id: 'design', label: 'Color & Design' },
+                { id: 'system', label: 'System & Maintenance' },
+              ].map((ws) => {
+                const isVisible = (settings.visibleWorkspaces || []).includes(ws.id);
+                return (
+                  <label key={ws.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: '13px', color: 'var(--text)' }}>
+                    <span>{ws.label}</span>
+                    <input
+                      type="checkbox"
+                      checked={isVisible}
+                      onChange={(e) => {
+                        const current = settings.visibleWorkspaces || [];
+                        const next = e.target.checked
+                          ? [...current, ws.id]
+                          : current.filter((id) => id !== ws.id);
+                        onUpdateSettings({ visibleWorkspaces: next });
+                      }}
+                      style={{ cursor: 'pointer', accentColor: 'var(--accent)' }}
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>

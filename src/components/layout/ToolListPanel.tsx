@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { WorkspaceDefinition, GroupDefinition, UtilityDefinition } from '../../core/types/workspace';
+import { SettingsService, AppSettings } from '../../core/services/settings.service';
 import { ChevronRight, Search } from 'lucide-react';
 import './ToolListPanel.css';
 
@@ -37,6 +38,14 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
     });
   };
 
+  const [showUpcoming, setShowUpcoming] = useState(() => SettingsService.getSettings().showUpcomingUtilities);
+
+  useEffect(() => {
+    return SettingsService.subscribe((s: AppSettings) => {
+      setShowUpcoming(s.showUpcomingUtilities);
+    });
+  }, []);
+
   // Calculate utility statistics per workspace (unique IDs, tooltip: ready/beta/soon)
   const utilityStats = useMemo(() => {
     const all = workspace.groups.flatMap((g) => g.utilities);
@@ -44,32 +53,40 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
     const ready = unique.filter((u) => u.status === 'ready' || !u.status).length;
     const beta = unique.filter((u) => u.status === 'beta').length;
     const soon = unique.filter((u) => u.status === 'soon').length;
+    const total = showUpcoming ? unique.length : (ready + beta);
     return {
-      total: unique.length,
-      tooltip: `${ready} ready · ${beta} beta · ${soon} coming soon`,
+      total,
+      tooltip: showUpcoming
+        ? `${ready} ready · ${beta} beta · ${soon} coming soon`
+        : `${ready} ready · ${beta} beta (${soon} upcoming hidden)`,
     };
-  }, [workspace]);
+  }, [workspace, showUpcoming]);
 
   // Filtered groups & utilities
   const filteredGroups = useMemo(() => {
     const q = searchFilter.trim().toLowerCase();
-    if (!q) return workspace.groups;
 
     return workspace.groups
       .map((g) => {
-        const matchingUtilities = g.utilities.filter(
-          (u) =>
-            u.name.toLowerCase().includes(q) ||
-            u.description.toLowerCase().includes(q) ||
-            u.keywords?.some((k) => k.toLowerCase().includes(q))
-        );
+        let utils = g.utilities;
+        if (!showUpcoming) {
+          utils = utils.filter((u) => u.status !== 'soon');
+        }
+        if (q) {
+          utils = utils.filter(
+            (u) =>
+              u.name.toLowerCase().includes(q) ||
+              u.description.toLowerCase().includes(q) ||
+              u.keywords?.some((k) => k.toLowerCase().includes(q))
+          );
+        }
         return {
           ...g,
-          utilities: matchingUtilities,
+          utilities: utils,
         };
       })
       .filter((g) => g.utilities.length > 0);
-  }, [workspace, searchFilter]);
+  }, [workspace, searchFilter, showUpcoming]);
 
   const scrollableRef = React.useRef<HTMLDivElement>(null);
   const [indicatorY, setIndicatorY] = useState<number>(-1);
@@ -127,6 +144,36 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
         />
 
         {filteredGroups.map((group) => {
+          const originalGroup = workspace.groups.find((g) => g.id === group.id) || group;
+          const isSingleUtilityGroup = originalGroup.utilities.length === 1;
+
+          if (isSingleUtilityGroup) {
+            const utility = group.utilities[0];
+            if (!utility) return null;
+            const isActive = utility.id === activeUtilityId;
+
+            return (
+              <div key={group.id} className="tool-list-group tool-list-single-tool-group">
+                <button
+                  data-tool-id={utility.id}
+                  data-utility-id={utility.id}
+                  type="button"
+                  className={`tool-item-btn single-utility-btn ${isActive ? 'active' : ''}`}
+                  onClick={() => onSelectUtility(group, utility)}
+                  title={utility.description}
+                >
+                  <span className="tool-item-name">{utility.name}</span>
+                  {utility.status === 'soon' && (
+                    <span className="tool-status-badge tool-status-soon">Soon</span>
+                  )}
+                  {utility.status === 'beta' && (
+                    <span className="tool-status-badge tool-status-beta">Beta</span>
+                  )}
+                </button>
+              </div>
+            );
+          }
+
           const isCollapsed = Boolean(collapsedGroups[group.id]);
 
           return (
@@ -166,10 +213,10 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
                         >
                           <span className="tool-item-name">{utility.name}</span>
                           {utility.status === 'soon' && (
-                            <span className="status-badge status-soon" style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted, #888)', marginLeft: 'auto' }}>Soon</span>
+                            <span className="tool-status-badge tool-status-soon">Soon</span>
                           )}
                           {utility.status === 'beta' && (
-                            <span className="status-badge status-beta" style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', marginLeft: 'auto' }}>Beta</span>
+                            <span className="tool-status-badge tool-status-beta">Beta</span>
                           )}
                         </button>
                       );

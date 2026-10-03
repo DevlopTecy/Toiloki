@@ -8,6 +8,7 @@ export interface HistoryRecord {
   utilityId: string;
   input: string;
   output: string;
+  displayLabel?: string; // Human-readable "Converted 175 characters to uppercase"
   timestamp: string;
   status: HistoryStatus;
   outputPath?: string;
@@ -24,13 +25,13 @@ export class HistoryService {
    */
   static async verifyOutputExistence(): Promise<HistoryRecord[]> {
     const records = this.getRecords();
-    if (!window.toiloki?.fs?.getStats) return records;
+    if (!(window as any).toiloki?.fs?.getStats) return records;
 
     let hasChanges = false;
     for (const rec of records) {
       if (rec.outputPath) {
         try {
-          const stats = await window.toiloki.fs.getStats(rec.outputPath);
+          const stats = await (window as any).toiloki.fs.getStats(rec.outputPath);
           const exists = !!stats.exists;
           if (rec.outputExists !== exists) {
             rec.outputExists = exists;
@@ -55,57 +56,55 @@ export class HistoryService {
 
     return records;
   }
+
   /**
-   * Retrieve all recorded history entries
+   * Retrieve all recorded history entries. Returns [] when no real data exists (no seed data).
    */
   static getRecords(): HistoryRecord[] {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       if (data) {
-        return JSON.parse(data);
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch (err) {
       console.error('Failed to load history from localStorage:', err);
     }
-    return [
-      {
-        id: 'seed-1',
-        toolName: 'PDF Merger',
-        workspaceId: 'pdf',
-        groupId: 'page-organizer',
-        utilityId: 'merge-pdf',
-        input: 'Contract_Part1.pdf, Contract_Part2.pdf',
-        output: 'merged_contract.pdf (1.8 MB)',
-        timestamp: 'Today, 11:20 AM',
-        status: 'completed',
-      },
-      {
-        id: 'seed-2',
-        toolName: 'Compress Image',
-        workspaceId: 'images',
-        groupId: 'image-optimizer',
-        utilityId: 'compress-image',
-        input: 'banner_large.png (3.4 MB)',
-        output: 'banner_large.webp (380 KB, -89%)',
-        timestamp: 'Today, 09:45 AM',
-        status: 'completed',
-      },
-      {
-        id: 'seed-3',
-        toolName: 'CSV to JSON',
-        workspaceId: 'data',
-        groupId: 'data-converter',
-        utilityId: 'csv-to-json',
-        input: 'records_q3.csv (420 rows)',
-        output: 'records_q3.json (84 KB)',
-        timestamp: 'Yesterday, 04:15 PM',
-        status: 'completed',
-      },
-    ];
+    return [];
   }
 
   /**
-   * Add a new history entry
+   * Generate a human-readable display label for a history record.
+   * Examples: "Compressed image → banner.webp"
+   *           "Merged 3 PDF files → merged_output.pdf"
+   *           "Case conversion (175 chars)"
+   */
+  static buildDisplayLabel(entry: {
+    toolName: string;
+    input: string;
+    output: string;
+  }): string {
+    const { toolName, input, output } = entry;
+    // If output has file.ext (size) pattern, show "ToolName → filename"
+    if (output && output.match(/\.\w{2,4}\s*\(/)) {
+      return `${toolName} → ${output.split('(')[0].trim()}`;
+    }
+    // If output shows char count
+    const charMatch = output.match(/(\d+)\s*char/i);
+    if (charMatch) {
+      return `${toolName} (${charMatch[1]} chars)`;
+    }
+    // If input has row count
+    const rowMatch = input.match(/\((\d+)\s*rows?\)/i);
+    if (rowMatch) {
+      return `${toolName} · ${rowMatch[1]} rows`;
+    }
+    // Generic fallback: just the tool name
+    return toolName;
+  }
+
+  /**
+   * Add a new history entry. Skips empty runs and merges consecutive identical entries.
    */
   static record(entry: {
     toolName: string;
@@ -115,11 +114,29 @@ export class HistoryService {
     input: string;
     output: string;
     status?: HistoryStatus;
-  }): HistoryRecord {
+  }): HistoryRecord | null {
+    // Skip empty runs (0 chars output)
+    const trimmedOutput = (entry.output || '').trim();
+    if (!trimmedOutput) return null;
+
     const existing = this.getRecords();
+
+    // Merge consecutive identical entries (same utility + same input + same output)
+    const last = existing[0];
+    if (
+      last &&
+      last.utilityId === entry.utilityId &&
+      last.input === entry.input &&
+      last.output === entry.output
+    ) {
+      return last;
+    }
+
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const dateStr = now.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+    const displayLabel = this.buildDisplayLabel(entry);
 
     const newRecord: HistoryRecord = {
       id: `rec-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
@@ -129,11 +146,12 @@ export class HistoryService {
       utilityId: entry.utilityId,
       input: entry.input,
       output: entry.output,
+      displayLabel,
       timestamp: `${dateStr}, ${timeStr}`,
       status: entry.status || 'completed',
     };
 
-    const updated = [newRecord, ...existing.filter((r) => r.id !== newRecord.id)].slice(0, MAX_ENTRIES);
+    const updated = [newRecord, ...existing].slice(0, MAX_ENTRIES);
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));

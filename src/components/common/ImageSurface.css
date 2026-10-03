@@ -36,7 +36,10 @@
 
 /* Reduced Motion Override */
 :root[data-motion='on'] .image-surface.is-interactive:hover,
-:root[data-motion='on'] .image-surface.is-interactive:active,
+:root[data-motion='on'] .image-surface.is-interactive:active {
+  transform: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .image-surface.is-interactive:hover {
     transform: none !important;
@@ -99,7 +102,10 @@
   transform: scale(1.04);
 }
 
-:root[data-motion='on'] .image-surface.is-interactive:hover .image-surface-artwork-img.is-loaded,
+:root[data-motion='on'] .image-surface.is-interactive:hover .image-surface-artwork-img.is-loaded {
+  transform: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .image-surface.is-interactive:hover .image-surface-artwork-img.is-loaded {
     transform: none !important;

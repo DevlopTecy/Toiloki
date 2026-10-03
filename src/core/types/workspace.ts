@@ -9,11 +9,40 @@ export type WorkspaceId =
   | 'text'
   | 'developer'
   | 'calculator'
-  | 'files';
+  | 'files'
+  | 'security'
+  | 'media'
+  | 'network'
+  | 'design'
+  | 'system';
 
 export type UtilityStatus = 'ready' | 'beta' | 'soon';
 
-export type UtilityTemplate = 'file' | 'text/code' | 'table' | 'calculator';
+export type UtilityTemplate = 'file' | 'text' | 'table' | 'calculator' | 'media';
+
+export interface AlsoListedInRef {
+  workspaceId: WorkspaceId;
+  groupId?: string;
+}
+
+export type FeatureKind = 'option' | 'mode' | 'action' | 'output' | 'batch';
+export type FeatureStatus = 'ready' | 'soon';
+
+export interface FeatureOptionItem {
+  label: string;
+  value: any;
+}
+
+export interface FeatureDefinition {
+  id: string;
+  name: string;
+  description: string;
+  kind: FeatureKind;
+  status: FeatureStatus;
+  aliases?: string[];
+  defaultValue?: any;
+  options?: FeatureOptionItem[];
+}
 
 export interface UtilityDefinition {
   id: string; // unique utilityId
@@ -22,11 +51,16 @@ export interface UtilityDefinition {
   engineId: string;
   component?: React.ComponentType;
   keywords?: string[];
-  icon?: LucideIcon;
-  status?: UtilityStatus;
-  template?: UtilityTemplate;
-  acceptedFormats?: string;
-  aliases?: string[];
+  icon: LucideIcon;
+  status: UtilityStatus;
+  template: UtilityTemplate;
+  acceptedFormats: string[];
+  aliases: string[];
+  alsoListedIn?: WorkspaceId[] | AlsoListedInRef[];
+  primaryWorkspaceId?: WorkspaceId;
+  primaryGroupId?: string;
+  isSecondaryListing?: boolean;
+  features?: FeatureDefinition[];
 }
 
 export interface GroupDefinition {

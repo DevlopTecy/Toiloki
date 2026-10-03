@@ -33,6 +33,11 @@ const CATEGORY_COLORS: Record<string, string> = {
   developer: 'var(--cat-developer, #F97316)',
   calculator: 'var(--cat-calculator, #EAB308)',
   files: 'var(--cat-files, #3B82F6)',
+  security: 'var(--cat-security, #10B981)',
+  media: 'var(--cat-media, #EC4899)',
+  network: 'var(--cat-network, #06B6D4)',
+  design: 'var(--cat-design, #8B5CF6)',
+  system: 'var(--cat-system, #64748B)',
 };
 
 export const DashboardHome: React.FC<DashboardHomeProps> = ({
@@ -51,6 +56,11 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
     return SettingsService.subscribe((updated) => setSettings(updated));
   }, []);
 
+  const visibleWorkspacesList = useMemo(() => {
+    const visibleIds = new Set(settings.visibleWorkspaces);
+    return WORKSPACES.filter((ws) => visibleIds.has(ws.id));
+  }, [settings.visibleWorkspaces]);
+
   const isHighContrast = activeTheme.id === 'high-contrast';
   const isImageStyle = !isHighContrast && (
     settings.buttonCardStyle === 'image' || activeTheme.buttons?.cardStyle === 'image'
@@ -65,11 +75,11 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
   // Pinned Quick Actions
   const quickActions = [
     { name: 'Merge PDF', workspaceId: 'pdf' as WorkspaceId, groupId: 'page-organizer', utilityId: 'merge-pdf', badgeClass: 'badge-pdf', desc: 'Combine multiple PDF files' },
-    { name: 'Resize Images', workspaceId: 'images' as WorkspaceId, groupId: 'image-editor', utilityId: 'resize-rescale', badgeClass: 'badge-img', desc: 'Batch scale & reformat' },
-    { name: 'JSON Formatter', workspaceId: 'developer' as WorkspaceId, groupId: 'formatters', utilityId: 'json-beautifier', badgeClass: 'badge-dev', desc: 'Beautify, minify, validate' },
-    { name: 'Hash & Checksum', workspaceId: 'files' as WorkspaceId, groupId: 'file-analysis', utilityId: 'checksum-hash', badgeClass: 'badge-files', desc: 'MD5, SHA-256 integrity' },
-    { name: 'Text Diff / Compare', workspaceId: 'text' as WorkspaceId, groupId: 'text-compare', utilityId: 'side-by-side-diff', badgeClass: 'badge-text', desc: 'Side-by-side comparison' },
-    { name: 'Create ZIP Archive', workspaceId: 'files' as WorkspaceId, groupId: 'archive-manager', utilityId: 'create-archive', badgeClass: 'badge-files', desc: 'Compress folders and files' },
+    { name: 'Resize Images', workspaceId: 'images' as WorkspaceId, groupId: 'img-transformer', utilityId: 'img-resize', badgeClass: 'badge-img', desc: 'Batch scale & reformat' },
+    { name: 'JSON Formatter', workspaceId: 'developer' as WorkspaceId, groupId: 'dev-formatter', utilityId: 'format-json-code', badgeClass: 'badge-dev', desc: 'Beautify, minify, validate' },
+    { name: 'Hash & Checksum', workspaceId: 'files' as WorkspaceId, groupId: 'files-analyzer', utilityId: 'file-analyzer-full', badgeClass: 'badge-files', desc: 'MD5, SHA-256 integrity' },
+    { name: 'Text Diff / Compare', workspaceId: 'text' as WorkspaceId, groupId: 'text-compare', utilityId: 'text-diff', badgeClass: 'badge-text', desc: 'Side-by-side comparison' },
+    { name: 'Create ZIP Archive', workspaceId: 'files' as WorkspaceId, groupId: 'files-archives', utilityId: 'create-zip-archive', badgeClass: 'badge-files', desc: 'Compress folders and files' },
   ];
 
   return (
@@ -79,19 +89,21 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
         <div className="section-header">
           <div className="section-title-wrap">
             <h2 className="section-title">Utility categories</h2>
-            <span className="section-count">{WORKSPACES.length} Workspaces</span>
+            <span className="section-count">{visibleWorkspacesList.length} Workspaces</span>
           </div>
         </div>
 
         <div className="categories-grid">
-          {WORKSPACES.map((ws) => {
+          {visibleWorkspacesList.map((ws) => {
             const allUtils = ws.groups.flatMap((g) => g.utilities);
             const uniqueUtils = Array.from(new Map(allUtils.map((u) => [u.id, u])).values());
-            const utilityCount = uniqueUtils.length;
             const ready = uniqueUtils.filter((u) => u.status === 'ready' || !u.status).length;
             const beta = uniqueUtils.filter((u) => u.status === 'beta').length;
             const soon = uniqueUtils.filter((u) => u.status === 'soon').length;
-            const tooltip = `${ready} ready · ${beta} beta · ${soon} coming soon`;
+            const utilityCount = settings.showUpcomingUtilities ? uniqueUtils.length : (ready + beta);
+            const tooltip = settings.showUpcomingUtilities
+              ? `${ready} ready · ${beta} beta · ${soon} coming soon`
+              : `${ready} ready · ${beta} beta (${soon} upcoming hidden)`;
             const categoryColor = CATEGORY_COLORS[ws.id] || 'var(--cat-system, #64748B)';
             const pictureConfig = activeTheme.buttons?.pictures?.[ws.id];
 

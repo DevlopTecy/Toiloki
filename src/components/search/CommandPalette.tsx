@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, ChevronRight, CornerDownLeft } from 'lucide-react';
 import { WORKSPACES } from '../../core/registry/app-registry';
-import { WorkspaceId, UtilityStatus } from '../../core/types/workspace';
+import { WorkspaceId, UtilityStatus, FeatureKind, FeatureStatus } from '../../core/types/workspace';
+import { SettingsService } from '../../core/services/settings.service';
 import './CommandPalette.css';
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectUtility: (workspaceId: WorkspaceId, groupId: string, utilityId: string) => void;
+  onSelectUtility: (
+    workspaceId: WorkspaceId,
+    groupId: string,
+    utilityId: string,
+    featureId?: string
+  ) => void;
 }
 
 interface SearchItem {
@@ -19,7 +25,12 @@ interface SearchItem {
   utilityName: string;
   description: string;
   badgeGradient: string;
-  status?: UtilityStatus;
+  status?: UtilityStatus | FeatureStatus;
+  aliases?: string[];
+  keywords?: string[];
+  isFeature?: boolean;
+  featureId?: string;
+  featureKind?: FeatureKind;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -31,12 +42,29 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Flatten all utilities for instant searching
+  const [showUpcoming, setShowUpcoming] = useState(() => SettingsService.getSettings().showUpcomingUtilities);
+
+  useEffect(() => {
+    return SettingsService.subscribe((s) => {
+      setShowUpcoming(s.showUpcomingUtilities);
+    });
+  }, []);
+
+  // Flatten unique utilities & features for instant omnisearch
   const allUtilities: SearchItem[] = React.useMemo(() => {
     const items: SearchItem[] = [];
+    const seen = new Set<string>();
+
     for (const ws of WORKSPACES) {
       for (const group of ws.groups) {
         for (const util of group.utilities) {
+          // If secondary listing, skip so it is indexed once in its primary home
+          if (util.isSecondaryListing) continue;
+          if (!showUpcoming && util.status === 'soon') continue;
+          if (seen.has(util.id)) continue;
+          seen.add(util.id);
+
+          // 1. Index the utility itself
           items.push({
             workspaceId: ws.id,
             workspaceName: ws.name,
@@ -47,23 +75,65 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             description: util.description,
             badgeGradient: group.badgeGradient,
             status: util.status,
+            aliases: util.aliases,
+            keywords: util.keywords,
           });
+
+          // 2. Index every child feature as "{Feature Name} — {Utility Name}"
+          if (util.features && util.features.length > 0) {
+            for (const feat of util.features) {
+              if (!showUpcoming && feat.status === 'soon') continue;
+              items.push({
+                workspaceId: ws.id,
+                workspaceName: ws.name,
+                groupId: group.id,
+                groupName: `${util.name} (${feat.kind})`,
+                utilityId: util.id,
+                utilityName: `${feat.name} — ${util.name}`,
+                description: feat.description,
+                badgeGradient: group.badgeGradient,
+                status: feat.status,
+                aliases: feat.aliases,
+                keywords: [feat.kind, feat.status, ...(feat.aliases || [])],
+                isFeature: true,
+                featureId: feat.id,
+                featureKind: feat.kind,
+              });
+            }
+          }
         }
       }
     }
     return items;
-  }, []);
+  }, [showUpcoming]);
 
   const filtered = React.useMemo(() => {
-    if (!query.trim()) return allUtilities.slice(0, 10);
+    if (!query.trim()) return allUtilities.slice(0, 12);
     const q = query.toLowerCase();
-    return allUtilities.filter(
+    const matches = allUtilities.filter(
       (item) =>
         item.utilityName.toLowerCase().includes(q) ||
+        item.aliases?.some((a) => a.toLowerCase().includes(q)) ||
+        item.keywords?.some((k) => k.toLowerCase().includes(q)) ||
         item.groupName.toLowerCase().includes(q) ||
         item.workspaceName.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q)
     );
+
+    // Rank exact/title matches first
+    return matches.sort((a, b) => {
+      const aName = a.utilityName.toLowerCase();
+      const bName = b.utilityName.toLowerCase();
+      const aStartsWith = aName.startsWith(q);
+      const bStartsWith = bName.startsWith(q);
+      if (aStartsWith && !bStartsWith) return -1;
+      if (!aStartsWith && bStartsWith) return 1;
+      const aIncludes = aName.includes(q);
+      const bIncludes = bName.includes(q);
+      if (aIncludes && !bIncludes) return -1;
+      if (!aIncludes && bIncludes) return 1;
+      return 0;
+    });
   }, [allUtilities, query]);
 
   useEffect(() => {
@@ -95,7 +165,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         } else if (e.key === 'Enter' && filtered[selectedIndex]) {
           e.preventDefault();
           const item = filtered[selectedIndex];
-          onSelectUtility(item.workspaceId, item.groupId, item.utilityId);
+          onSelectUtility(item.workspaceId, item.groupId, item.utilityId, item.featureId);
           onClose();
         }
       }
@@ -116,7 +186,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             ref={inputRef}
             type="text"
             className="palette-input"
-            placeholder="Type a utility name, command or file format..."
+            placeholder="Type a feature name, utility, or format..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -128,15 +198,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         <div className="palette-results-list">
           {filtered.length === 0 ? (
             <div className="palette-empty">
-              No matching utilities found for "{query}".
+              No matching utilities or features found for "{query}".
             </div>
           ) : (
             filtered.map((item, index) => (
               <div
-                key={`${item.workspaceId}-${item.groupId}-${item.utilityId}`}
+                key={`${item.workspaceId}-${item.groupId}-${item.utilityId}-${item.featureId || 'main'}`}
                 className={`palette-item ${index === selectedIndex ? 'selected' : ''}`}
                 onClick={() => {
-                  onSelectUtility(item.workspaceId, item.groupId, item.utilityId);
+                  onSelectUtility(item.workspaceId, item.groupId, item.utilityId, item.featureId);
                   onClose();
                 }}
                 onMouseEnter={() => setSelectedIndex(index)}
@@ -150,11 +220,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span className="palette-utility-name">{item.utilityName}</span>
+                    {item.isFeature && (
+                      <span className="feat-kind-chip">{item.featureKind}</span>
+                    )}
                     {item.status === 'soon' && (
-                      <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted, #888)' }}>Soon</span>
+                      <span className="tool-status-badge tool-status-soon">Soon</span>
                     )}
                     {item.status === 'beta' && (
-                      <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>Beta</span>
+                      <span className="tool-status-badge tool-status-beta">Beta</span>
                     )}
                   </div>
                   <span className="palette-utility-desc">{item.description}</span>

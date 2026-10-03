@@ -241,5 +241,133 @@ export class ArchiveEngine {
       };
     }
   }
+
+  /**
+   * Pack an array of files into a standard POSIX ustar TAR archive
+   */
+  static createTar(
+    files: Array<{ name: string; buffer: Uint8Array }>
+  ): EngineResult<Uint8Array> {
+    const start = performance.now();
+    try {
+      const blocks: Uint8Array[] = [];
+
+      for (const file of files) {
+        const safeName = PathSecurity.sanitizeArchivePath(file.name);
+        const header = new Uint8Array(512);
+
+        const enc = new TextEncoder();
+        const nameBytes = enc.encode(safeName);
+        header.set(nameBytes.slice(0, 100), 0);
+
+        header.set(enc.encode('0000644\0'), 100);
+        header.set(enc.encode('0000000\0'), 108);
+        header.set(enc.encode('0000000\0'), 116);
+
+        const sizeOctal = file.buffer.length.toString(8).padStart(11, '0') + ' ';
+        header.set(enc.encode(sizeOctal), 124);
+
+        const mtimeOctal = Math.floor(Date.now() / 1000).toString(8).padStart(11, '0') + ' ';
+        header.set(enc.encode(mtimeOctal), 136);
+
+        header[156] = 0x30; // '0'
+
+        header.set(enc.encode('ustar\0'), 257);
+        header.set(enc.encode('00'), 263);
+
+        header.fill(0x20, 148, 156);
+        let chksum = 0;
+        for (let b = 0; b < 512; b++) chksum += header[b];
+        const chksumStr = chksum.toString(8).padStart(6, '0') + '\0 ';
+        header.set(enc.encode(chksumStr), 148);
+
+        blocks.push(header);
+        blocks.push(file.buffer);
+
+        const remainder = file.buffer.length % 512;
+        if (remainder > 0) {
+          blocks.push(new Uint8Array(512 - remainder));
+        }
+      }
+
+      blocks.push(new Uint8Array(1024));
+
+      const totalLen = blocks.reduce((acc, b) => acc + b.length, 0);
+      const out = new Uint8Array(totalLen);
+      let offset = 0;
+      for (const b of blocks) {
+        out.set(b, offset);
+        offset += b.length;
+      }
+
+      return {
+        success: true,
+        data: out,
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
+
+  /**
+   * Extract files from an uncompressed TAR archive
+   */
+  static extractTar(
+    buffer: Uint8Array
+  ): EngineResult<Array<{ name: string; buffer: Uint8Array }>> {
+    const start = performance.now();
+    try {
+      const extracted: Array<{ name: string; buffer: Uint8Array }> = [];
+      const dec = new TextDecoder();
+      let offset = 0;
+
+      while (offset + 512 <= buffer.length) {
+        let isZero = true;
+        for (let i = 0; i < 512; i++) {
+          if (buffer[offset + i] !== 0) {
+            isZero = false;
+            break;
+          }
+        }
+        if (isZero) break;
+
+        const nameRaw = dec.decode(buffer.subarray(offset, offset + 100)).replace(/\0.*$/, '').trim();
+        if (!nameRaw) break;
+
+        const sizeStr = dec.decode(buffer.subarray(offset + 124, offset + 136)).replace(/\0.*$/, '').trim();
+        const size = parseInt(sizeStr, 8) || 0;
+        const typeFlag = String.fromCharCode(buffer[offset + 156]);
+
+        offset += 512;
+        if (offset + size > buffer.length) break;
+
+        if (typeFlag === '0' || typeFlag === '\0' || typeFlag === '') {
+          const content = buffer.slice(offset, offset + size);
+          const safeName = PathSecurity.sanitizeArchivePath(nameRaw);
+          extracted.push({ name: safeName, buffer: content });
+        }
+
+        offset += Math.ceil(size / 512) * 512;
+      }
+
+      return {
+        success: true,
+        data: extracted,
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
 }
+
 

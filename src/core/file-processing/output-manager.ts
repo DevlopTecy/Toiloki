@@ -11,6 +11,7 @@ export interface SaveOutputOptions {
   desiredName: string;
   extension: string;
   targetDir?: string;
+  toolId?: string;
   conflictPolicy?: ConflictResolution;
   onConflictNeeded?: (existingPath: string, suggestedName: string) => Promise<ConflictResolution>;
 }
@@ -25,6 +26,26 @@ export interface SaveOutputResult {
 }
 
 export class OutputManager {
+  /**
+   * Apply naming template pattern to construct output file name
+   * Supported tokens: {name}, {tool}, {date}, {time}, {counter}
+   */
+  static formatTemplateFilename(template: string, originalName: string, toolId?: string, counter: number = 1): string {
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+    const cleanOriginal = originalName.replace(/\.[^/.]+$/, '');
+
+    let res = template || '{name}_{tool}_{date}';
+    res = res.replace(/\{name\}/g, cleanOriginal);
+    res = res.replace(/\{tool\}/g, toolId || 'output');
+    res = res.replace(/\{utility\}/g, toolId || 'output');
+    res = res.replace(/\{date\}/g, dateStr);
+    res = res.replace(/\{time\}/g, timeStr);
+    res = res.replace(/\{counter\}/g, String(counter));
+
+    return FileValidator.sanitizeFilename(res);
+  }
   /**
    * Get effective output directory based on settings
    */

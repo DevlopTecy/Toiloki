@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Minus, Square, Copy, X, Search } from 'lucide-react';
+import { Minus, Square, Copy, X, Search, Sparkles, Link } from 'lucide-react';
+import { ToilokiLogo } from '../common/ToilokiLogo';
 import './TitleBar.css';
 
 interface TitleBarProps {
   onOpenSearch?: () => void;
+  onOpenSmartPaste?: () => void;
+  onOpenChains?: () => void;
 }
 
-export const TitleBar: React.FC<TitleBarProps> = ({ onOpenSearch }) => {
+export const TitleBar: React.FC<TitleBarProps> = ({
+  onOpenSearch,
+  onOpenSmartPaste,
+  onOpenChains,
+}) => {
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
@@ -24,25 +31,41 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenSearch }) => {
   return (
     <header className="title-bar drag-region">
       <div className="title-bar-left no-drag">
-        <div className="app-logo-badge">
-          <span>T</span>
-        </div>
+        <ToilokiLogo variant="symbol" size={18} />
         <span className="app-wordmark">TOILOKI</span>
-        <span className="app-suite-caption">LOCAL SUITE</span>
+        <span className="app-suite-caption">LOCAL UTILITY SUITE</span>
       </div>
 
-      <div className="title-bar-center no-drag">
-        {onOpenSearch ? (
+      <div className="title-bar-center no-drag" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        {onOpenSearch && (
           <button className="titlebar-search-trigger" onClick={onOpenSearch} title="Quick search (Ctrl+K)">
             <Search size={12} className="titlebar-search-icon" />
             <span className="titlebar-search-text">Search utilities...</span>
             <kbd className="titlebar-kbd">Ctrl K</kbd>
           </button>
-        ) : (
-          <div className="titlebar-center-status">
-            <span className="status-dot-active" />
-            <span>Local Suite • Offline Verified</span>
-          </div>
+        )}
+        {onOpenSmartPaste && (
+          <button
+            className="titlebar-search-trigger"
+            onClick={onOpenSmartPaste}
+            title="Smart Paste (Ctrl+Shift+V)"
+            style={{ padding: '4px 8px' }}
+          >
+            <Sparkles size={12} style={{ color: 'var(--color-accent)' }} />
+            <span className="titlebar-search-text" style={{ fontSize: '11px' }}>Smart Paste</span>
+            <kbd className="titlebar-kbd">Ctrl+Shift+V</kbd>
+          </button>
+        )}
+        {onOpenChains && (
+          <button
+            className="titlebar-search-trigger"
+            onClick={onOpenChains}
+            title="Chains & Presets"
+            style={{ padding: '4px 8px' }}
+          >
+            <Link size={12} style={{ color: 'var(--color-accent)' }} />
+            <span className="titlebar-search-text" style={{ fontSize: '11px' }}>Chains</span>
+          </button>
         )}
       </div>
 

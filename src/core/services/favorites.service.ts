@@ -35,7 +35,7 @@ export class FavoritesService {
       },
       {
         workspaceId: 'images',
-        groupId: 'image-optimizer',
+        groupId: 'img-optimizer',
         utilityId: 'compress-image',
         name: 'Compress Image',
         description: 'Reduce image file size with quality slider.',
@@ -84,6 +84,7 @@ export class FavoritesService {
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('toiloki_favorites_changed'));
     } catch (err) {
       console.error('Failed to save favorites:', err);
     }
@@ -98,6 +99,7 @@ export class FavoritesService {
     const updated = this.getFavorites().filter((f) => f.utilityId !== utilityId);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('toiloki_favorites_changed'));
     } catch (err) {
       console.error('Failed to update favorites:', err);
     }
@@ -109,6 +111,7 @@ export class FavoritesService {
   static clearAll(): void {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      window.dispatchEvent(new CustomEvent('toiloki_favorites_changed'));
     } catch (err) {
       console.error('Failed to clear favorites:', err);
     }

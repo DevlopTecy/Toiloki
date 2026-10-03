@@ -12,6 +12,12 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({ onSelectUtility })
   const [search, setSearch] = useState('');
   const [favorites, setFavorites] = useState<FavoriteItem[]>(() => FavoritesService.getFavorites());
 
+  React.useEffect(() => {
+    const handleFavChange = () => setFavorites(FavoritesService.getFavorites());
+    window.addEventListener('toiloki_favorites_changed', handleFavChange);
+    return () => window.removeEventListener('toiloki_favorites_changed', handleFavChange);
+  }, []);
+
   const handleRemoveFavorite = (e: React.MouseEvent, utilityId: string) => {
     e.stopPropagation();
     FavoritesService.removeFavorite(utilityId);

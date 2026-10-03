@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ToolLayout } from '../../components/common/ToolLayout';
 import { FileDropzone, SelectedFile } from '../../components/file-system/FileDropzone';
 import { ResultViewer } from '../../components/file-system/ResultViewer';
@@ -6,7 +6,21 @@ import { ErrorPanel } from '../../components/common/ErrorPanel';
 import { DiffEngine, DiffChange } from '../../engines/diff/diff.engine';
 import { TextEngine } from '../../engines/text/text.engine';
 import { DocumentEngine } from '../../engines/documents/document.engine';
-import { Download, RefreshCw, Copy, Check } from 'lucide-react';
+import {
+  Download,
+  Copy,
+  Check,
+  Plus,
+  Trash2,
+  ShieldCheck,
+  FileCode,
+  ListTree,
+  Mail,
+  Replace,
+  FileSearch,
+  Eye,
+  FileText
+} from 'lucide-react';
 import { HistoryService } from '../../core/services/history.service';
 import './DocumentsWorkspaceView.css';
 
@@ -20,6 +34,15 @@ interface DocumentsWorkspaceViewProps {
   onToggleFavorite?: () => void;
 }
 
+interface ReplaceRule {
+  id: string;
+  find: string;
+  replace: string;
+  matchCase: boolean;
+  matchWholeWord: boolean;
+  isRegex: boolean;
+}
+
 export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
   groupId,
   utilityId,
@@ -31,11 +54,53 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
 }) => {
   const [files, setFiles] = useState<SelectedFile[]>([]);
   const [editorText, setEditorText] = useState(
-    '# Project Scope & Specifications\n\nToiloki is an offline, local-first utility suite designed for fast, everyday desktop tasks.\n\n## Core Principles\n- Zero cloud dependencies\n- Zero telemetry tracking\n- Complete document privacy\n'
+    '# Project Scope & Architecture\n\nToiloki is an offline, local-first utility suite designed for fast, everyday desktop tasks.\n\n## Core Principles\n- Zero cloud dependencies\n- Zero telemetry tracking\n- Complete document privacy\n\n### Security & Performance\nDeterministic execution ensures consistent results across runs.\nAll operations execute locally in-memory with maximum performance.\n'
   );
+
+  // Single Find/Replace
   const [findWord, setFindWord] = useState('');
   const [replaceWord, setReplaceWord] = useState('');
   const [replaceCount, setReplaceCount] = useState<number | null>(null);
+
+  // Batch Find/Replace Rules
+  const [batchRules, setBatchRules] = useState<ReplaceRule[]>([
+    { id: '1', find: 'cloud', replace: 'offline', matchCase: false, matchWholeWord: true, isRegex: false },
+    { id: '2', find: 'telemetry', replace: 'tracking', matchCase: false, matchWholeWord: true, isRegex: false },
+  ]);
+  const [batchResultReport, setBatchResultReport] = useState<string | null>(null);
+
+  // Markdown Editor state
+  const [mdPreviewActive, setMdPreviewActive] = useState(true);
+
+  // Table of Contents state
+  const [tocFormat, setTocFormat] = useState<'markdown' | 'numbered' | 'bullets' | 'html'>('markdown');
+  const [tocMaxDepth, setTocMaxDepth] = useState<number>(3);
+  const [generatedToc, setGeneratedToc] = useState<string>('');
+
+  // Mail Merge state
+  const [mergeTemplate, setMergeTemplate] = useState(
+    'Dear {{name}},\n\nWe are pleased to inform you that your workspace for {{company}} has been activated under subscription tier: {{tier}}.\nYour primary contact email is {{email}}.\n\nBest regards,\nToiloki Operations Team'
+  );
+  const [mergeCsvData, setMergeCsvData] = useState(
+    'name,company,tier,email\nAlice Vance,Acme Robotics,Enterprise,alice@acme.org\nBob Miller,Global Logistics,Pro,bob@globallogistics.dev\nCharlie King,HyperScale,Standard,charlie@hyperscale.io'
+  );
+  const [mergedDocs, setMergedDocs] = useState<string[]>([]);
+  const [activeMergedIndex, setActiveMergedIndex] = useState(0);
+
+  // Office Metadata state
+  const [officeMeta, setOfficeMeta] = useState<{
+    title?: string;
+    creator?: string;
+    lastModifiedBy?: string;
+    revision?: string;
+    created?: string;
+    modified?: string;
+    description?: string;
+    application?: string;
+    company?: string;
+    hasMetadata: boolean;
+  } | null>(null);
+  const [scrubSuccess, setScrubSuccess] = useState(false);
 
   // Compare diff state
   const [docOriginal, setDocOriginal] = useState(
@@ -55,10 +120,39 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const metrics = React.useMemo(() => {
+  const metrics = useMemo(() => {
     return TextEngine.analyzeText(editorText).data;
   }, [editorText]);
+
+  const renderedHtmlPreview = useMemo(() => {
+    return DocumentEngine.markdownToHtml(editorText).data || '';
+  }, [editorText]);
+
+  // Read metadata when file is loaded in doc-office-metadata
+  useEffect(() => {
+    if (utilityId === 'doc-office-metadata' && files.length > 0 && files[0].buffer) {
+      DocumentEngine.inspectOfficeMetadata(files[0].buffer).then((res) => {
+        if (res.success && res.data) {
+          setOfficeMeta(res.data);
+          setScrubSuccess(false);
+        } else {
+          setErrorMsg(res.error || 'Failed to inspect office file');
+        }
+      });
+    }
+  }, [utilityId, files]);
+
+  // Generate TOC automatically when text or options change
+  useEffect(() => {
+    if (utilityId === 'doc-toc-generator') {
+      const res = DocumentEngine.generateToc(editorText, { format: tocFormat, maxDepth: tocMaxDepth });
+      if (res.success && res.data) {
+        setGeneratedToc(res.data.toc);
+      }
+    }
+  }, [utilityId, editorText, tocFormat, tocMaxDepth]);
 
   const handleReset = () => {
     setFiles([]);
@@ -66,20 +160,30 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
     setErrorMsg(null);
     setDiffChanges(null);
     setReplaceCount(null);
+    setBatchResultReport(null);
+    setOfficeMeta(null);
+    setScrubSuccess(false);
+  };
+
+  const handleCopyText = async (textToCopy: string) => {
+    if (!textToCopy) return;
+    await navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   const handleConvertOrExport = async () => {
     setIsProcessing(true);
     setErrorMsg(null);
     try {
-      if (utilityId.includes('export')) {
+      if (utilityId.includes('export') || utilityId === 'doc-markdown-editor') {
         let ext = 'txt';
         let content = editorText;
         if (utilityId === 'export-html') {
           ext = 'html';
           const conv = DocumentEngine.markdownToHtml(editorText);
           if (conv.success && conv.data) content = conv.data;
-        } else if (utilityId === 'export-md') {
+        } else if (utilityId === 'export-md' || utilityId === 'doc-markdown-editor') {
           ext = 'md';
         } else if (utilityId === 'export-rtf') {
           ext = 'rtf';
@@ -96,12 +200,31 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
           fileName: `document_export.${ext}`,
         });
       } else {
-        // Converter utility
         if (files.length === 0) return;
         const f = files[0];
         let outText = '';
         let outExt = 'txt';
         const rawBuf = f.buffer || new Uint8Array();
+
+        if ((utilityId === 'pdf-to-docx' || f.name.toLowerCase().endsWith('.pdf')) && f.buffer) {
+          const res = await DocumentEngine.pdfToDocx(f.buffer);
+          if (!res.success || !res.data) throw new Error(res.error || 'Failed to convert PDF to DOCX');
+          setOutputResult({
+            buffer: res.data,
+            ext: 'docx',
+            fileName: `${f.name.replace(/\.[^.]+$/, '')}.docx`,
+          });
+          HistoryService.record({
+            toolName,
+            workspaceId: 'documents',
+            groupId,
+            utilityId,
+            input: f.name,
+            output: `Converted to Word (.docx) Document`,
+            status: 'completed',
+          });
+          return;
+        }
 
         if (f.name.endsWith('.docx') && f.buffer) {
           if (utilityId === 'docx-to-html') {
@@ -158,12 +281,92 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
     }
   };
 
+  const handleExportDocx = async () => {
+    setIsProcessing(true);
+    try {
+      const res = await DocumentEngine.createDocxFromText(editorText, 'Exported Document');
+      if (res.success && res.data) {
+        setOutputResult({
+          buffer: res.data,
+          ext: 'docx',
+          fileName: 'document_export.docx',
+        });
+      } else {
+        throw new Error(res.error || 'Failed to generate Word document');
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleFindReplace = () => {
     if (!findWord) return;
     const occurrences = (editorText.match(new RegExp(findWord, 'g')) || []).length;
     const updated = editorText.replaceAll(findWord, replaceWord);
     setEditorText(updated);
     setReplaceCount(occurrences);
+  };
+
+  const handleExecuteBatchReplace = () => {
+    const res = DocumentEngine.batchFindReplace(editorText, batchRules);
+    if (res.success && res.data) {
+      setEditorText(res.data.text);
+      setBatchResultReport(
+        `✓ Executed ${batchRules.length} rules with ${res.data.replacementsCount} total replacements applied.`
+      );
+    } else {
+      setErrorMsg(res.error || 'Failed batch find and replace');
+    }
+  };
+
+  const handleExecuteMailMerge = () => {
+    try {
+      const lines = mergeCsvData.trim().split(/\r?\n/).filter(Boolean);
+      if (lines.length < 2) throw new Error('Data must contain at least a header row and 1 record');
+      const headers = lines[0].split(',').map((h) => h.trim());
+      const records = lines.slice(1).map((line) => {
+        const parts = line.split(',').map((p) => p.trim());
+        const rec: Record<string, string> = {};
+        headers.forEach((h, i) => {
+          rec[h] = parts[i] || '';
+        });
+        return rec;
+      });
+
+      const res = DocumentEngine.mailMerge(mergeTemplate, records);
+      if (res.success && res.data) {
+        setMergedDocs(res.data.mergedDocs);
+        setActiveMergedIndex(0);
+      } else {
+        throw new Error(res.error || 'Mail merge failed');
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const handleScrubOfficeMetadata = async () => {
+    if (!files[0]?.buffer) return;
+    setIsProcessing(true);
+    try {
+      const res = await DocumentEngine.scrubOfficeMetadata(files[0].buffer);
+      if (res.success && res.data) {
+        setOutputResult({
+          buffer: res.data,
+          ext: files[0].name.split('.').pop() || 'docx',
+          fileName: `${files[0].name.replace(/\.[^.]+$/, '')}_scrubbed.${files[0].name.split('.').pop()}`,
+        });
+        setScrubSuccess(true);
+      } else {
+        throw new Error(res.error || 'Failed to scrub metadata');
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCompareDiff = () => {
@@ -224,62 +427,470 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
           </div>
         )}
 
-        {/* Document Editor Screen */}
-        {(groupId === 'doc-editor' || groupId === 'doc-export') && !outputResult && (
+        {/* 1. Markdown Editor */}
+        {utilityId === 'doc-markdown-editor' && !outputResult && (
           <div className="doc-editor-pane">
-            {metrics && (
-              <div className="doc-metrics-bar">
-                <span className="doc-metric-item"><strong>{metrics.words}</strong> words</span>
-                <span className="doc-metric-item"><strong>{metrics.characters}</strong> characters</span>
-                <span className="doc-metric-item"><strong>{metrics.lines}</strong> lines</span>
-                <span className="doc-metric-item"><strong>{metrics.paragraphs}</strong> paragraphs</span>
-              </div>
-            )}
-
-            {utilityId === 'find-replace' && (
-              <div className="find-replace-bar">
-                <input
-                  type="text"
-                  className="option-input"
-                  placeholder="Find text..."
-                  value={findWord}
-                  onChange={(e) => setFindWord(e.target.value)}
-                />
-                <input
-                  type="text"
-                  className="option-input"
-                  placeholder="Replace with..."
-                  value={replaceWord}
-                  onChange={(e) => setReplaceWord(e.target.value)}
-                />
-                <button className="tool-btn secondary" onClick={handleFindReplace}>
-                  Replace All
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className={`segmented-chip-btn ${mdPreviewActive ? 'active' : ''}`}
+                  onClick={() => setMdPreviewActive(!mdPreviewActive)}
+                >
+                  <Eye size={12} />
+                  <span>{mdPreviewActive ? 'Side-by-Side Preview' : 'Source Only'}</span>
                 </button>
-                {replaceCount !== null && (
-                  <span className="replace-count-badge">Replaced {replaceCount} matches</span>
-                )}
+                <button
+                  type="button"
+                  className="segmented-chip-btn"
+                  onClick={() => setEditorText(editorText + '\n\n| Column 1 | Column 2 |\n| --- | --- |\n| Data A | Data B |')}
+                >
+                  + Add Table
+                </button>
+                <button
+                  type="button"
+                  className="segmented-chip-btn"
+                  onClick={() => setEditorText(editorText + '\n\n```typescript\n// Code snippet\nconst local = true;\n```')}
+                >
+                  + Add Code
+                </button>
               </div>
-            )}
 
-            <textarea
-              className="doc-text-editor"
-              value={editorText}
-              onChange={(e) => setEditorText(e.target.value)}
-              placeholder="Start drafting or editing your document here..."
-            />
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button className="tool-btn secondary" onClick={() => handleCopyText(editorText)}>
+                  {copied ? <Check size={13} color="var(--color-success)" /> : <Copy size={13} />}
+                  <span>{copied ? 'Copied' : 'Copy MD'}</span>
+                </button>
+                <button className="tool-btn primary" onClick={handleExportDocx}>
+                  <Download size={13} />
+                  <span>Export to DOCX</span>
+                </button>
+              </div>
+            </div>
 
-            {groupId === 'doc-export' && (
+            <div style={{ display: 'grid', gridTemplateColumns: mdPreviewActive ? '1fr 1fr' : '1fr', gap: '12px', minHeight: '360px' }}>
+              <textarea
+                className="doc-text-editor"
+                style={{ height: '360px', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
+                value={editorText}
+                onChange={(e) => setEditorText(e.target.value)}
+                placeholder="Write your markdown here..."
+              />
+              {mdPreviewActive && (
+                <div
+                  className="doc-markdown-preview-box"
+                  style={{
+                    height: '360px',
+                    overflowY: 'auto',
+                    padding: '16px',
+                    background: 'var(--bg-panel)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    color: 'var(--text-primary)',
+                    fontSize: '13px',
+                    lineHeight: 1.7,
+                  }}
+                  dangerouslySetInnerHTML={{ __html: renderedHtmlPreview }}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 2. Table of Contents Generator */}
+        {utilityId === 'doc-toc-generator' && !outputResult && (
+          <div className="doc-editor-pane">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Format:</span>
+                {(['markdown', 'numbered', 'bullets', 'html'] as const).map((fmt) => (
+                  <button
+                    key={fmt}
+                    type="button"
+                    className={`segmented-chip-btn ${tocFormat === fmt ? 'active' : ''}`}
+                    onClick={() => setTocFormat(fmt)}
+                  >
+                    {fmt.charAt(0).toUpperCase() + fmt.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Max Depth:</span>
+                {[2, 3, 4].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`segmented-chip-btn ${tocMaxDepth === d ? 'active' : ''}`}
+                    onClick={() => setTocMaxDepth(d)}
+                  >
+                    H{d}
+                  </button>
+                ))}
+              </div>
               <button
-                className="tool-btn primary"
-                onClick={handleConvertOrExport}
-                style={{ alignSelf: 'flex-start' }}
+                className="tool-btn secondary"
+                onClick={() => {
+                  setEditorText(`${generatedToc}\n\n${editorText}`);
+                }}
               >
-                <Download size={14} />
-                <span>{toolName}</span>
+                Insert at Document Top
               </button>
+              <button className="tool-btn primary" onClick={() => handleCopyText(generatedToc)}>
+                {copied ? <Check size={13} color="var(--color-success)" /> : <Copy size={13} />}
+                <span>{copied ? 'Copied TOC' : 'Copy TOC'}</span>
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>
+              <div>
+                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px', display: 'block' }}>
+                  Source Document Text:
+                </label>
+                <textarea
+                  className="doc-text-editor"
+                  style={{ height: '320px', fontFamily: 'var(--font-mono)' }}
+                  value={editorText}
+                  onChange={(e) => setEditorText(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px', display: 'block' }}>
+                  Generated Table of Contents:
+                </label>
+                <textarea
+                  readOnly
+                  className="doc-text-editor"
+                  style={{ height: '320px', fontFamily: 'var(--font-mono)', background: 'var(--bg-canvas)' }}
+                  value={generatedToc}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. Mail Merge */}
+        {utilityId === 'doc-mail-merge' && !outputResult && (
+          <div className="doc-editor-pane">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px', display: 'block' }}>
+                  Document Template (Use {'{{field}}'} placeholders):
+                </label>
+                <textarea
+                  className="doc-text-editor"
+                  style={{ height: '220px', fontFamily: 'var(--font-mono)' }}
+                  value={mergeTemplate}
+                  onChange={(e) => setMergeTemplate(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px', display: 'block' }}>
+                  Recipient Records (CSV format with headers):
+                </label>
+                <textarea
+                  className="doc-text-editor"
+                  style={{ height: '220px', fontFamily: 'var(--font-mono)' }}
+                  value={mergeCsvData}
+                  onChange={(e) => setMergeCsvData(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button className="tool-btn primary" onClick={handleExecuteMailMerge}>
+                <Mail size={14} />
+                <span>Execute Mail Merge</span>
+              </button>
+              {mergedDocs.length > 0 && (
+                <span style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: 600 }}>
+                  ✓ Successfully merged {mergedDocs.length} personalized documents
+                </span>
+              )}
+            </div>
+
+            {mergedDocs.length > 0 && (
+              <div style={{ marginTop: '12px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {mergedDocs.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className={`segmented-chip-btn ${activeMergedIndex === i ? 'active' : ''}`}
+                        onClick={() => setActiveMergedIndex(i)}
+                      >
+                        Recipient #{i + 1}
+                      </button>
+                    ))}
+                  </div>
+                  <button className="tool-btn secondary" onClick={() => handleCopyText(mergedDocs[activeMergedIndex])}>
+                    {copied ? <Check size={13} color="var(--color-success)" /> : <Copy size={13} />}
+                    <span>Copy Document #{activeMergedIndex + 1}</span>
+                  </button>
+                </div>
+                <pre
+                  style={{
+                    background: 'var(--bg-canvas)',
+                    padding: '12px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '12px',
+                    whiteSpace: 'pre-wrap',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  {mergedDocs[activeMergedIndex]}
+                </pre>
+              </div>
             )}
           </div>
         )}
+
+        {/* 4. Batch Find & Replace */}
+        {utilityId === 'doc-batch-find-replace' && !outputResult && (
+          <div className="doc-editor-pane">
+            <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>Replacement Rules:</span>
+                <button
+                  type="button"
+                  className="tool-btn secondary"
+                  style={{ padding: '3px 8px', fontSize: '11px' }}
+                  onClick={() =>
+                    setBatchRules([
+                      ...batchRules,
+                      { id: Date.now().toString(), find: '', replace: '', matchCase: false, matchWholeWord: false, isRegex: false },
+                    ])
+                  }
+                >
+                  <Plus size={12} />
+                  <span>Add Rule</span>
+                </button>
+              </div>
+
+              {batchRules.map((rule, idx) => (
+                <div key={rule.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', width: '20px' }}>#{idx + 1}</span>
+                  <input
+                    type="text"
+                    placeholder="Find pattern..."
+                    value={rule.find}
+                    onChange={(e) => {
+                      const updated = [...batchRules];
+                      updated[idx].find = e.target.value;
+                      setBatchRules(updated);
+                    }}
+                    style={{
+                      flex: '1 1 140px',
+                      background: 'var(--bg-input)',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-primary)',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                    }}
+                  />
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>→</span>
+                  <input
+                    type="text"
+                    placeholder="Replace with..."
+                    value={rule.replace}
+                    onChange={(e) => {
+                      const updated = [...batchRules];
+                      updated[idx].replace = e.target.value;
+                      setBatchRules(updated);
+                    }}
+                    style={{
+                      flex: '1 1 140px',
+                      background: 'var(--bg-input)',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-primary)',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                    }}
+                  />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-tertiary)', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={rule.matchCase}
+                      onChange={(e) => {
+                        const updated = [...batchRules];
+                        updated[idx].matchCase = e.target.checked;
+                        setBatchRules(updated);
+                      }}
+                    />
+                    Case
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-tertiary)', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={rule.matchWholeWord}
+                      onChange={(e) => {
+                        const updated = [...batchRules];
+                        updated[idx].matchWholeWord = e.target.checked;
+                        setBatchRules(updated);
+                      }}
+                    />
+                    Whole
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-tertiary)', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={rule.isRegex}
+                      onChange={(e) => {
+                        const updated = [...batchRules];
+                        updated[idx].isRegex = e.target.checked;
+                        setBatchRules(updated);
+                      }}
+                    />
+                    Regex
+                  </label>
+                  {batchRules.length > 1 && (
+                    <button
+                      type="button"
+                      style={{ background: 'transparent', border: 'none', color: 'var(--color-error)', cursor: 'pointer', padding: '2px' }}
+                      onClick={() => setBatchRules(batchRules.filter((r) => r.id !== rule.id))}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                <button className="tool-btn primary" onClick={handleExecuteBatchReplace}>
+                  <Replace size={14} />
+                  <span>Execute All Rules</span>
+                </button>
+                {batchResultReport && (
+                  <span style={{ fontSize: '11px', color: 'var(--accent-amber)', fontWeight: 600 }}>{batchResultReport}</span>
+                )}
+              </div>
+            </div>
+
+            <textarea
+              className="doc-text-editor"
+              style={{ height: '240px', fontFamily: 'var(--font-mono)' }}
+              value={editorText}
+              onChange={(e) => setEditorText(e.target.value)}
+            />
+          </div>
+        )}
+
+        {/* 5. Office Metadata Inspector */}
+        {utilityId === 'doc-office-metadata' && !outputResult && (
+          <div className="doc-editor-pane">
+            <FileDropzone
+              accept={['.docx', '.xlsx', '.pptx']}
+              multiple={false}
+              files={files}
+              onFilesChanged={setFiles}
+              label="Drop Office document (.docx, .xlsx, .pptx) to inspect metadata"
+            />
+
+            {officeMeta && (
+              <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
+                <h4 style={{ fontSize: '13px', color: 'var(--text-primary)', marginBottom: '12px' }}>
+                  Document Metadata Properties:
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', marginBottom: '16px' }}>
+                  <div className="doc-metric-item"><strong>Title:</strong> {officeMeta.title || '<Not specified>'}</div>
+                  <div className="doc-metric-item"><strong>Author / Creator:</strong> {officeMeta.creator || '<Not specified>'}</div>
+                  <div className="doc-metric-item"><strong>Last Modified By:</strong> {officeMeta.lastModifiedBy || '<Not specified>'}</div>
+                  <div className="doc-metric-item"><strong>Revision Count:</strong> {officeMeta.revision || '<Not specified>'}</div>
+                  <div className="doc-metric-item"><strong>Created Date:</strong> {officeMeta.created || '<Not specified>'}</div>
+                  <div className="doc-metric-item"><strong>Modified Date:</strong> {officeMeta.modified || '<Not specified>'}</div>
+                  <div className="doc-metric-item"><strong>Application:</strong> {officeMeta.application || '<Not specified>'}</div>
+                  <div className="doc-metric-item"><strong>Company:</strong> {officeMeta.company || '<Not specified>'}</div>
+                </div>
+
+                <button
+                  className="tool-btn primary"
+                  onClick={handleScrubOfficeMetadata}
+                  disabled={isProcessing}
+                >
+                  <ShieldCheck size={14} />
+                  <span>{isProcessing ? 'Scrubbing...' : 'Scrub & Remove All Metadata'}</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Standard Document Editor & Exporter */}
+        {(groupId === 'doc-editor' || groupId === 'doc-export') &&
+          utilityId !== 'doc-markdown-editor' &&
+          utilityId !== 'doc-toc-generator' &&
+          utilityId !== 'doc-mail-merge' &&
+          utilityId !== 'doc-batch-find-replace' &&
+          !outputResult && (
+            <div className="doc-editor-pane">
+              {metrics && (
+                <div className="doc-metrics-bar">
+                  <span className="doc-metric-item"><strong>{metrics.words}</strong> words</span>
+                  <span className="doc-metric-item"><strong>{metrics.characters}</strong> characters</span>
+                  <span className="doc-metric-item"><strong>{metrics.lines}</strong> lines</span>
+                  <span className="doc-metric-item"><strong>{metrics.paragraphs}</strong> paragraphs</span>
+                </div>
+              )}
+
+              {utilityId === 'find-replace' && (
+                <div className="find-replace-bar">
+                  <input
+                    type="text"
+                    className="option-input"
+                    placeholder="Find text..."
+                    value={findWord}
+                    onChange={(e) => setFindWord(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="option-input"
+                    placeholder="Replace with..."
+                    value={replaceWord}
+                    onChange={(e) => setReplaceWord(e.target.value)}
+                  />
+                  <button className="tool-btn secondary" onClick={handleFindReplace}>
+                    Replace All
+                  </button>
+                  {replaceCount !== null && (
+                    <span className="replace-count-badge">Replaced {replaceCount} matches</span>
+                  )}
+                </div>
+              )}
+
+              <textarea
+                className="doc-text-editor"
+                value={editorText}
+                onChange={(e) => setEditorText(e.target.value)}
+                placeholder="Start drafting or editing your document here..."
+              />
+
+              {groupId === 'doc-export' && (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    className="tool-btn primary"
+                    onClick={handleConvertOrExport}
+                    style={{ alignSelf: 'flex-start' }}
+                  >
+                    <Download size={14} />
+                    <span>{toolName}</span>
+                  </button>
+                  <button
+                    className="tool-btn secondary"
+                    onClick={handleExportDocx}
+                    style={{ alignSelf: 'flex-start' }}
+                  >
+                    <FileText size={14} />
+                    <span>Export to Word (.docx)</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
         {/* Compare Screen */}
         {groupId === 'doc-compare' && (
@@ -343,7 +954,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
 
         {errorMsg && (
           <ErrorPanel
-            title="Conversion Error"
+            title="Operation Error"
             message={errorMsg}
             onRetry={handleConvertOrExport}
             onChooseAnother={handleReset}

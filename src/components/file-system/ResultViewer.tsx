@@ -14,9 +14,13 @@ import {
   Table,
   Image as ImageIcon,
   RotateCcw,
+  Share2,
+  ChevronDown,
 } from 'lucide-react';
 import { RenameDialog } from '../common/RenameDialog';
 import { ConflictDialog } from '../common/ConflictDialog';
+import { PipeService, PipeTargetOption } from '../../core/services/pipe.service';
+import { WorkspaceId } from '../../core/types/workspace';
 import './ResultViewer.css';
 
 export interface BatchStats {
@@ -57,6 +61,7 @@ interface ResultViewerProps {
   onRetryFailed?: () => void;
   onViewErrors?: () => void;
   onSaveBatch?: () => void;
+  onSendTo?: (workspaceId: WorkspaceId, groupId: string, utilityId: string) => void;
 }
 
 export const ResultViewer: React.FC<ResultViewerProps> = ({
@@ -79,6 +84,7 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
   onRetryFailed,
   onViewErrors,
   onSaveBatch,
+  onSendTo,
 }) => {
   const [copied, setCopied] = useState(false);
   const [savedPath, setSavedPath] = useState<string | null>(null);
@@ -87,6 +93,37 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [isConflictOpen, setIsConflictOpen] = useState(false);
   const [pendingSavePath, setPendingSavePath] = useState<string | null>(null);
+  const [isSendToOpen, setIsSendToOpen] = useState(false);
+
+  const compatibleTargets = PipeService.getCompatibleTargets({
+    format: outputFormat || defaultExtension,
+    hasBuffer: !!outputBuffer,
+    hasText: !!outputText,
+  });
+
+  const handlePipeToTarget = (target: PipeTargetOption) => {
+    setIsSendToOpen(false);
+    PipeService.pipeToUtility(target.utilityId, {
+      text: outputText,
+      buffer: outputBuffer,
+      fileName: currentFileName,
+      format: outputFormat || defaultExtension,
+      sourceUtilityName: title,
+    });
+    if (onSendTo) {
+      onSendTo(target.workspaceId, target.groupId, target.utilityId);
+    } else {
+      window.dispatchEvent(
+        new CustomEvent('toiloki-navigate-utility', {
+          detail: {
+            workspaceId: target.workspaceId,
+            groupId: target.groupId,
+            utilityId: target.utilityId,
+          },
+        })
+      );
+    }
+  };
 
   const formatFileSize = (bytes?: number): string => {
     if (bytes === undefined || bytes === null || bytes === 0) return '0 B';
@@ -410,6 +447,39 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
             {copied ? <Check size={13} /> : <Copy size={13} />}
             <span>{copied ? 'Copied' : 'Copy'}</span>
           </button>
+        )}
+
+        {/* Send To compatible utility button & menu */}
+        {compatibleTargets.length > 0 && (
+          <div className="send-to-container">
+            <button
+              className="tool-btn secondary"
+              onClick={() => setIsSendToOpen(!isSendToOpen)}
+              type="button"
+              title="Pass output directly into another local utility"
+            >
+              <Share2 size={13} />
+              <span>Send To...</span>
+              <ChevronDown size={11} style={{ opacity: 0.7 }} />
+            </button>
+
+            {isSendToOpen && (
+              <div className="send-to-menu">
+                <div className="send-to-menu-header">Send Output To:</div>
+                {compatibleTargets.map((target) => (
+                  <button
+                    key={`${target.workspaceId}-${target.utilityId}`}
+                    type="button"
+                    className="send-to-item-btn"
+                    onClick={() => handlePipeToTarget(target)}
+                  >
+                    <span className="send-to-item-title">{target.name}</span>
+                    <span className="send-to-item-desc">{target.description}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Partial Success actions: Retry Failed, View Errors */}

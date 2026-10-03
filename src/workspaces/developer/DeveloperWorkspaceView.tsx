@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ToolLayout } from '../../components/common/ToolLayout';
 import { DevEngine } from '../../engines/developer/dev.engine';
+import { DeveloperEngine } from '../../engines/developer/developer.engine';
 import {
   Copy,
   Check,
@@ -584,7 +585,416 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
             </div>
           </div>
         )}
+
+        {/* QR Code Generator */}
+        {(utilityId === 'dev-qr-generator' || utilityId === 'dev-barcode-generator') && (
+          <QRGeneratorView utilityId={utilityId} />
+        )}
+
+        {/* Cron Explainer */}
+        {utilityId === 'dev-cron-explainer' && <CronExplainerView />}
+
+        {/* px / rem Converter */}
+        {utilityId === 'dev-px-rem' && <PxRemView />}
+
+        {/* chmod Calculator */}
+        {utilityId === 'dev-chmod-calculator' && <ChmodView />}
+
+        {/* User-Agent Parser */}
+        {utilityId === 'dev-user-agent-parser' && <UserAgentView />}
+
+        {/* .gitignore Generator */}
+        {utilityId === 'dev-gitignore-generator' && <GitignoreView />}
+
+        {/* .env Diff */}
+        {utilityId === 'dev-env-diff' && <EnvDiffView />}
+
       </div>
     </ToolLayout>
   );
 };
+
+// ─── QR Generator ───────────────────────────────────────────────────────────
+function QRGeneratorView({ utilityId }: { utilityId: string }) {
+  const [text, setText] = React.useState('https://toiloki.local');
+  const [size, setSize] = React.useState(256);
+  const [qrDataUrl, setQrDataUrl] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const copied = React.useRef(false);
+  const [copiedState, setCopiedState] = React.useState(false);
+
+  const generate = async () => {
+    if (!text.trim()) { setError('Enter text or URL to encode'); return; }
+    setLoading(true); setError(null);
+    try {
+      const QRCode = (await import('qrcode')).default;
+      const url = await QRCode.toDataURL(text, { width: size, margin: 1, color: { dark: '#1a1a1a', light: '#ffffff' } });
+      setQrDataUrl(url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally { setLoading(false); }
+  };
+
+  React.useEffect(() => { if (text.trim()) generate(); }, []);
+
+  const downloadQR = () => {
+    if (!qrDataUrl) return;
+    const a = document.createElement('a');
+    a.href = qrDataUrl;
+    a.download = `qr-${Date.now()}.png`;
+    a.click();
+  };
+
+  return (
+    <div className="dev-tool-layout" style={{ display: 'flex', gap: 24, padding: '24px 32px', flex: 1 }}>
+      <div style={{ flex: 1 }}>
+        <div className="control-group">
+          <label className="control-label">Text or URL:</label>
+          <textarea className="code-editor" rows={4} value={text} onChange={e => setText(e.target.value)}
+            style={{ resize: 'vertical', fontFamily: 'var(--font-mono)' }} />
+        </div>
+        <div className="control-group">
+          <label className="control-label">Size: {size}×{size}px</label>
+          <input type="range" min={128} max={512} step={32} value={size} onChange={e => setSize(Number(e.target.value))}
+            style={{ width: '100%' }} className="control-slider" />
+        </div>
+        <button className="btn-primary" onClick={generate} disabled={loading}>
+          {loading ? 'Generating…' : 'Generate QR Code'}
+        </button>
+        {error && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginTop: 8 }}>{error}</div>}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+        {qrDataUrl ? (
+          <>
+            <img src={qrDataUrl} alt="QR Code" style={{ border: '1px solid var(--border-default)', borderRadius: 8 }} />
+            <button className="btn-secondary" onClick={downloadQR} style={{ width: '100%' }}>Download PNG</button>
+          </>
+        ) : (
+          <div style={{ width: size, height: size, background: 'var(--bg-raised)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: 12 }}>
+            QR preview
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Cron Explainer ──────────────────────────────────────────────────────────
+function CronExplainerView() {
+  const [expr, setExpr] = React.useState('0 9 * * 1-5');
+
+  const result = React.useMemo(() => {
+    const r = DeveloperEngine.explainCron(expr, 10);
+    return r.success ? r.data : null;
+  }, [expr]);
+
+  const err = React.useMemo(() => {
+    const r = DeveloperEngine.explainCron(expr, 10);
+    return r.success ? null : r.error;
+  }, [expr]);
+
+  const presets = [
+    { label: 'Every minute', value: '* * * * *' },
+    { label: 'Every hour', value: '0 * * * *' },
+    { label: 'Daily midnight', value: '0 0 * * *' },
+    { label: 'Daily 9am Mon–Fri', value: '0 9 * * 1-5' },
+    { label: 'Weekly Sunday', value: '0 0 * * 0' },
+    { label: 'Monthly 1st', value: '0 0 1 * *' },
+    { label: 'Every 5 min', value: '*/5 * * * *' },
+    { label: 'Yearly Jan 1', value: '0 0 1 1 *' },
+  ];
+
+  return (
+    <div style={{ padding: '24px 32px', flex: 1, overflow: 'auto' }}>
+      <div className="control-group" style={{ maxWidth: 500 }}>
+        <label className="control-label">Cron Expression (5 fields):</label>
+        <input className="control-input" style={{ fontFamily: 'var(--font-mono)', fontSize: 18, letterSpacing: '0.1em' }}
+          value={expr} onChange={e => setExpr(e.target.value)} placeholder="* * * * *" />
+        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>
+          min  hour  day  month  weekday
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
+        {presets.map(p => (
+          <button key={p.value} onClick={() => setExpr(p.value)}
+            style={{ fontSize: 11, padding: '3px 8px', background: expr === p.value ? 'var(--accent)' : 'var(--bg-raised)', color: expr === p.value ? 'var(--bg)' : 'var(--text-secondary)', border: '1px solid var(--border-default)', borderRadius: 4, cursor: 'pointer' }}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+      {err && <div style={{ color: 'var(--accent-red)', fontSize: 13 }}>{err}</div>}
+      {result && (
+        <div style={{ display: 'flex', gap: 24 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '16px 20px', marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>HUMAN READABLE</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>{result.human}</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
+              {Object.entries(result.parts).map(([field, val]) => (
+                <div key={field} style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '8px 10px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: 2 }}>{field}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, color: 'var(--accent)' }}>{val}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ width: 280 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 8 }}>NEXT 10 RUNS</div>
+            {result.nextRuns.slice(0, 10).map((run, i) => (
+              <div key={i} style={{ padding: '5px 0', borderBottom: '1px solid var(--border-subtle)', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                <span style={{ color: 'var(--text-tertiary)', marginRight: 8 }}>{i + 1}.</span>{run}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── px/rem Converter ────────────────────────────────────────────────────────
+function PxRemView() {
+  const [value, setValue] = React.useState(16);
+  const [dir, setDir] = React.useState<'pxToRem' | 'remToPx'>('pxToRem');
+  const [base, setBase] = React.useState(16);
+
+  const result = React.useMemo(() => {
+    const r = DeveloperEngine.convertPxRem(value, dir, base);
+    return r.success ? r.data : null;
+  }, [value, dir, base]);
+
+  return (
+    <div style={{ padding: '24px 32px', flex: 1 }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginBottom: 20, maxWidth: 500 }}>
+        <div className="control-group" style={{ flex: 1 }}>
+          <label className="control-label">{dir === 'pxToRem' ? 'Pixels (px)' : 'REM'}:</label>
+          <input type="number" className="control-input" value={value} min={0} step={dir === 'pxToRem' ? 1 : 0.01} onChange={e => setValue(Number(e.target.value))} />
+        </div>
+        <button className="btn-secondary" onClick={() => setDir(d => d === 'pxToRem' ? 'remToPx' : 'pxToRem')} style={{ marginBottom: 0 }}>⇄</button>
+        <div className="control-group" style={{ flex: 1 }}>
+          <label className="control-label">Base Font Size (px):</label>
+          <input type="number" className="control-input" value={base} min={1} onChange={e => setBase(Number(e.target.value))} />
+        </div>
+      </div>
+      {result && (
+        <>
+          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 8 }}>
+            {result.result}{dir === 'pxToRem' ? 'rem' : 'px'}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginBottom: 20 }}>{result.formula}</div>
+          <table style={{ borderCollapse: 'collapse', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
+            <thead>
+              <tr>
+                <th style={{ padding: '6px 16px 6px 0', textAlign: 'left', color: 'var(--text-secondary)' }}>px</th>
+                <th style={{ padding: '6px 16px', textAlign: 'left', color: 'var(--text-secondary)' }}>rem</th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.scale.map(row => (
+                <tr key={row.px} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <td style={{ padding: '4px 16px 4px 0' }}>{row.px}px</td>
+                  <td style={{ padding: '4px 16px', color: 'var(--accent)' }}>{row.rem}rem</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── chmod Calculator ────────────────────────────────────────────────────────
+function ChmodView() {
+  const [mode, setMode] = React.useState('755');
+
+  const result = React.useMemo(() => {
+    const r = DeveloperEngine.parseChmod(mode);
+    return r.success ? r.data : null;
+  }, [mode]);
+
+  const err = React.useMemo(() => {
+    const r = DeveloperEngine.parseChmod(mode);
+    return r.success ? null : r.error;
+  }, [mode]);
+
+  const PermBox = ({ label, perm }: { label: string; perm: { read: boolean; write: boolean; execute: boolean } }) => (
+    <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '12px 16px', textAlign: 'center' }}>
+      <div style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, marginBottom: 8 }}>{label}</div>
+      {[['r', perm.read, 'Read'], ['w', perm.write, 'Write'], ['x', perm.execute, 'Execute']].map(([sym, on, name]) => (
+        <div key={sym as string} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+          <div style={{ width: 18, height: 18, borderRadius: 3, background: on ? 'var(--accent)' : 'var(--bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: on ? 'var(--bg)' : 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>{on ? sym : '—'}</div>
+          <span style={{ fontSize: 12, color: on ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>{name as string}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div style={{ padding: '24px 32px', flex: 1 }}>
+      <div className="control-group" style={{ maxWidth: 300 }}>
+        <label className="control-label">Mode (octal or symbolic):</label>
+        <input className="control-input" style={{ fontFamily: 'var(--font-mono)', fontSize: 18 }}
+          value={mode} onChange={e => setMode(e.target.value)} placeholder="755 or rwxr-xr-x" />
+      </div>
+      {err && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginBottom: 12 }}>{err}</div>}
+      {result && (
+        <>
+          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{result.octal}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'var(--text-secondary)' }}>{result.symbolic}</div>
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 16 }}>Bitmask: {result.bitmask}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, maxWidth: 480 }}>
+            <PermBox label="Owner" perm={result.owner} />
+            <PermBox label="Group" perm={result.group} />
+            <PermBox label="Others" perm={result.others} />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── User-Agent Parser ───────────────────────────────────────────────────────
+function UserAgentView() {
+  const [ua, setUa] = React.useState(navigator.userAgent);
+
+  const result = React.useMemo(() => {
+    const r = DeveloperEngine.parseUserAgent(ua);
+    return r.success ? r.data : null;
+  }, [ua]);
+
+  return (
+    <div style={{ padding: '24px 32px', flex: 1 }}>
+      <div className="control-group">
+        <label className="control-label">User-Agent String:</label>
+        <textarea className="code-editor" rows={3} value={ua} onChange={e => setUa(e.target.value)}
+          style={{ resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: 11 }} />
+      </div>
+      <button className="btn-secondary" onClick={() => setUa(navigator.userAgent)} style={{ marginBottom: 16 }}>
+        Use Current Browser UA
+      </button>
+      {result && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, maxWidth: 600 }}>
+          {[['Browser', result.browser], ['Operating System', result.os], ['Rendering Engine', result.engine], ['Device Type', result.device]].map(([label, val]) => (
+            <div key={label} style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '10px 14px' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{val || 'Unknown'}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── .gitignore Generator ─────────────────────────────────────────────────────
+function GitignoreView() {
+  const [selected, setSelected] = React.useState<string[]>(['node', 'react', 'macos', 'windows', 'ide']);
+  const [output, setOutput] = React.useState('');
+
+  const techs = [
+    { id: 'node', label: 'Node.js' }, { id: 'python', label: 'Python' }, { id: 'react', label: 'React' },
+    { id: 'vite', label: 'Vite' }, { id: 'nextjs', label: 'Next.js' }, { id: 'java', label: 'Java' },
+    { id: 'dotnet', label: '.NET' }, { id: 'rust', label: 'Rust' }, { id: 'go', label: 'Go' },
+    { id: 'swift', label: 'Swift' }, { id: 'macos', label: 'macOS' }, { id: 'windows', label: 'Windows' },
+    { id: 'linux', label: 'Linux' }, { id: 'ide', label: 'IDEs' }, { id: 'docker', label: 'Docker' },
+  ];
+
+  const toggle = (id: string) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+
+  React.useEffect(() => {
+    const r = DeveloperEngine.generateGitignore(selected);
+    if (r.success) setOutput(r.data || '');
+  }, [selected]);
+
+  const download = () => {
+    const blob = new Blob([output], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '.gitignore';
+    a.click();
+  };
+
+  return (
+    <div style={{ padding: '24px 32px', flex: 1, display: 'flex', gap: 24 }}>
+      <div style={{ width: 200 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>SELECT TECHNOLOGIES</div>
+        {techs.map(t => (
+          <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, cursor: 'pointer', fontSize: 13 }}>
+            <input type="checkbox" checked={selected.includes(t.id)} onChange={() => toggle(t.id)} />
+            {t.label}
+          </label>
+        ))}
+      </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>.gitignore preview</span>
+          <button className="btn-primary" onClick={download}>Download .gitignore</button>
+        </div>
+        <textarea className="code-editor" readOnly value={output} style={{ flex: 1, minHeight: 400, fontFamily: 'var(--font-mono)', fontSize: 12 }} />
+      </div>
+    </div>
+  );
+}
+
+// ─── .env Diff ────────────────────────────────────────────────────────────────
+function EnvDiffView() {
+  const [env1, setEnv1] = React.useState('DATABASE_URL=postgres://localhost/app\nAPI_KEY=secret123\nDEBUG=true\nPORT=3000');
+  const [env2, setEnv2] = React.useState('DATABASE_URL=\nAPI_KEY=\nSESSION_SECRET=\nPORT=3000\nNODE_ENV=production');
+
+  const result = React.useMemo(() => {
+    const r = DeveloperEngine.diffEnvFiles(env1, env2, '.env', '.env.example');
+    return r.success ? r.data : null;
+  }, [env1, env2]);
+
+  return (
+    <div style={{ padding: '24px 32px', flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {[[env1, setEnv1, '.env (actual)'], [env2, setEnv2, '.env.example (template)']].map(([val, setter, label], i) => (
+          <div key={i} className="control-group">
+            <label className="control-label">{label as string}:</label>
+            <textarea className="code-editor" rows={8} value={val as string} onChange={e => (setter as (v: string) => void)(e.target.value)}
+              style={{ resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: 12 }} />
+          </div>
+        ))}
+      </div>
+      {result && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {result.missingInFirst.length > 0 && (
+            <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: '#f87171', fontWeight: 600, marginBottom: 8 }}>MISSING IN .env ({result.missingInFirst.length})</div>
+              {result.missingInFirst.map(k => <div key={k} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: '#f87171' }}>{k}</div>)}
+            </div>
+          )}
+          {result.missingInSecond.length > 0 && (
+            <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: '#facc15', fontWeight: 600, marginBottom: 8 }}>MISSING IN TEMPLATE ({result.missingInSecond.length})</div>
+              {result.missingInSecond.map(k => <div key={k} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: '#facc15' }}>{k}</div>)}
+            </div>
+          )}
+          {result.commonKeys.length > 0 && (
+            <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: '#4ade80', fontWeight: 600, marginBottom: 8 }}>SHARED KEYS ({result.commonKeys.length})</div>
+              {result.commonKeys.slice(0, 10).map(k => <div key={k} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-secondary)' }}>{k}</div>)}
+            </div>
+          )}
+          {result.differing.length > 0 && (
+            <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: '#60a5fa', fontWeight: 600, marginBottom: 8 }}>DIFFERING VALUES ({result.differing.length})</div>
+              {result.differing.map(d => (
+                <div key={d.key} style={{ marginBottom: 4 }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-primary)', fontWeight: 600 }}>{d.key}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-tertiary)' }}>{d.val1 || '(empty)'} → {d.val2 || '(empty)'}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

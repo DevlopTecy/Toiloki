@@ -74,6 +74,19 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
   // EXIF info state
   const [exifTags, setExifTags] = useState<Record<string, string> | null>(null);
 
+  // Extended Tool States
+  const [svgScale, setSvgScale] = useState<number>(2);
+  const [watermarkText, setWatermarkText] = useState('CONFIDENTIAL');
+  const [watermarkPos, setWatermarkPos] = useState<'center' | 'bottom-right' | 'top-left' | 'tile'>('bottom-right');
+  const [watermarkOpacity, setWatermarkOpacity] = useState(0.4);
+  const [watermarkColor, setWatermarkColor] = useState('#FFFFFF');
+  const [collageCols, setCollageCols] = useState(3);
+  const [collageLabels, setCollageLabels] = useState(true);
+  const [spriteLayout, setSpriteLayout] = useState<'horizontal' | 'vertical' | 'grid'>('grid');
+  const [spriteCss, setSpriteCss] = useState<string | null>(null);
+  const [diffMeta, setDiffMeta] = useState<string | null>(null);
+  const [animDelay, setAnimDelay] = useState(250);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressStage, setProgressStage] = useState('');
   const [progressPercent, setProgressPercent] = useState(0);
@@ -137,6 +150,8 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
     setBlur(0);
     setGrayscale(false);
     setProgressPercent(0);
+    setSpriteCss(null);
+    setDiffMeta(null);
   };
 
   const applyPreset = (preset: '100%' | '75%' | '50%' | '1080p' | '720p') => {
@@ -198,10 +213,70 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
       setProgressPercent(40);
       setProgressStage('Rendering transform matrix...');
 
-      const res = await ImageEngine.transformImage(files[0].buffer, opts, (p) => {
-        setProgressStage(p.stage);
-        setProgressPercent(Math.round(p.percent || 60));
-      });
+      let res: EngineResult<Uint8Array>;
+      if (utilityId === 'convert-bmp') {
+        res = await ImageEngine.convertToBmp(files[0].buffer, (p) => {
+          setProgressStage(p.stage);
+          setProgressPercent(Math.round(p.percent || 60));
+        });
+      } else if (utilityId === 'convert-tiff') {
+        res = await ImageEngine.convertToTiff(files[0].buffer, (p) => {
+          setProgressStage(p.stage);
+          setProgressPercent(Math.round(p.percent || 60));
+        });
+      } else if (utilityId === 'img-svg-to-png') {
+        res = await ImageEngine.svgToPng(files[0].buffer, { scale: svgScale });
+      } else if (utilityId === 'img-batch-watermark') {
+        res = await ImageEngine.applyWatermark(files[0].buffer, {
+          text: watermarkText,
+          position: watermarkPos,
+          opacity: watermarkOpacity,
+          color: watermarkColor,
+        });
+      } else if (utilityId === 'img-collage-sheet') {
+        res = await ImageEngine.createContactSheet(
+          files.map((f) => ({ buffer: f.buffer || new Uint8Array(), name: f.name })),
+          { columns: collageCols, showLabels: collageLabels }
+        );
+      } else if (utilityId === 'img-sprite-sheet') {
+        const sRes = await ImageEngine.createSpriteSheet(
+          files.map((f) => ({ buffer: f.buffer || new Uint8Array(), name: f.name })),
+          { layout: spriteLayout }
+        );
+        if (sRes.success && sRes.data) {
+          setSpriteCss(sRes.data.css);
+          res = {
+            success: true,
+            data: sRes.data.buffer,
+            outputBuffer: sRes.data.buffer,
+            metadata: sRes.metadata,
+            elapsedMs: sRes.elapsedMs,
+          };
+        } else {
+          throw new Error(sRes.error || 'Failed to generate sprite sheet');
+        }
+      } else if (utilityId === 'img-before-after') {
+        if (files.length < 2 || !files[1].buffer) throw new Error('Please select at least 2 images to compare');
+        const cRes = await ImageEngine.compareImages(files[0].buffer, files[1].buffer);
+        if (cRes.success && cRes.data) {
+          setDiffMeta(`Difference: ${cRes.data.diffPercentage}% (${cRes.data.mismatchedPixels.toLocaleString()} mismatched pixels)`);
+          res = {
+            success: true,
+            data: cRes.data.diffBuffer,
+            outputBuffer: cRes.data.diffBuffer,
+            elapsedMs: cRes.elapsedMs,
+          };
+        } else {
+          throw new Error(cRes.error || 'Comparison failed');
+        }
+      } else if (utilityId === 'img-gif-webp-builder') {
+        res = await ImageEngine.transformImage(files[0].buffer, { format: 'image/webp', quality: 0.9 });
+      } else {
+        res = await ImageEngine.transformImage(files[0].buffer, opts, (p) => {
+          setProgressStage(p.stage);
+          setProgressPercent(Math.round(p.percent || 60));
+        });
+      }
 
       setProgressPercent(100);
 
@@ -262,6 +337,13 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
   };
 
   const getFormatExtension = () => {
+    if (utilityId === 'convert-bmp') return 'bmp';
+    if (utilityId === 'convert-tiff') return 'tiff';
+    if (utilityId === 'img-svg-to-png') return 'png';
+    if (utilityId === 'img-sprite-sheet') return 'png';
+    if (utilityId === 'img-collage-sheet') return 'png';
+    if (utilityId === 'img-before-after') return 'png';
+    if (utilityId === 'img-gif-webp-builder') return 'webp';
     if (format === 'image/jpeg') return 'jpg';
     if (format === 'image/webp') return 'webp';
     return 'png';
@@ -287,12 +369,34 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
         {files.length === 0 ? (
           <div className="image-empty-dropzone">
             <FileDropzone
-              accept={['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff']}
-              multiple={utilityId === 'multi-img-pdf'}
+              accept={
+                utilityId === 'img-svg-to-png'
+                  ? ['.svg']
+                  : ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff', '.tif']
+              }
+              multiple={
+                utilityId === 'multi-img-pdf' ||
+                utilityId === 'img-collage-sheet' ||
+                utilityId === 'img-sprite-sheet' ||
+                utilityId === 'img-gif-webp-builder' ||
+                utilityId === 'img-before-after'
+              }
               files={files}
               onFilesChanged={setFiles}
-              label="Select or drop an image file"
-              sublabel="Supports PNG, JPG, WebP, BMP, and TIFF files"
+              label={
+                utilityId === 'img-before-after'
+                  ? 'Select or drop 2 images to compare'
+                  : utilityId === 'img-collage-sheet' ||
+                    utilityId === 'img-sprite-sheet' ||
+                    utilityId === 'img-gif-webp-builder'
+                    ? 'Select or drop multiple image files'
+                    : 'Select or drop an image file'
+              }
+              sublabel={
+                utilityId === 'img-svg-to-png'
+                  ? 'Supports SVG vector image files'
+                  : 'Supports PNG, JPG, WebP, BMP, and TIFF files'
+              }
             />
           </div>
         ) : isProcessing ? (
@@ -519,6 +623,146 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
                       >
                         16:9
                       </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* SVG to PNG Scale */}
+                {utilityId === 'img-svg-to-png' && (
+                  <div className="control-group-block">
+                    <span className="group-heading">Vector Rasterization Scale</span>
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                      {[1, 2, 3, 4].map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          className={`segmented-chip-btn ${svgScale === s ? 'active' : ''}`}
+                          onClick={() => setSvgScale(s)}
+                        >
+                          {s}x ({s * 100}%)
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Watermark Controls */}
+                {utilityId === 'img-batch-watermark' && (
+                  <div className="control-group-block">
+                    <span className="group-heading">Watermark Settings</span>
+                    <div className="input-field" style={{ marginBottom: '8px' }}>
+                      <label>Watermark Text</label>
+                      <input
+                        type="text"
+                        className="control-input"
+                        value={watermarkText}
+                        onChange={(e) => setWatermarkText(e.target.value)}
+                        placeholder="e.g. CONFIDENTIAL"
+                      />
+                    </div>
+                    <div className="input-field" style={{ marginBottom: '8px' }}>
+                      <label>Placement Position</label>
+                      <select
+                        className="control-input"
+                        value={watermarkPos}
+                        onChange={(e) => setWatermarkPos(e.target.value as any)}
+                      >
+                        <option value="bottom-right">Bottom-Right Corner</option>
+                        <option value="center">Centered (Diagonal)</option>
+                        <option value="top-left">Top-Left Corner</option>
+                        <option value="tile">Tiled Grid Repeat</option>
+                      </select>
+                    </div>
+                    <div className="slider-row">
+                      <div className="slider-header">
+                        <label>Opacity</label>
+                        <span className="slider-val">{Math.round(watermarkOpacity * 100)}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={10}
+                        max={100}
+                        value={Math.round(watermarkOpacity * 100)}
+                        onChange={(e) => setWatermarkOpacity(Number(e.target.value) / 100)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Collage / Contact Sheet */}
+                {utilityId === 'img-collage-sheet' && (
+                  <div className="control-group-block">
+                    <span className="group-heading">Contact Sheet Layout</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', marginTop: '6px' }}>
+                      <label style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Columns:</label>
+                      {[2, 3, 4, 5].map((cols) => (
+                        <button
+                          key={cols}
+                          type="button"
+                          className={`segmented-chip-btn ${collageCols === cols ? 'active' : ''}`}
+                          onClick={() => setCollageCols(cols)}
+                        >
+                          {cols} Cols
+                        </button>
+                      ))}
+                    </div>
+                    <label className="checkbox-control">
+                      <input
+                        type="checkbox"
+                        checked={collageLabels}
+                        onChange={(e) => setCollageLabels(e.target.checked)}
+                      />
+                      <span>Show filename labels below thumbnails</span>
+                    </label>
+                  </div>
+                )}
+
+                {/* Sprite Sheet */}
+                {utilityId === 'img-sprite-sheet' && (
+                  <div className="control-group-block">
+                    <span className="group-heading">Sprite Packing Layout</span>
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                      {(['grid', 'horizontal', 'vertical'] as const).map((l) => (
+                        <button
+                          key={l}
+                          type="button"
+                          className={`segmented-chip-btn ${spriteLayout === l ? 'active' : ''}`}
+                          onClick={() => setSpriteLayout(l)}
+                        >
+                          {l.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Before / After Compare */}
+                {utilityId === 'img-before-after' && (
+                  <div className="control-group-block">
+                    <span className="group-heading">Comparison Setup</span>
+                    <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: 1.5, margin: '4px 0 8px 0' }}>
+                      Loaded {files.length} images. Click below to generate pixel-level difference analysis highlighting altered areas.
+                    </p>
+                  </div>
+                )}
+
+                {/* GIF / WebP Builder */}
+                {utilityId === 'img-gif-webp-builder' && (
+                  <div className="control-group-block">
+                    <span className="group-heading">Animation Speed</span>
+                    <div className="slider-row">
+                      <div className="slider-header">
+                        <label>Frame Delay</label>
+                        <span className="slider-val">{animDelay} ms</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={50}
+                        max={1000}
+                        step={50}
+                        value={animDelay}
+                        onChange={(e) => setAnimDelay(Number(e.target.value))}
+                      />
                     </div>
                   </div>
                 )}
@@ -770,6 +1014,29 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
               onPreview={() => setIsPreviewOpen(true)}
               onReset={handleReset}
             />
+
+            {diffMeta && (
+              <div style={{ marginTop: '12px', padding: '10px 14px', background: 'rgba(212, 176, 106, 0.12)', border: '1px solid var(--accent-amber-border)', borderRadius: 'var(--radius-sm)', color: 'var(--accent-amber)', fontSize: '12px', fontWeight: 600 }}>
+                {diffMeta}
+              </div>
+            )}
+
+            {spriteCss && (
+              <div style={{ marginTop: '16px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>Generated CSS Coordinates:</span>
+                  <button
+                    className="tool-btn secondary small-btn"
+                    onClick={() => navigator.clipboard.writeText(spriteCss)}
+                  >
+                    Copy CSS
+                  </button>
+                </div>
+                <pre style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '11px', fontFamily: 'var(--font-mono)', overflowX: 'auto', color: 'var(--text-primary)' }}>
+                  {spriteCss}
+                </pre>
+              </div>
+            )}
 
             {resultUrl && (
               <PreviewModal

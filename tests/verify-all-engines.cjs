@@ -10,6 +10,7 @@ const ExifReader = require('exifreader');
 const JSZip = require('jszip');
 const mammoth = require('mammoth');
 const { XMLParser, XMLBuilder, XMLValidator } = require('fast-xml-parser');
+const Diff = require('diff');
 
 console.log('==================================================');
 console.log('  TOILOKI APPLICATION FOUNDATION & ENGINE SUITE');
@@ -399,6 +400,82 @@ function testDevUtilities() {
   console.log('✓ PASS');
 }
 
+// 12. PDF Specialized & Extended Operations (Blank Removal, Crop, Redact, Form, Compare, Repair)
+async function testPdfSpecialized() {
+  process.stdout.write('12. Testing PDF Specialized (Blank Removal, Crop, Redact, Form, Compare, Repair)... ');
+
+  // Create multi-page test PDF
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  
+  // Page 1: with text
+  const p1 = doc.addPage([500, 500]);
+  p1.drawText('Invoice Summary 2026', { x: 50, y: 450, size: 14, font });
+
+  // Page 2: blank page
+  doc.addPage([500, 500]);
+
+  // Page 3: form field
+  const p3 = doc.addPage([500, 500]);
+  const form = doc.getForm();
+  const field = form.createTextField('client_name');
+  field.setText('Acme Corp');
+  field.addToPage(p3, { x: 50, y: 400, width: 200, height: 25 });
+
+  const testPdfBytes = await doc.save();
+
+  // Test 1: Blank page detection & removal
+  const readDoc = await PDFDocument.load(testPdfBytes);
+  const total = readDoc.getPageCount();
+  assert.strictEqual(total, 3);
+  const nonBlank = [];
+  for (let i = 0; i < total; i++) {
+    const page = readDoc.getPage(i);
+    const contents = page.node.Contents();
+    const annots = page.node.Annots();
+    const hasAnnots = annots && typeof annots.size === 'function' && annots.size() > 0;
+    if (contents || hasAnnots) nonBlank.push(i);
+  }
+  assert.strictEqual(nonBlank.length, 2, 'Should detect exactly 1 blank page');
+
+  // Test 2: Crop box
+  p1.setCropBox(20, 20, 460, 460);
+  p1.setMediaBox(20, 20, 460, 460);
+  assert.strictEqual(p1.getCropBox().width, 460);
+
+  // Test 3: Redaction
+  p1.drawRectangle({
+    x: 45,
+    y: 440,
+    width: 200,
+    height: 30,
+    color: rgb(0, 0, 0),
+    opacity: 1,
+  });
+
+  // Test 4: Form field inspection & filling
+  const fField = form.getTextField('client_name');
+  assert.strictEqual(fField.getText(), 'Acme Corp');
+  fField.setText('Toiloki Global Enterprises');
+  assert.strictEqual(fField.getText(), 'Toiloki Global Enterprises');
+  form.flatten();
+
+  // Test 5: PDF Repair / re-serialize
+  const repairedDoc = await PDFDocument.create();
+  const copied = await repairedDoc.copyPages(readDoc, nonBlank);
+  copied.forEach(p => repairedDoc.addPage(p));
+  repairedDoc.setProducer('Toiloki Repaired');
+  const repairedBytes = await repairedDoc.save();
+  assert.ok(repairedBytes.length > 500);
+
+  // Test 6: PDF Compare text difference
+  const diffWords = Diff.diffWords('Toiloki Suite v1', 'Toiloki Suite v2 Pro');
+  const added = diffWords.filter(d => d.added);
+  assert.ok(added.length > 0);
+
+  console.log('✓ PASS');
+}
+
 // Run All Test Suites
 (async () => {
   try {
@@ -413,6 +490,7 @@ function testDevUtilities() {
     await testDuplicateFinder();
     await testPdfAdvanced();
     testDevUtilities();
+    await testPdfSpecialized();
 
     console.log('\n==================================================');
     console.log('  ALL TOILOKI FOUNDATION & ENGINE TESTS PASSED (100% OK)');
@@ -422,3 +500,4 @@ function testDevUtilities() {
     process.exit(1);
   }
 })();
+

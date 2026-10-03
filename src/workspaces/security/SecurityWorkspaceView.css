@@ -1,0 +1,252 @@
+/* SecurityWorkspaceView Styles - Toiloki Design System */
+.sec-workspace {
+  padding: 24px var(--content-padding-x, 32px);
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sec-card {
+  background: var(--bg-surface, #12141a);
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.sec-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #f4f5f7);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.sec-controls-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.sec-checkboxes {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding-bottom: 2px;
+}
+
+.sec-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary, #a3a9b5);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sec-checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent, #d4b06a);
+  cursor: pointer;
+}
+
+.sec-copy-btn,
+.sec-refresh-btn {
+  background: var(--bg-hover, #1c2028);
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary, #f4f5f7);
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.sec-copy-btn:hover,
+.sec-refresh-btn:hover {
+  background: var(--bg-raised, #242933);
+  border-color: var(--border-strong, rgba(255, 255, 255, 0.2));
+  color: var(--accent, #d4b06a);
+}
+
+.sec-result-block {
+  background: var(--bg-raised, #171a21);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+  border-radius: 6px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sec-result-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sec-result-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary, #6b7280);
+  width: 56px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sec-result-code {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 13px;
+  color: var(--accent, #d4b06a);
+  word-break: break-all;
+  flex: 1;
+}
+
+.sec-password-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-raised, #171a21);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 6px;
+  padding: 14px 18px;
+  gap: 16px;
+}
+
+.sec-password-code {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent, #d4b06a);
+  letter-spacing: 0.04em;
+  word-break: break-all;
+  flex: 1;
+}
+
+.sec-password-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sec-strength-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.sec-strength-track {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  height: 6px;
+}
+
+.sec-strength-segment {
+  flex: 1;
+  height: 100%;
+  background: var(--bg-hover, #1c2028);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.sec-strength-label {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.sec-strength-meta {
+  font-size: 12px;
+  color: var(--text-tertiary, #6b7280);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.sec-info-banner {
+  font-size: 12.5px;
+  color: var(--text-secondary, #a3a9b5);
+  background: var(--accent-subtle, rgba(212, 176, 106, 0.08));
+  border: 1px solid var(--accent-border, rgba(212, 176, 106, 0.2));
+  padding: 10px 14px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sec-file-drop {
+  border: 1.5px dashed var(--border-strong, rgba(255, 255, 255, 0.16));
+  border-radius: 8px;
+  padding: 28px;
+  text-align: center;
+  background: var(--bg-raised, #171a21);
+  transition: border-color 0.2s;
+}
+
+.sec-file-drop:hover {
+  border-color: var(--accent, #d4b06a);
+}
+
+.sec-file-label {
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary, #a3a9b5);
+  display: block;
+}
+
+.sec-checksum-result {
+  background: var(--bg-raised, #171a21);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-top: 12px;
+}
+
+.sec-checksum-result.match {
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.sec-checksum-result.mismatch {
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.05);
+}
+
+.sec-error {
+  color: #f87171;
+  font-size: 13px;
+  padding: 8px 12px;
+  background: rgba(248, 113, 113, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+.sec-redaction-layout {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.sec-redaction-controls {
+  width: 250px;
+  min-width: 250px;
+  background: var(--bg-surface, #12141a);
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

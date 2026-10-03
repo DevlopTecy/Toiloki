@@ -114,6 +114,11 @@
   --badge-text:  var(--text-2);
   --badge-dev:   var(--text-2);
   --badge-calc:  var(--text-2);
+  --badge-security: var(--text-2);
+  --badge-media:    var(--text-2);
+  --badge-network:  var(--text-2);
+  --badge-design:   var(--text-2);
+  --badge-system:   var(--text-2);
 
   /* ─── Typography ─── */
   --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -229,6 +234,11 @@
   --badge-text:  var(--text-2);
   --badge-dev:   var(--text-2);
   --badge-calc:  var(--text-2);
+  --badge-security: var(--text-2);
+  --badge-media:    var(--text-2);
+  --badge-network:  var(--text-2);
+  --badge-design:   var(--text-2);
+  --badge-system:   var(--text-2);
 
   --shadow-sm: var(--card-shadow);
   --shadow-md: var(--card-shadow);
@@ -308,6 +318,11 @@
     --badge-text:  var(--text-2);
     --badge-dev:   var(--text-2);
     --badge-calc:  var(--text-2);
+    --badge-security: var(--text-2);
+    --badge-media:    var(--text-2);
+    --badge-network:  var(--text-2);
+    --badge-design:   var(--text-2);
+    --badge-system:   var(--text-2);
 
     --shadow-sm: var(--card-shadow);
     --shadow-md: var(--card-shadow);
@@ -384,6 +399,11 @@
     --badge-text:  var(--text-2);
     --badge-dev:   var(--text-2);
     --badge-calc:  var(--text-2);
+    --badge-security: var(--text-2);
+    --badge-media:    var(--text-2);
+    --badge-network:  var(--text-2);
+    --badge-design:   var(--text-2);
+    --badge-system:   var(--text-2);
 
     --shadow-sm: none;
     --shadow-md: none;

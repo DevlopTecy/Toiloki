@@ -125,6 +125,83 @@ export const FilesSection: React.FC<FilesSectionProps> = ({
           </span>
         </label>
       </div>
+
+      {/* ─── 4. OUTPUT NAMING TEMPLATE ─── */}
+      <div className="settings-row">
+        <div className="settings-row-info">
+          <label className="settings-label">Output naming template</label>
+          <span className="settings-helper">
+            Tokens: <code style={{ fontFamily: 'var(--font-mono)' }}>&#123;name&#125;</code>,{' '}
+            <code style={{ fontFamily: 'var(--font-mono)' }}>&#123;tool&#125;</code>,{' '}
+            <code style={{ fontFamily: 'var(--font-mono)' }}>&#123;date&#125;</code>,{' '}
+            <code style={{ fontFamily: 'var(--font-mono)' }}>&#123;time&#125;</code>,{' '}
+            <code style={{ fontFamily: 'var(--font-mono)' }}>&#123;counter&#125;</code>
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '340px' }}>
+          <input
+            type="text"
+            className="settings-input"
+            value={settings.namingTemplate || '{name}_{tool}_{date}'}
+            onChange={(e) => onUpdateSettings({ namingTemplate: e.target.value })}
+            style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}
+          />
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            Preview:{' '}
+            <code style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>
+              {settings.namingTemplate
+                ? settings.namingTemplate
+                    .replace('{name}', 'document')
+                    .replace('{tool}', 'compress-pdf')
+                    .replace('{date}', new Date().toISOString().slice(0, 10))
+                    .replace('{time}', '14-30-00')
+                    .replace('{counter}', '1') + '.pdf'
+                : 'document_compress-pdf_2026-10-03.pdf'}
+            </code>
+          </span>
+        </div>
+      </div>
+
+      {/* ─── 5. FILE ASSOCIATIONS ("OPEN WITH TOILOKI") ─── */}
+      <div className="settings-row">
+        <div className="settings-row-info">
+          <label className="settings-label">"Open with Toiloki" File Associations</label>
+          <span className="settings-helper">
+            Handle system file opens for PDF, images, CSV, JSON, and archives directly into matching local utilities.
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+          <label className="settings-switch">
+            <input
+              type="checkbox"
+              checked={settings.fileAssociationsEnabled ?? true}
+              onChange={(e) => onUpdateSettings({ fileAssociationsEnabled: e.target.checked })}
+            />
+            <span className="settings-switch-label">
+              {settings.fileAssociationsEnabled ? 'Associations Enabled' : 'Disabled'}
+            </span>
+          </label>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', maxWidth: '340px' }}>
+            {['.pdf', '.png', '.jpg', '.webp', '.svg', '.csv', '.json', '.zip', '.md'].map((ext) => (
+              <span
+                key={ext}
+                style={{
+                  fontSize: '10.5px',
+                  fontFamily: 'var(--font-mono)',
+                  backgroundColor: 'var(--surface-raised)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '3px',
+                  padding: '1px 5px',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                {ext}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
+

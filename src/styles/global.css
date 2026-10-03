@@ -125,7 +125,7 @@ textarea:focus-visible,
   transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
 }
 
-.control-input:focus {
+.control-input:focus-visible {
   border-color: var(--accent);
   box-shadow: var(--focus-ring);
 }
@@ -146,7 +146,7 @@ textarea:focus-visible,
   transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
 }
 
-.control-select:focus {
+.control-select:focus-visible {
   border-color: var(--accent);
   box-shadow: var(--focus-ring);
 }

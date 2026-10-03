@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RotateCcw, Trash2, Check, Wrench, Shield, AlertTriangle } from 'lucide-react';
+import { RotateCcw, Trash2, Check, Wrench, Shield, AlertTriangle, HardDrive, Download } from 'lucide-react';
 import { AppSettings, SettingsService } from '../../../../core/services/settings.service';
 import { Button } from '../../../common/Button';
 
@@ -16,6 +16,28 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
 }) => {
   const [cacheCleared, setCacheCleared] = useState(false);
   const [resetDone, setResetDone] = useState(false);
+  const [exported, setExported] = useState(false);
+
+  const handleExportPortable = () => {
+    const bundle = {
+      settings: SettingsService.getSettings(),
+      presets: localStorage.getItem('toiloki_utility_presets'),
+      chains: localStorage.getItem('toiloki_utility_chains'),
+      history: localStorage.getItem('toiloki_history_records'),
+      favorites: localStorage.getItem('toiloki_favorites'),
+      exportedAt: new Date().toISOString(),
+      toilokiVersion: '1.0.0',
+    };
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `toiloki_portable_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setExported(true);
+    setTimeout(() => setExported(false), 2000);
+  };
 
   const handleClearCache = () => {
     try {
@@ -69,6 +91,53 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
         </Button>
       </div>
 
+      {/* ─── 1B. TEMP CLEANUP POLICY ─── */}
+      <div className="settings-row">
+        <div className="settings-row-info">
+          <label className="settings-label">Temp cleanup schedule</label>
+          <span className="settings-helper">Automated purging of scratch and intermediate session buffers.</span>
+        </div>
+        <select
+          className="settings-select"
+          value={settings.tempCleanupPolicy || 'on-exit'}
+          onChange={(e) => onUpdateSettings({ tempCleanupPolicy: e.target.value as any })}
+        >
+          <option value="on-exit">Purge automatically when Toiloki exits</option>
+          <option value="daily">Purge files older than 24 hours</option>
+          <option value="manual">Manual cleanup only</option>
+        </select>
+      </div>
+
+      {/* ─── 1C. PORTABLE MODE ─── */}
+      <div className="settings-row">
+        <div className="settings-row-info">
+          <label className="settings-label">Portable Mode & Local Storage Isolation</label>
+          <span className="settings-helper">
+            Direct all caches, presets, and history to ./portable_data next to the executable. Safe for USB drives.
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <label className="settings-switch">
+            <input
+              type="checkbox"
+              checked={settings.portableMode ?? false}
+              onChange={(e) => onUpdateSettings({ portableMode: e.target.checked })}
+            />
+            <span className="settings-switch-label">
+              {settings.portableMode ? 'Portable Enabled' : 'Standard Host Mode'}
+            </span>
+          </label>
+          <Button variant="secondary" size="sm" onClick={handleExportPortable}>
+            {exported ? (
+              <Check size={13} style={{ marginRight: '5px', color: 'var(--color-success)' }} />
+            ) : (
+              <Download size={13} style={{ marginRight: '5px' }} />
+            )}
+            {exported ? 'Exported' : 'Export Portable Bundle'}
+          </Button>
+        </div>
+      </div>
+
       {/* ─── 2. RESET PREFERENCES ─── */}
       <div className="settings-row">
         <div className="settings-row-info">
@@ -93,7 +162,27 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
         </Button>
       </div>
 
-      {/* ─── 4. DEVELOPER SECTION TOGGLE ─── */}
+      {/* ─── 4. UPCOMING UTILITIES TOGGLE ─── */}
+      <div className="settings-row">
+        <div className="settings-row-info">
+          <label className="settings-label">Show upcoming utilities</label>
+          <span className="settings-helper">
+            Displays upcoming utilities marked as 'soon' in catalog lists, omnisearch, and workspaces. Off by default ('soon' items remain hidden until implemented).
+          </span>
+        </div>
+        <label className="settings-switch">
+          <input
+            type="checkbox"
+            checked={settings.showUpcomingUtilities ?? false}
+            onChange={(e) => onUpdateSettings({ showUpcomingUtilities: e.target.checked })}
+          />
+          <span className="settings-switch-label">
+            {settings.showUpcomingUtilities ? 'Showing upcoming' : 'Hidden by default'}
+          </span>
+        </label>
+      </div>
+
+      {/* ─── 5. DEVELOPER SECTION TOGGLE ─── */}
       <div className="settings-row">
         <div className="settings-row-info">
           <label className="settings-label">Show Developer section</label>

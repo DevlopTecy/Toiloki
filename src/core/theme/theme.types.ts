@@ -64,7 +64,8 @@ export type ApplyBackgroundTo = 'window' | 'workspace' | 'sidebar';
 export interface ThemeBackground {
   type: BackgroundType;
   patternType?: PatternType;
-  imageUrl?: string;        // Local data URI or local blob
+  imageUrl?: string;        // toiloki-bg://filename (served by custom protocol from appData/backgrounds/)
+  imageFileName?: string;   // Base filename in appData/backgrounds/ for removal
   imageFit?: ImageFit;
   imagePosition?: string;   // e.g. 'center', 'top left'
   imageBlur?: number;       // 0 to 20px
