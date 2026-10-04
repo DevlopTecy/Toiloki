@@ -209,7 +209,7 @@
   font-size: 10px;
   font-weight: 500;
   background-color: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  color: var(--warning);
   padding: 1px 5px;
   border-radius: 4px;
 }
@@ -273,7 +273,7 @@
   text-align: center;
   font-size: 10px;
   font-weight: 500;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 /* Crop Box Overlay */
@@ -346,7 +346,7 @@
 }
 
 .floating-tool-btn.danger {
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .floating-tool-btn.danger:hover {

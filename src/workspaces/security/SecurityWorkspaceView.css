@@ -225,7 +225,7 @@
 }
 
 .sec-error {
-  color: #f87171;
+  color: var(--danger);
   font-size: 13px;
   padding: 8px 12px;
   background: rgba(248, 113, 113, 0.1);

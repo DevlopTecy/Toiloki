@@ -163,7 +163,7 @@
 .header-info-btn:hover {
   background: rgba(212, 176, 106, 0.16) !important;
   border-color: rgba(212, 176, 106, 0.55) !important;
-  color: #f1f3f7 !important;
+  color: var(--text) !important;
 }
 
 .header-reset-btn {

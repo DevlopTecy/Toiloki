@@ -110,7 +110,7 @@
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   font-size: 11px;
   background: rgba(0, 0, 0, 0.65);
-  color: #fff;
+  color: var(--on-accent);
   padding: 2px 6px;
   border-radius: 3px;
 }
@@ -158,11 +158,11 @@
 }
 
 .contrast-badge.pass {
-  color: #4ade80;
+  color: var(--success);
 }
 
 .contrast-badge.fail {
-  color: #f87171;
+  color: var(--danger);
 }
 
 .design-code-snippet {
