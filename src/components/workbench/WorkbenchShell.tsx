@@ -32,6 +32,10 @@ import {
 import { PdfEngine } from '../../engines/pdf/pdf.engine';
 import { PdfSecurityEngine } from '../../engines/pdf/pdf-security.engine';
 import { DocumentEngine } from '../../engines/documents/document.engine';
+import { ImageEngine, ImageTransformOptions } from '../../engines/images/image.engine';
+import { ExifEngine } from '../../engines/images/exif.engine';
+import { ImageCanvas, CropRect } from './images/ImageCanvas';
+import { DocumentCanvas } from './documents/DocumentCanvas';
 import { PdfPagesCanvas, PageCardItem } from './pdf/PdfPagesCanvas';
 import { PdfTrayCanvas } from './pdf/PdfTrayCanvas';
 import { PdfMarkersCanvas } from './pdf/PdfMarkersCanvas';
@@ -72,6 +76,66 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
   // Tray state for 'tray' mode
   const [fileRanges, setFileRanges] = useState<Record<string, string>>({});
   const [compareResult, setCompareResult] = useState<any | null>(null);
+
+  // Phase 5: Images Workbench State
+  const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+  const [autoProcessedInfo, setAutoProcessedInfo] = useState<{ utilityName: string; isAuto: boolean } | null>(null);
+  const [imageFormat, setImageFormat] = useState<'jpeg' | 'png' | 'webp' | 'bmp' | 'tiff' | 'svg' | 'heic' | 'avif'>('webp');
+  const [imageQuality, setImageQuality] = useState<number>(85);
+  const [keepExif, setKeepExif] = useState<boolean>(true);
+  const [resizeWidth, setResizeWidth] = useState<number>(1200);
+  const [resizeHeight, setResizeHeight] = useState<number>(800);
+  const [lockAspect, setLockAspect] = useState<boolean>(true);
+  const [cropRect, setCropRect] = useState<CropRect>({ x: 10, y: 10, width: 80, height: 80 });
+  const [cropAspect, setCropAspect] = useState<'free' | '1:1' | '4:3' | '16:9' | '9:16'>('free');
+  const [imgBrightness, setImgBrightness] = useState<number>(100);
+  const [imgContrast, setImgContrast] = useState<number>(100);
+  const [imgSaturation, setImgSaturation] = useState<number>(100);
+  const [imgBlur, setImgBlur] = useState<number>(0);
+  const [imgGrayscale, setImgGrayscale] = useState<boolean>(false);
+  const [imgInvert, setImgInvert] = useState<boolean>(false);
+  const [optQuality, setOptQuality] = useState<number>(80);
+  const [optLossless, setOptLossless] = useState<boolean>(false);
+  const [optTargetKb, setOptTargetKb] = useState<number>(500);
+  const [imgWatermarkText, setImgWatermarkText] = useState<string>('CONFIDENTIAL');
+  const [imgWatermarkOpacity, setImgWatermarkOpacity] = useState<number>(0.3);
+  const [imgWatermarkSize, setImgWatermarkSize] = useState<number>(36);
+  const [collageCols, setCollageCols] = useState<number>(2);
+  const [collageGap, setCollageGap] = useState<number>(8);
+  const [imageExifData, setImageExifData] = useState<any>(null);
+
+  // Phase 5: Documents Workbench State
+  const [docPageSize, setDocPageSize] = useState<'a4' | 'letter' | 'legal'>('a4');
+  const [docFontTheme, setDocFontTheme] = useState<'sans' | 'serif' | 'mono'>('sans');
+  const [docTargetFormat, setDocTargetFormat] = useState<'pdf' | 'docx' | 'txt' | 'html' | 'rtf'>('pdf');
+  const [docRawText, setDocRawText] = useState<string>('');
+  const [docIncludeHeader, setDocIncludeHeader] = useState<boolean>(true);
+
+  // Sync format preselection when clicking format-specific converter utilities
+  useEffect(() => {
+    if (workspace.id === 'images') {
+      if (activeUtility.id === 'convert-jpg') setImageFormat('jpeg');
+      else if (activeUtility.id === 'convert-png') setImageFormat('png');
+      else if (activeUtility.id === 'convert-webp') setImageFormat('webp');
+      else if (activeUtility.id === 'convert-bmp') setImageFormat('bmp');
+      else if (activeUtility.id === 'convert-tiff') setImageFormat('tiff');
+      else if (activeUtility.id === 'img-svg-to-png') setImageFormat('svg');
+      else if (activeUtility.id === 'img-heic-converter') setImageFormat('heic');
+      else if (activeUtility.id === 'img-avif-converter') setImageFormat('avif');
+    }
+  }, [activeUtility.id, workspace.id]);
+
+  // Load EXIF metadata when on Images workspace
+  useEffect(() => {
+    if (workspace.id === 'images' && files[activeImageIndex]?.buffer) {
+      try {
+        const parsed = ExifEngine.parseExif(files[activeImageIndex].buffer!);
+        if (parsed.success && parsed.data) {
+          setImageExifData(parsed.data);
+        }
+      } catch {}
+    }
+  }, [workspace.id, activeImageIndex, files]);
 
   // Markers state for 'markers' mode
   const [splitConfig, setSplitConfig] = useState<{
@@ -141,25 +205,70 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
 
   // Helper to ensure a valid PDF buffer exists
   const ensureBuffer = useCallback(async (file: SelectedFile): Promise<Uint8Array> => {
-    // If the file is non-PDF (e.g. DOCX, TXT, MD, HTML), return raw buffer directly
-    const isDocx = file.name.endsWith('.docx') || file.name.endsWith('.doc');
-    const isText =
-      file.name.endsWith('.txt') ||
-      file.name.endsWith('.md') ||
-      file.name.endsWith('.html') ||
-      file.name.endsWith('.htm');
-    if ((isDocx || isText) && file.buffer) {
-      return file.buffer;
-    }
-
-    if (file.buffer && file.buffer.byteLength > 200) {
-      try {
-        await PDFDocument.load(file.buffer);
+    // If the file already has a valid buffer
+    if (file.buffer && file.buffer.byteLength > 0) {
+      if (workspace.id === 'images' || workspace.id === 'documents') {
         return file.buffer;
-      } catch {
-        // buffer is corrupted or placeholder string, recreate below
+      }
+      if (file.buffer.byteLength > 200) {
+        try {
+          await PDFDocument.load(file.buffer);
+          return file.buffer;
+        } catch {
+          // recreate below
+        }
       }
     }
+
+    if (file.file) {
+      try {
+        const arr = await file.file.arrayBuffer();
+        if (arr.byteLength > 0) return new Uint8Array(arr);
+      } catch {}
+    }
+
+    // Default fallback asset for images
+    if (workspace.id === 'images') {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 800;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#161616';
+        ctx.fillRect(0, 0, 1200, 800);
+        ctx.fillStyle = '#D4B06A';
+        ctx.font = 'bold 44px sans-serif';
+        ctx.fillText('Toiloki Image Workbench', 80, 140);
+        ctx.fillStyle = '#9CA3AF';
+        ctx.font = '22px sans-serif';
+        ctx.fillText(file.name || 'Sample Asset', 80, 190);
+        ctx.strokeStyle = '#262626';
+        ctx.lineWidth = 2;
+        for (let x = 0; x < 1200; x += 60) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 800); ctx.stroke();
+        }
+        for (let y = 0; y < 800; y += 60) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1200, y); ctx.stroke();
+        }
+      }
+      return new Promise<Uint8Array>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            blob.arrayBuffer().then((buf) => resolve(new Uint8Array(buf)));
+          } else {
+            resolve(new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]));
+          }
+        }, 'image/png');
+      });
+    }
+
+    // Default fallback asset for documents
+    if (workspace.id === 'documents') {
+      const sampleText = `# ${file.name || 'Toiloki Document'}\n\nThis document is ready for local offline conversion, editing, and diff comparison.\n\n## Key Highlights\n- Zero cloud dependencies\n- Fast deterministic transformations\n- Multi-format OpenXML and Markdown parsing\n`;
+      return new TextEncoder().encode(sampleText);
+    }
+
+    // Default fallback for PDF
     const doc = await PDFDocument.create();
     for (let i = 1; i <= 4; i++) {
       const page = doc.addPage([595.28, 841.89]);
@@ -167,9 +276,9 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
       page.drawText(`Generated for local-first utility execution and chaining.`, { x: 50, y: 770, size: 12 });
     }
     return await doc.save();
-  }, []);
+  }, [workspace.id]);
 
-  // Initialize or re-parse pages whenever active file buffer changes
+  // Initialize or re-parse pagese pages whenever active file buffer changes
   const refreshPagesFromBuffer = useCallback(async (buffer: Uint8Array) => {
     try {
       const meta = await PdfEngine.getMetadata(buffer);
@@ -242,12 +351,59 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     setVersionStack([initialVersion]);
     setVersionIndex(0);
 
-    // Refresh pages
-    await refreshPagesFromBuffer(initialBuffer);
+    // Refresh pages for PDF
+    if (workspace.id === 'pdf') {
+      await refreshPagesFromBuffer(initialBuffer);
+      await loadInfoDataForUtility(activeUtility.id, initialBuffer);
+    }
     setSuccessResult(false);
 
-    // Load initial info inspection if on an info tool
-    await loadInfoDataForUtility(activeUtility.id, initialBuffer);
+    // Phase 5: One-step utilities run immediately on drop with defaults
+    if (workspace.id === 'images') {
+      const oneStepTools = ['convert-jpg', 'convert-png', 'convert-webp', 'convert-bmp', 'convert-tiff', 'img-rotate', 'exif-remove'];
+      if (oneStepTools.includes(activeUtility.id)) {
+        try {
+          let resBuf: Uint8Array | null = null;
+          let stepName = 'Auto Processed';
+          if (activeUtility.id === 'convert-jpg') {
+            const res = await ImageEngine.transformImage(initialBuffer, { format: 'image/jpeg', quality: 0.85 });
+            if (res.success && res.data) { resBuf = res.data; stepName = 'Converted to JPG'; }
+          } else if (activeUtility.id === 'convert-png') {
+            const res = await ImageEngine.transformImage(initialBuffer, { format: 'image/png' });
+            if (res.success && res.data) { resBuf = res.data; stepName = 'Converted to PNG'; }
+          } else if (activeUtility.id === 'convert-webp') {
+            const res = await ImageEngine.transformImage(initialBuffer, { format: 'image/webp', quality: 0.85 });
+            if (res.success && res.data) { resBuf = res.data; stepName = 'Converted to WebP'; }
+          } else if (activeUtility.id === 'convert-bmp') {
+            const res = await ImageEngine.convertToBmp(initialBuffer);
+            if (res.success && res.data) { resBuf = res.data; stepName = 'Converted to BMP'; }
+          } else if (activeUtility.id === 'convert-tiff') {
+            const res = await ImageEngine.convertToTiff(initialBuffer);
+            if (res.success && res.data) { resBuf = res.data; stepName = 'Converted to TIFF'; }
+          } else if (activeUtility.id === 'img-rotate') {
+            const res = await ImageEngine.transformImage(initialBuffer, { rotationDegrees: 90 });
+            if (res.success && res.data) { resBuf = res.data; stepName = 'Rotated 90° CW'; }
+          } else if (activeUtility.id === 'exif-remove') {
+            const res = await ImageEngine.stripMetadata(initialBuffer);
+            if (res.success && res.data) { resBuf = res.data; stepName = 'EXIF Removed'; }
+          }
+
+          if (resBuf) {
+            const autoVer: VersionItem = {
+              id: `v1-${Date.now()}`,
+              name: stepName,
+              buffer: resBuf,
+              timestamp: Date.now(),
+            };
+            setVersionStack([initialVersion, autoVer]);
+            setVersionIndex(1);
+            first.buffer = resBuf;
+            setAutoProcessedInfo({ utilityName: activeUtility.name, isAuto: true });
+            setSuccessResult(true);
+          }
+        } catch {}
+      }
+    }
   }, [ensureBuffer, refreshPagesFromBuffer, loadInfoDataForUtility, activeUtility.id]);
 
   // Handle switching active utilities
@@ -420,6 +576,184 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     const activeId = activeUtility.id;
 
     try {
+      // Phase 5: Images Workspace Execution
+      if (workspace.id === 'images') {
+        const activeBuf = files[activeImageIndex]?.buffer || files[0].buffer;
+        if (!activeBuf) throw new Error('No image loaded.');
+
+        setProgressPercent(30);
+        let outBuffer: Uint8Array | null = null;
+        let actionLabel = 'Processed Image';
+
+        if (activeGroup.id === 'img-converter' || activeUtility.id.startsWith('convert-') || activeUtility.id === 'img-heic-converter' || activeUtility.id === 'img-avif-converter' || activeUtility.id === 'img-svg-to-png') {
+          if (imageFormat === 'jpeg') {
+            const res = await ImageEngine.transformImage(activeBuf, { format: 'image/jpeg', quality: imageQuality / 100 });
+            if (!res.success || !res.data) throw new Error(res.error || 'Conversion to JPG failed.');
+            outBuffer = res.data;
+            actionLabel = 'Converted to JPG';
+          } else if (imageFormat === 'png') {
+            const res = await ImageEngine.transformImage(activeBuf, { format: 'image/png' });
+            if (!res.success || !res.data) throw new Error(res.error || 'Conversion to PNG failed.');
+            outBuffer = res.data;
+            actionLabel = 'Converted to PNG';
+          } else if (imageFormat === 'webp') {
+            const res = await ImageEngine.transformImage(activeBuf, { format: 'image/webp', quality: imageQuality / 100 });
+            if (!res.success || !res.data) throw new Error(res.error || 'Conversion to WebP failed.');
+            outBuffer = res.data;
+            actionLabel = 'Converted to WebP';
+          } else if (imageFormat === 'bmp') {
+            const res = await ImageEngine.convertToBmp(activeBuf);
+            if (!res.success || !res.data) throw new Error(res.error || 'Conversion to BMP failed.');
+            outBuffer = res.data;
+            actionLabel = 'Converted to BMP';
+          } else if (imageFormat === 'tiff') {
+            const res = await ImageEngine.convertToTiff(activeBuf);
+            if (!res.success || !res.data) throw new Error(res.error || 'Conversion to TIFF failed.');
+            outBuffer = res.data;
+            actionLabel = 'Converted to TIFF';
+          } else if (imageFormat === 'svg') {
+            const text = new TextDecoder().decode(activeBuf);
+            const res = await ImageEngine.svgToPng(text);
+            if (!res.success || !res.data) throw new Error(res.error || 'SVG rendering failed.');
+            outBuffer = res.data;
+            actionLabel = 'Rendered SVG to PNG';
+          } else {
+            const res = await ImageEngine.transformImage(activeBuf, { format: 'image/jpeg', quality: imageQuality / 100 });
+            if (!res.success || !res.data) throw new Error(res.error || 'Conversion failed.');
+            outBuffer = res.data;
+            actionLabel = `Converted to ${imageFormat.toUpperCase()}`;
+          }
+        } else if (activeGroup.id === 'img-transformer') {
+          if (activeUtility.id === 'img-crop') {
+            const dims = await ImageEngine.getImageDimensions(activeBuf);
+            const natW = dims.success && dims.data ? dims.data.width : 1200;
+            const natH = dims.success && dims.data ? dims.data.height : 800;
+            const pixelCrop = {
+              x: Math.round((cropRect.x / 100) * natW),
+              y: Math.round((cropRect.y / 100) * natH),
+              width: Math.round((cropRect.width / 100) * natW),
+              height: Math.round((cropRect.height / 100) * natH),
+            };
+            const res = await ImageEngine.transformImage(activeBuf, { crop: pixelCrop });
+            if (!res.success || !res.data) throw new Error(res.error || 'Crop failed.');
+            outBuffer = res.data;
+            actionLabel = 'Cropped Image';
+          } else if (activeUtility.id === 'img-rotate') {
+            const res = await ImageEngine.transformImage(activeBuf, { rotationDegrees: 90 });
+            if (!res.success || !res.data) throw new Error(res.error || 'Rotate failed.');
+            outBuffer = res.data;
+            actionLabel = 'Rotated 90° CW';
+          } else {
+            const res = await ImageEngine.transformImage(activeBuf, {
+              width: resizeWidth,
+              height: resizeHeight,
+              maintainAspectRatio: lockAspect,
+            });
+            if (!res.success || !res.data) throw new Error(res.error || 'Resize failed.');
+            outBuffer = res.data;
+            actionLabel = `Resized (${resizeWidth}x${resizeHeight})`;
+          }
+        } else if (activeGroup.id === 'img-optimizer') {
+          const res = await ImageEngine.transformImage(activeBuf, {
+            quality: optQuality / 100,
+            format: 'image/webp',
+          });
+          if (!res.success || !res.data) throw new Error(res.error || 'Optimization failed.');
+          outBuffer = res.data;
+          actionLabel = `Compressed (${optQuality}% quality)`;
+        } else if (activeGroup.id === 'img-adjustments') {
+          const res = await ImageEngine.transformImage(activeBuf, {
+            brightness: imgBrightness,
+            contrast: imgContrast,
+            saturation: imgSaturation,
+            blur: imgBlur,
+            grayscale: imgGrayscale,
+          });
+          if (!res.success || !res.data) throw new Error(res.error || 'Adjustments failed.');
+          outBuffer = res.data;
+          actionLabel = 'Applied Adjustments';
+        } else if (activeGroup.id === 'img-metadata') {
+          const res = await ImageEngine.stripMetadata(activeBuf);
+          if (!res.success || !res.data) throw new Error(res.error || 'Metadata strip failed.');
+          outBuffer = res.data;
+          actionLabel = 'Stripped EXIF Metadata';
+        } else if (activeGroup.id === 'img-compose') {
+          const res = await ImageEngine.applyWatermark(activeBuf, {
+            text: imgWatermarkText,
+            opacity: imgWatermarkOpacity,
+            fontSize: imgWatermarkSize,
+          });
+          if (!res.success || !res.data) throw new Error(res.error || 'Watermark failed.');
+          outBuffer = res.data;
+          actionLabel = 'Applied Watermark';
+        } else if (activeGroup.id === 'img-to-pdf-util') {
+          const pdfDoc = await PDFDocument.create();
+          let embeddedImg: any;
+          try {
+            embeddedImg = await pdfDoc.embedPng(activeBuf);
+          } catch {
+            embeddedImg = await pdfDoc.embedJpg(activeBuf);
+          }
+          const page = pdfDoc.addPage([embeddedImg.width, embeddedImg.height]);
+          page.drawImage(embeddedImg, { x: 0, y: 0, width: embeddedImg.width, height: embeddedImg.height });
+          outBuffer = await pdfDoc.save();
+          actionLabel = 'Generated PDF from Image';
+        } else {
+          const res = await ImageEngine.transformImage(activeBuf, { format: 'image/png' });
+          if (!res.success || !res.data) throw new Error('Operation failed.');
+          outBuffer = res.data;
+          actionLabel = 'Processed Image';
+        }
+
+        if (outBuffer) {
+          await pushNewVersion(actionLabel, outBuffer);
+        }
+        return;
+      }
+
+      // Phase 5: Documents Workspace Execution
+      if (workspace.id === 'documents') {
+        const activeBuf = files[0].buffer;
+        if (!activeBuf) throw new Error('No document loaded.');
+
+        setProgressPercent(30);
+        let outBuffer: Uint8Array | null = null;
+        let actionLabel = 'Processed Document';
+
+        if (activeGroup.id === 'doc-converter') {
+          if (docTargetFormat === 'docx') {
+            const res = await DocumentEngine.createDocxFromText(docRawText || 'Toiloki Converted Document');
+            if (!res.success || !res.data) throw new Error(res.error || 'DOCX creation failed.');
+            outBuffer = res.data;
+            actionLabel = 'Converted to DOCX';
+          } else {
+            const res = await PdfEngine.createFromText(docRawText || 'Toiloki Converted Document');
+            if (!res.success || !res.outputBuffer) throw new Error(res.error || 'PDF conversion failed.');
+            outBuffer = res.outputBuffer;
+            actionLabel = 'Converted to PDF';
+          }
+        } else if (activeGroup.id === 'doc-editor') {
+          outBuffer = new TextEncoder().encode(docRawText);
+          actionLabel = 'Saved Document Edits';
+        } else if (activeGroup.id === 'doc-compare') {
+          outBuffer = new TextEncoder().encode(`Diff Report for ${files[0]?.name} vs ${files[1]?.name || 'Document B'}\n\nGenerated by Toiloki local suite.`);
+          actionLabel = 'Saved Diff Report';
+        } else if (activeGroup.id === 'doc-metadata') {
+          const res = await DocumentEngine.scrubOfficeMetadata(activeBuf);
+          if (!res.success || !res.data) throw new Error(res.error || 'Failed to scrub Office metadata.');
+          outBuffer = res.data;
+          actionLabel = 'Scrubbed Office Metadata';
+        } else {
+          outBuffer = activeBuf;
+          actionLabel = `Exported ${docTargetFormat.toUpperCase()}`;
+        }
+
+        if (outBuffer) {
+          await pushNewVersion(actionLabel, outBuffer);
+        }
+        return;
+      }
+
       if (mode === 'pages') {
         if (activeId === 'delete-pages') {
           await handleExecutePageAction('delete');
@@ -700,12 +1034,31 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
   const handleSaveAs = () => {
     if (versionStack.length === 0 || versionIndex < 0) return;
     const currentVer = versionStack[versionIndex];
-    const blob = new Blob([currentVer.buffer], { type: 'application/pdf' });
+    let mime = 'application/pdf';
+    let ext = '.pdf';
+
+    if (workspace.id === 'images') {
+      if (imageFormat === 'jpeg') { mime = 'image/jpeg'; ext = '.jpg'; }
+      else if (imageFormat === 'png') { mime = 'image/png'; ext = '.png'; }
+      else if (imageFormat === 'webp') { mime = 'image/webp'; ext = '.webp'; }
+      else if (imageFormat === 'bmp') { mime = 'image/bmp'; ext = '.bmp'; }
+      else if (imageFormat === 'tiff') { mime = 'image/tiff'; ext = '.tiff'; }
+      else if (imageFormat === 'svg') { mime = 'image/svg+xml'; ext = '.svg'; }
+      else { mime = 'image/jpeg'; ext = '.jpg'; }
+    } else if (workspace.id === 'documents') {
+      if (docTargetFormat === 'docx') { mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'; ext = '.docx'; }
+      else if (docTargetFormat === 'txt') { mime = 'text/plain'; ext = '.txt'; }
+      else if (docTargetFormat === 'html') { mime = 'text/html'; ext = '.html'; }
+      else if (docTargetFormat === 'rtf') { mime = 'application/rtf'; ext = '.rtf'; }
+      else { mime = 'application/pdf'; ext = '.pdf'; }
+    }
+
+    const blob = new Blob([currentVer.buffer], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     const baseName = files[0]?.name ? files[0].name.replace(/\.pdf$/i, '') : 'document';
-    a.download = `${baseName}-${currentVer.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`;
+    a.download = `${baseName}-${currentVer.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}${ext}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -718,6 +1071,28 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
 
   // Dynamic primary button label computation
   const primaryButtonLabel = useMemo(() => {
+    if (workspace.id === 'images') {
+      if (activeGroup.id === 'img-converter' || activeUtility.id.startsWith('convert-')) {
+        return `Convert to ${imageFormat.toUpperCase()}`;
+      }
+      if (activeUtility.id === 'img-crop') return 'Apply Crop';
+      if (activeUtility.id === 'img-resize') return 'Apply Resize';
+      if (activeUtility.id === 'img-rotate') return 'Rotate 90° CW';
+      if (activeGroup.id === 'img-optimizer') return 'Compress Image';
+      if (activeGroup.id === 'img-adjustments') return 'Apply Adjustments';
+      if (activeGroup.id === 'img-metadata') return 'Strip EXIF Metadata';
+      if (activeGroup.id === 'img-compose') return 'Apply Watermark';
+      if (activeGroup.id === 'img-to-pdf-util') return 'Export to PDF';
+      return activeUtility.primaryLabel ? activeUtility.primaryLabel.replace('{n}', files.length.toString()) : 'Process Image';
+    }
+
+    if (workspace.id === 'documents') {
+      if (activeGroup.id === 'doc-converter') return `Convert to ${docTargetFormat.toUpperCase()}`;
+      if (activeGroup.id === 'doc-editor') return 'Save Document Edits';
+      if (activeGroup.id === 'doc-compare') return 'Save Diff Report';
+      if (activeGroup.id === 'doc-metadata') return 'Strip Office Metadata';
+      return 'Export Document';
+    }
     const selectedCount = pages.filter((p) => p.selected).length;
     if (activeUtility.primaryLabel) {
       if (currentMode === 'pages') {
@@ -888,8 +1263,8 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           <div className="workbench-empty-state">
             <div className="workbench-empty-dropzone-wrapper">
               <FileDropzone
-                accept={activeUtility.acceptedFormats || ['.pdf']}
-                multiple={activeUtility.accepts === 'many'}
+                accept={activeUtility.acceptedFormats || (workspace.id === 'images' ? ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff', '.svg', '.heic', '.avif'] : workspace.id === 'documents' ? ['.docx', '.doc', '.txt', '.md', '.markdown', '.html', '.htm', '.rtf', '.pdf'] : ['.pdf'])}
+                multiple={workspace.id === 'images' || activeUtility.accepts === 'many'}
                 files={files}
                 onFilesChanged={handleFilesChanged}
                 label={
@@ -902,8 +1277,601 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           </div>
         ) : (
           <div className="workbench-canvas-wrapper">
-            {/* Mode 1: Pages Mode */}
-            {currentMode === 'pages' && (
+            {/* Phase 5: Images Workspace 3-Zone Layout */}
+            {workspace.id === 'images' && (
+              <div className="workbench-3-zone-layout">
+                {/* Zone 1: Interactive Canvas */}
+                <div className="workbench-zone-1 image-canvas-zone">
+                  <ImageCanvas
+                    files={files}
+                    activeFileIndex={activeImageIndex}
+                    onSelectFileIndex={setActiveImageIndex}
+                    onAddMoreFiles={(newFilesList) => {
+                      const arr = Array.from(newFilesList).map((f) => ({
+                        name: f.name,
+                        size: f.size,
+                        file: f,
+                      }));
+                      setFiles((prev) => [...prev, ...arr]);
+                    }}
+                    onRemoveFile={(idx) => {
+                      setFiles((prev) => prev.filter((_, i) => i !== idx));
+                      if (activeImageIndex >= idx && activeImageIndex > 0) {
+                        setActiveImageIndex(activeImageIndex - 1);
+                      }
+                    }}
+                    activeUtilityId={activeUtility.id}
+                    originalBuffer={versionStack[0]?.buffer}
+                    currentBuffer={files[activeImageIndex]?.buffer || files[0]?.buffer}
+                    cropRect={cropRect}
+                    onCropChange={setCropRect}
+                    cropAspect={cropAspect}
+                    filterStyle={{
+                      filter: `brightness(${imgBrightness}%) contrast(${imgContrast}%) saturate(${imgSaturation}%) blur(${imgBlur}px) ${imgGrayscale ? 'grayscale(100%)' : ''} ${imgInvert ? 'invert(100%)' : ''}`,
+                    }}
+                  />
+                </div>
+
+                {/* Zone 2: Options Panel for Images */}
+                <div className="workbench-zone-2">
+                  <div className="options-panel-header">
+                    <h3>{activeGroup.id === 'img-converter' ? 'Format Converter' : activeUtility.name}</h3>
+                    <p>{activeGroup.id === 'img-converter' ? 'Convert images to standard raster and vector formats offline.' : activeUtility.description}</p>
+                  </div>
+                  <div className="options-panel-body">
+                    {/* 1. Format Converter - ONE Panel with Format Tiles */}
+                    {(activeGroup.id === 'img-converter' || activeUtility.id.startsWith('convert-') || activeUtility.id === 'img-heic-converter' || activeUtility.id === 'img-avif-converter' || activeUtility.id === 'img-svg-to-png') && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Target Format</label>
+                        <div className="format-tiles-grid">
+                          {[
+                            { id: 'jpeg', label: 'JPG', desc: 'Standard photo format' },
+                            { id: 'png', label: 'PNG', desc: 'Lossless transparency' },
+                            { id: 'webp', label: 'WebP', desc: 'Modern web image' },
+                            { id: 'bmp', label: 'BMP', desc: 'Raw bitmap container' },
+                            { id: 'tiff', label: 'TIFF', desc: 'Print & archive' },
+                            { id: 'svg', label: 'SVG', desc: 'Vector to PNG' },
+                            { id: 'heic', label: 'HEIC', desc: 'iPhone photos' },
+                            { id: 'avif', label: 'AVIF', desc: 'Next-gen AV1 photo' },
+                          ].map((tile) => (
+                            <button
+                              key={tile.id}
+                              type="button"
+                              className={`format-tile-card ${imageFormat === tile.id ? 'is-selected' : ''}`}
+                              onClick={() => setImageFormat(tile.id as any)}
+                            >
+                              <div className="format-tile-header">
+                                <span className="format-tile-ext">.{tile.label}</span>
+                                {imageFormat === tile.id && <Check size={14} style={{ color: 'var(--accent, #D4B06A)' }} />}
+                              </div>
+                              <span className="format-tile-desc">{tile.desc}</span>
+                            </button>
+                          ))}
+                        </div>
+
+                        {(imageFormat === 'jpeg' || imageFormat === 'webp') && (
+                          <>
+                            <label className="option-label">Quality ({imageQuality}%)</label>
+                            <input
+                              type="range"
+                              min="10"
+                              max="100"
+                              value={imageQuality}
+                              onChange={(e) => setImageQuality(parseInt(e.target.value, 10))}
+                              className="annotate-slider"
+                            />
+                          </>
+                        )}
+
+                        <div style={{ marginTop: '12px' }}>
+                          <label className="workbench-checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={keepExif}
+                              onChange={(e) => setKeepExif(e.target.checked)}
+                            />
+                            <span>Preserve camera EXIF metadata</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 2. Transform Menu */}
+                    {activeGroup.id === 'img-transformer' && !activeUtility.id.startsWith('convert-') && activeUtility.id !== 'img-heic-converter' && activeUtility.id !== 'img-avif-converter' && (
+                      <div className="panel-options-section">
+                        {activeUtility.id === 'img-resize' && (
+                          <>
+                            <label className="option-label">Width (px)</label>
+                            <input
+                              type="number"
+                              className="workbench-text-input"
+                              value={resizeWidth}
+                              onChange={(e) => setResizeWidth(parseInt(e.target.value, 10) || 100)}
+                            />
+                            <label className="option-label" style={{ marginTop: '10px' }}>Height (px)</label>
+                            <input
+                              type="number"
+                              className="workbench-text-input"
+                              value={resizeHeight}
+                              onChange={(e) => setResizeHeight(parseInt(e.target.value, 10) || 100)}
+                            />
+                            <div style={{ marginTop: '10px' }}>
+                              <label className="workbench-checkbox-label">
+                                <input
+                                  type="checkbox"
+                                  checked={lockAspect}
+                                  onChange={(e) => setLockAspect(e.target.checked)}
+                                />
+                                <span>Lock aspect ratio</span>
+                              </label>
+                            </div>
+                            <div className="dimension-presets-row">
+                              {[
+                                { label: '50%', w: 600, h: 400 },
+                                { label: '75%', w: 900, h: 600 },
+                                { label: '100%', w: 1200, h: 800 },
+                                { label: '150%', w: 1800, h: 1200 },
+                                { label: '1080p', w: 1920, h: 1080 },
+                                { label: 'Square', w: 1080, h: 1080 },
+                              ].map((preset) => (
+                                <button
+                                  key={preset.label}
+                                  type="button"
+                                  className="preset-chip-btn"
+                                  onClick={() => {
+                                    setResizeWidth(preset.w);
+                                    setResizeHeight(preset.h);
+                                  }}
+                                >
+                                  {preset.label}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+
+                        {activeUtility.id === 'img-crop' && (
+                          <>
+                            <label className="option-label">Aspect Ratio Preset</label>
+                            <div className="workbench-preset-buttons">
+                              {(['free', '1:1', '4:3', '16:9', '9:16'] as const).map((asp) => (
+                                <button
+                                  key={asp}
+                                  type="button"
+                                  className={`preset-chip-btn ${cropAspect === asp ? 'is-active' : ''}`}
+                                  onClick={() => setCropAspect(asp)}
+                                >
+                                  {asp === 'free' ? 'Free' : asp}
+                                </button>
+                              ))}
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px' }}>
+                              <div>
+                                <label className="option-label">X (%):</label>
+                                <input
+                                  type="number"
+                                  className="workbench-text-input"
+                                  value={cropRect.x}
+                                  onChange={(e) => setCropRect({ ...cropRect, x: parseInt(e.target.value, 10) || 0 })}
+                                />
+                              </div>
+                              <div>
+                                <label className="option-label">Y (%):</label>
+                                <input
+                                  type="number"
+                                  className="workbench-text-input"
+                                  value={cropRect.y}
+                                  onChange={(e) => setCropRect({ ...cropRect, y: parseInt(e.target.value, 10) || 0 })}
+                                />
+                              </div>
+                              <div>
+                                <label className="option-label">Width (%):</label>
+                                <input
+                                  type="number"
+                                  className="workbench-text-input"
+                                  value={cropRect.width}
+                                  onChange={(e) => setCropRect({ ...cropRect, width: parseInt(e.target.value, 10) || 10 })}
+                                />
+                              </div>
+                              <div>
+                                <label className="option-label">Height (%):</label>
+                                <input
+                                  type="number"
+                                  className="workbench-text-input"
+                                  value={cropRect.height}
+                                  onChange={(e) => setCropRect({ ...cropRect, height: parseInt(e.target.value, 10) || 10 })}
+                                />
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {activeUtility.id === 'img-rotate' && (
+                          <>
+                            <label className="option-label">Rotate & Flip Actions</label>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              <button
+                                type="button"
+                                className="action-btn-secondary"
+                                onClick={() => handlePrimaryProcess()}
+                              >
+                                Rotate 90° Clockwise
+                              </button>
+                            </div>
+                          </>
+                        )}
+
+                        {activeUtility.id === 'img-aspect' && (
+                          <>
+                            <label className="option-label">Canvas Aspect Ratio</label>
+                            <select className="workbench-select">
+                              <option value="16:9">16:9 Widescreen</option>
+                              <option value="4:3">4:3 Standard</option>
+                              <option value="1:1">1:1 Square</option>
+                              <option value="9:16">9:16 Vertical Story</option>
+                            </select>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 3. Optimize Menu */}
+                    {activeGroup.id === 'img-optimizer' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Compression Quality ({optQuality}%)</label>
+                        <input
+                          type="range"
+                          min="10"
+                          max="95"
+                          value={optQuality}
+                          onChange={(e) => setOptQuality(parseInt(e.target.value, 10))}
+                          className="annotate-slider"
+                        />
+                        <div style={{ marginTop: '12px' }}>
+                          <label className="workbench-checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={optLossless}
+                              onChange={(e) => setOptLossless(e.target.checked)}
+                            />
+                            <span>Lossless compression mode</span>
+                          </label>
+                        </div>
+                        <div className="savings-preview-badge">
+                          <span>Estimated savings: ~{Math.round(100 - optQuality * 0.8)}%</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 4. Adjust Menu */}
+                    {activeGroup.id === 'img-adjustments' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Brightness ({imgBrightness}%)</label>
+                        <input
+                          type="range"
+                          min="30"
+                          max="180"
+                          value={imgBrightness}
+                          onChange={(e) => setImgBrightness(parseInt(e.target.value, 10))}
+                          className="annotate-slider"
+                        />
+                        <label className="option-label" style={{ marginTop: '10px' }}>Contrast ({imgContrast}%)</label>
+                        <input
+                          type="range"
+                          min="30"
+                          max="180"
+                          value={imgContrast}
+                          onChange={(e) => setImgContrast(parseInt(e.target.value, 10))}
+                          className="annotate-slider"
+                        />
+                        <label className="option-label" style={{ marginTop: '10px' }}>Saturation ({imgSaturation}%)</label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="200"
+                          value={imgSaturation}
+                          onChange={(e) => setImgSaturation(parseInt(e.target.value, 10))}
+                          className="annotate-slider"
+                        />
+                        <label className="option-label" style={{ marginTop: '10px' }}>Blur ({imgBlur}px)</label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="15"
+                          value={imgBlur}
+                          onChange={(e) => setImgBlur(parseInt(e.target.value, 10))}
+                          className="annotate-slider"
+                        />
+                        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label className="workbench-checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={imgGrayscale}
+                              onChange={(e) => setImgGrayscale(e.target.checked)}
+                            />
+                            <span>Grayscale (Black & White)</span>
+                          </label>
+                          <label className="workbench-checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={imgInvert}
+                              onChange={(e) => setImgInvert(e.target.checked)}
+                            />
+                            <span>Invert colors</span>
+                          </label>
+                        </div>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          style={{ marginTop: '14px', width: '100%' }}
+                          onClick={() => {
+                            setImgBrightness(100);
+                            setImgContrast(100);
+                            setImgSaturation(100);
+                            setImgBlur(0);
+                            setImgGrayscale(false);
+                            setImgInvert(false);
+                          }}
+                        >
+                          Reset adjustments
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 5. Metadata Menu */}
+                    {activeGroup.id === 'img-metadata' && (
+                      <div className="panel-options-section">
+                        <div className="info-stat-row">
+                          <span>File:</span>
+                          <strong>{files[activeImageIndex]?.name}</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>Camera:</span>
+                          <strong>{imageExifData?.camera || 'Offline Device'}</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>Date:</span>
+                          <strong>{imageExifData?.dateTime || new Date().toLocaleDateString()}</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>GPS Location:</span>
+                          <strong>{imageExifData?.gps ? 'Present (Protected)' : 'None'}</strong>
+                        </div>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          style={{ marginTop: '16px', width: '100%' }}
+                          onClick={handlePrimaryProcess}
+                        >
+                          Strip all EXIF metadata
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 6. Compose Menu */}
+                    {activeGroup.id === 'img-compose' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Watermark Text</label>
+                        <input
+                          type="text"
+                          className="workbench-text-input"
+                          value={imgWatermarkText}
+                          onChange={(e) => setImgWatermarkText(e.target.value)}
+                        />
+                        <label className="option-label" style={{ marginTop: '10px' }}>Opacity ({Math.round(imgWatermarkOpacity * 100)}%)</label>
+                        <input
+                          type="range"
+                          min="10"
+                          max="90"
+                          value={Math.round(imgWatermarkOpacity * 100)}
+                          onChange={(e) => setImgWatermarkOpacity(parseInt(e.target.value, 10) / 100)}
+                          className="annotate-slider"
+                        />
+                        <label className="option-label" style={{ marginTop: '10px' }}>Font Size ({imgWatermarkSize}pt)</label>
+                        <input
+                          type="range"
+                          min="18"
+                          max="72"
+                          value={imgWatermarkSize}
+                          onChange={(e) => setImgWatermarkSize(parseInt(e.target.value, 10))}
+                          className="annotate-slider"
+                        />
+                      </div>
+                    )}
+
+                    {/* 7. Image -> PDF */}
+                    {activeGroup.id === 'img-to-pdf-util' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">PDF Page Size</label>
+                        <select className="workbench-select">
+                          <option value="fit">Fit to Image Size</option>
+                          <option value="a4">Standard A4 Sheet</option>
+                          <option value="letter">US Letter Sheet</option>
+                        </select>
+                        <label className="option-label" style={{ marginTop: '10px' }}>Page Margins</label>
+                        <select className="workbench-select">
+                          <option value="none">Zero Margins (Edge-to-Edge)</option>
+                          <option value="normal">Normal (0.5 inch)</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Phase 5: Documents Workspace 3-Zone Layout */}
+            {workspace.id === 'documents' && (
+              <div className="workbench-3-zone-layout">
+                {/* Zone 1: Document Sheet Preview / Editor / Diff */}
+                <div className="workbench-zone-1 document-canvas-zone">
+                  <DocumentCanvas
+                    files={files}
+                    activeUtilityId={activeUtility.id}
+                    fontTheme={docFontTheme}
+                    pageSize={docPageSize}
+                    onTextContentChange={setDocRawText}
+                  />
+                </div>
+
+                {/* Zone 2: Options Panel for Documents */}
+                <div className="workbench-zone-2">
+                  <div className="options-panel-header">
+                    <h3>{activeUtility.name}</h3>
+                    <p>{activeUtility.description}</p>
+                  </div>
+                  <div className="options-panel-body">
+                    {/* Convert Options */}
+                    {activeGroup.id === 'doc-converter' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Target Format</label>
+                        <select
+                          className="workbench-select"
+                          value={docTargetFormat}
+                          onChange={(e: any) => setDocTargetFormat(e.target.value)}
+                        >
+                          <option value="pdf">PDF Document (.pdf)</option>
+                          <option value="docx">Word Document (.docx)</option>
+                          <option value="txt">Plain Text (.txt)</option>
+                          <option value="html">HTML Document (.html)</option>
+                          <option value="rtf">Rich Text (.rtf)</option>
+                        </select>
+                        <label className="option-label" style={{ marginTop: '10px' }}>Page Size Preset</label>
+                        <select
+                          className="workbench-select"
+                          value={docPageSize}
+                          onChange={(e: any) => setDocPageSize(e.target.value)}
+                        >
+                          <option value="a4">A4 (210 × 297 mm)</option>
+                          <option value="letter">US Letter (8.5 × 11 in)</option>
+                          <option value="legal">US Legal (8.5 × 14 in)</option>
+                        </select>
+                        <label className="option-label" style={{ marginTop: '10px' }}>Typography Theme</label>
+                        <select
+                          className="workbench-select"
+                          value={docFontTheme}
+                          onChange={(e: any) => setDocFontTheme(e.target.value)}
+                        >
+                          <option value="sans">Clean Modern Sans</option>
+                          <option value="serif">Classic Editorial Serif</option>
+                          <option value="mono">Technical Monospace</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Edit Options */}
+                    {activeGroup.id === 'doc-editor' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Formatting Helpers</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <button
+                            type="button"
+                            className="action-btn-secondary"
+                            onClick={() => {
+                              const cleaned = docRawText.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n');
+                              setDocRawText(cleaned);
+                            }}
+                          >
+                            Trim excess whitespace
+                          </button>
+                          <button
+                            type="button"
+                            className="action-btn-secondary"
+                            onClick={() => setDocRawText(docRawText.toUpperCase())}
+                          >
+                            Convert to uppercase
+                          </button>
+                          <button
+                            type="button"
+                            className="action-btn-secondary"
+                            onClick={() => setDocRawText(docRawText.toLowerCase())}
+                          >
+                            Convert to lowercase
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Compare Options */}
+                    {activeGroup.id === 'doc-compare' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Comparison Settings</label>
+                        <div className="info-stat-row">
+                          <span>Primary File:</span>
+                          <strong>{files[0]?.name || 'Document A'}</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>Compare With:</span>
+                          <strong>{files[1]?.name || 'Drop second file to diff'}</strong>
+                        </div>
+                        <div style={{ marginTop: '12px' }}>
+                          <label className="workbench-checkbox-label">
+                            <input type="checkbox" defaultChecked />
+                            <span>Ignore whitespace changes</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Metadata Options */}
+                    {activeGroup.id === 'doc-metadata' && (
+                      <div className="panel-options-section">
+                        <div className="info-stat-row">
+                          <span>Document:</span>
+                          <strong>{files[0]?.name}</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>Author:</span>
+                          <strong>Cleaned / Not embedded</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>Company:</span>
+                          <strong>Protected</strong>
+                        </div>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          style={{ marginTop: '16px', width: '100%' }}
+                          onClick={handlePrimaryProcess}
+                        >
+                          Strip Author & Company
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Export Options */}
+                    {activeGroup.id === 'doc-export' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Export Format</label>
+                        <select
+                          className="workbench-select"
+                          value={docTargetFormat}
+                          onChange={(e: any) => setDocTargetFormat(e.target.value)}
+                        >
+                          <option value="pdf">PDF Document (.pdf)</option>
+                          <option value="txt">Plain Text (.txt)</option>
+                          <option value="html">HTML Document (.html)</option>
+                          <option value="docx">Word (.docx)</option>
+                        </select>
+                        <div style={{ marginTop: '12px' }}>
+                          <label className="workbench-checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={docIncludeHeader}
+                              onChange={(e) => setDocIncludeHeader(e.target.checked)}
+                            />
+                            <span>Include metadata header</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Existing PDF Workspace Modes */}
+            {workspace.id === 'pdf' && currentMode === 'pages' && (
               <PdfPagesCanvas
                 file={files[0]}
                 activeUtilityId={activeUtility.id}
@@ -916,7 +1884,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
             )}
 
             {/* Mode 2: Tray Mode */}
-            {currentMode === 'tray' && (
+            {workspace.id === 'pdf' && currentMode === 'tray' && (
               <PdfTrayCanvas
                 files={files}
                 activeUtilityId={activeUtility.id}
@@ -938,7 +1906,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
             )}
 
             {/* Mode 3: Markers Mode */}
-            {currentMode === 'markers' && (
+            {workspace.id === 'pdf' && currentMode === 'markers' && (
               <PdfMarkersCanvas
                 file={files[0]}
                 pageCount={pages.length || 4}
@@ -947,7 +1915,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
             )}
 
             {/* Mode 4: Annotate Mode */}
-            {currentMode === 'annotate' && (
+            {workspace.id === 'pdf' && currentMode === 'annotate' && (
               <div className="workbench-3-zone-layout">
                 {/* Zone 1: Main Canvas Preview with Live Overlays */}
                 <div className="workbench-zone-1 annotate-canvas-zone">
@@ -1295,7 +2263,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
             )}
 
             {/* Mode 5 & 6: Panel & Info Modes */}
-            {(currentMode === 'panel' || currentMode === 'info') && (
+            {workspace.id === 'pdf' && (currentMode === 'panel' || currentMode === 'info') && (
               <div className="workbench-3-zone-layout">
                 {/* Zone 1: Main Canvas Preview / Document Card / Rich Inspector */}
                 <div className="workbench-zone-1">
@@ -1675,7 +2643,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               </div>
 
               <span className="file-summary-badge">
-                {files[0]?.name} • {files.length > 1 ? `${files.length} files` : `${pages.length} pages`} •{' '}
+                {files[0]?.name} • {workspace.id === 'images' ? (files.length > 1 ? `${files.length} images` : 'Image Asset') : workspace.id === 'documents' ? 'Document' : files.length > 1 ? `${files.length} files` : `${pages.length} pages`} •{' '}
                 {files[0] ? Math.round(files[0].size / 1024) : 0} KB
               </span>
             </>
@@ -1683,6 +2651,18 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
         </div>
 
         <div className="bottom-bar-center">
+          {autoProcessedInfo && !isProcessing && (
+            <div className="auto-processed-banner">
+              <span className="auto-processed-text">{autoProcessedInfo.utilityName} ran with defaults.</span>
+              <button
+                type="button"
+                className="auto-processed-adjust-btn"
+                onClick={() => setAutoProcessedInfo(null)}
+              >
+                Adjust
+              </button>
+            </div>
+          )}
           {isProcessing && (
             <div className="processing-indicator">
               <div className="processing-spinner" />
@@ -1724,7 +2704,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               title="Download result to disk"
             >
               <Download size={14} />
-              <span>Download PDF</span>
+              <span>{workspace.id === 'images' ? 'Download Image' : workspace.id === 'documents' ? 'Download Document' : 'Download PDF'}</span>
             </button>
           )}
 

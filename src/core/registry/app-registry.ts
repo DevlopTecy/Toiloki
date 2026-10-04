@@ -1991,6 +1991,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 2. DOCUMENTS WORKSPACE
   {
     id: 'documents',
+    workbench: 'file',
     name: 'Documents',
     description: 'Convert, edit, compare and export documents.',
     icon: FileSpreadsheet,
@@ -1998,7 +1999,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     groups: [
       {
         id: 'doc-converter',
-        name: 'Converter',
+        name: 'Convert',
         description: 'Convert DOCX, Markdown, HTML, RTF, and plain text files.',
         icon: ArrowRightLeft,
         badgeGradient: '',
@@ -2239,7 +2240,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
       },
       {
         id: 'doc-editor',
-        name: 'Document Editor',
+        name: 'Edit',
         description: 'Edit text, find and replace, view metrics, and clean formatting.',
         icon: Edit3,
         badgeGradient: '',
@@ -2728,7 +2729,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
       },
       {
         id: 'doc-metadata',
-        name: 'Metadata & Inspector',
+        name: 'Metadata',
         description: 'Inspect, sanitize, and extract Office properties.',
         icon: FileSearch,
         badgeGradient: 'var(--badge-doc)',
@@ -2778,6 +2779,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 3. IMAGES WORKSPACE
   {
     id: 'images',
+    workbench: 'file',
     name: 'Images',
     description: 'Transform, convert, compress, and edit images offline.',
     icon: ImageIcon,
@@ -2785,7 +2787,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     groups: [
       {
         id: 'img-transformer',
-        name: 'Transformer',
+        name: 'Transform',
         description: 'Resize, crop, rotate, and adjust canvas dimensions.',
         icon: Crop,
         badgeGradient: '',
@@ -3106,7 +3108,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
       },
       {
         id: 'img-converter',
-        name: 'Converter',
+        name: 'Convert',
         description: 'Convert between PNG, JPG, WebP, BMP, and TIFF.',
         icon: ArrowRightLeft,
         badgeGradient: '',
@@ -3383,7 +3385,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
       },
       {
         id: 'img-optimizer',
-        name: 'Optimizer',
+        name: 'Optimize',
         description: 'Compress image files and optimize payload sizes.',
         icon: Minimize2,
         badgeGradient: '',
@@ -3492,7 +3494,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
       },
       {
         id: 'img-adjustments',
-        name: 'Adjustments',
+        name: 'Adjust',
         description: 'Brightness, contrast, saturation, and artistic filters.',
         icon: Sliders,
         badgeGradient: '',
@@ -3753,7 +3755,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
       },
       {
         id: 'img-compose',
-        name: 'Composition & Layout',
+        name: 'Compose',
         description: 'Collages, contact sheets, and sprite sheet atlases.',
         icon: LayoutGrid,
         badgeGradient: 'var(--badge-img)',

@@ -1,0 +1,451 @@
+/* ==========================================================================
+   IMAGE CANVAS COMPONENT STYLES
+   Toiloki Desktop Suite - Phase 5 Images Workbench
+   Restrained, premium desktop utility design system (Linear/Raycast caliber)
+   ========================================================================== */
+
+.image-canvas-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: var(--bg-surface-0, #111111);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ─── Floating Top Controls Bar ─── */
+.image-canvas-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(22, 22, 22, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  padding: 4px 8px;
+  z-index: 30;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.canvas-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary, #9CA3AF);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.canvas-tool-btn:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary, #F3F4F6);
+}
+
+.canvas-tool-btn.is-active {
+  background-color: rgba(212, 176, 106, 0.15);
+  color: var(--accent, #D4B06A);
+}
+
+.canvas-zoom-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #6B7280);
+  min-width: 42px;
+  text-align: center;
+}
+
+.canvas-toolbar-divider {
+  width: 1px;
+  height: 16px;
+  background-color: var(--border-subtle, rgba(255, 255, 255, 0.1));
+  margin: 0 2px;
+}
+
+/* ─── Main Viewport Area ─── */
+.image-canvas-viewport {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* Dark checkerboard pattern for alpha transparency */
+  background-color: #141414;
+  background-image:
+    linear-gradient(45deg, #181818 25%, transparent 25%),
+    linear-gradient(-45deg, #181818 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #181818 75%),
+    linear-gradient(-45deg, transparent 75%, #181818 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  cursor: default;
+}
+
+.image-canvas-viewport.is-panning {
+  cursor: grab;
+}
+
+.image-canvas-viewport.is-dragging {
+  cursor: grabbing;
+}
+
+/* ─── Image Frame & Stage ─── */
+.image-stage {
+  position: relative;
+  display: inline-block;
+  transform-origin: center center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 90%;
+  max-height: 85%;
+  transition: transform 0.08s ease-out;
+}
+
+.stage-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ─── Split Before / After Comparison ─── */
+.split-compare-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.split-layer-before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  border-right: 2px solid var(--accent, #D4B06A);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.split-layer-before img {
+  display: block;
+  height: 100%;
+  object-fit: contain;
+}
+
+.split-badge {
+  position: absolute;
+  top: 12px;
+  padding: 3px 8px;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #FFFFFF;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.split-badge.before {
+  left: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.split-badge.after {
+  right: 12px;
+  border: 1px solid var(--accent, #D4B06A);
+  color: var(--accent, #D4B06A);
+}
+
+.split-divider-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--accent, #D4B06A);
+  z-index: 20;
+  cursor: ew-resize;
+}
+
+.split-divider-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--accent, #D4B06A);
+  color: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Interactive Crop Box Overlay ─── */
+.canvas-crop-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 25;
+  pointer-events: all;
+}
+
+.crop-dark-mask {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.65);
+}
+
+.crop-bounding-box {
+  position: absolute;
+  border: 1.5px solid var(--accent, #D4B06A);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  cursor: move;
+  z-index: 28;
+}
+
+/* Rule of Thirds Grid */
+.crop-grid-h, .crop-grid-v {
+  position: absolute;
+  pointer-events: none;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.crop-grid-h {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.crop-grid-v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+/* Resize Handles */
+.crop-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: var(--accent, #D4B06A);
+  border: 1px solid #111111;
+  border-radius: 2px;
+  z-index: 30;
+}
+
+.crop-handle.tl { top: -5px; left: -5px; cursor: nwse-resize; }
+.crop-handle.tr { top: -5px; right: -5px; cursor: nesw-resize; }
+.crop-handle.bl { bottom: -5px; left: -5px; cursor: nesw-resize; }
+.crop-handle.br { bottom: -5px; right: -5px; cursor: nwse-resize; }
+.crop-handle.t  { top: -5px; left: calc(50% - 5px); cursor: ns-resize; }
+.crop-handle.b  { bottom: -5px; left: calc(50% - 5px); cursor: ns-resize; }
+.crop-handle.l  { top: calc(50% - 5px); left: -5px; cursor: ew-resize; }
+.crop-handle.r  { top: calc(50% - 5px); right: -5px; cursor: ew-resize; }
+
+.crop-dimension-pill {
+  position: absolute;
+  bottom: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(18, 18, 18, 0.9);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  color: var(--text-primary, #F3F4F6);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ─── Batch Thumbnail Strip (Bottom) ─── */
+.image-batch-strip {
+  height: 72px;
+  background-color: var(--bg-surface-1, #161616);
+  border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  z-index: 20;
+}
+
+.batch-thumb-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 4px 8px;
+  background-color: var(--bg-surface-2, #1F1F1F);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.batch-thumb-item:hover {
+  background-color: var(--bg-surface-3, #2A2A2A);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.batch-thumb-item.is-active {
+  border-color: var(--accent, #D4B06A);
+  background-color: rgba(212, 176, 106, 0.08);
+}
+
+.batch-thumb-preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  object-fit: cover;
+  background-color: #111111;
+  display: block;
+}
+
+.batch-thumb-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 110px;
+}
+
+.batch-thumb-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-primary, #F3F4F6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.batch-thumb-size {
+  font-size: 10px;
+  color: var(--text-muted, #6B7280);
+}
+
+.batch-thumb-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #6B7280);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.batch-thumb-remove:hover {
+  opacity: 1;
+  color: #EF4444;
+}
+
+.batch-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 52px;
+  padding: 0 12px;
+  background-color: transparent;
+  border: 1px dashed var(--border-subtle, rgba(255, 255, 255, 0.16));
+  border-radius: 6px;
+  color: var(--text-secondary, #9CA3AF);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.batch-add-btn:hover {
+  border-color: var(--accent, #D4B06A);
+  color: var(--accent, #D4B06A);
+  background-color: rgba(212, 176, 106, 0.05);
+}
+
+/* ─── Light Mode Theme Parity ─── */
+[data-theme='light'] .image-canvas-container {
+  background-color: #F3F4F6;
+}
+
+[data-theme='light'] .image-canvas-toolbar {
+  background-color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .canvas-tool-btn {
+  color: #4B5563;
+}
+
+[data-theme='light'] .canvas-tool-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #111827;
+}
+
+[data-theme='light'] .canvas-tool-btn.is-active {
+  background-color: rgba(180, 130, 40, 0.12);
+  color: #A36B15;
+}
+
+[data-theme='light'] .image-canvas-viewport {
+  background-color: #E5E7EB;
+  background-image:
+    linear-gradient(45deg, #D1D5DB 25%, transparent 25%),
+    linear-gradient(-45deg, #D1D5DB 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #D1D5DB 75%),
+    linear-gradient(-45deg, transparent 75%, #D1D5DB 75%);
+}
+
+[data-theme='light'] .image-batch-strip {
+  background-color: #FFFFFF;
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .batch-thumb-item {
+  background-color: #F9FAFB;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .batch-thumb-item:hover {
+  background-color: #F3F4F6;
+}
+
+[data-theme='light'] .batch-thumb-item.is-active {
+  border-color: #A36B15;
+  background-color: rgba(180, 130, 40, 0.08);
+}
+
+[data-theme='light'] .batch-thumb-name {
+  color: #111827;
+}
