@@ -32,20 +32,40 @@ async function run() {
     console.log('Saved proof screenshot:', filename);
   };
 
-  const distHtml = path.join(__dirname, '../dist/index.html');
+  const distHtml = path.join(__dirname, '../dist/index.html').replace(/\\/g, '/');
+  const targetDarkUrl = `file:///${distHtml}?theme=dark`;
+  const targetLightUrl = `file:///${distHtml}?theme=light`;
+
   console.log('Loading app from dist for Phase 9 proof verification...');
-  await win.loadFile(distHtml);
+  await win.loadURL(targetDarkUrl);
   await new Promise((r) => setTimeout(r, 1800));
 
   // 1. Initial State: Utility Tabs + TitleBar
   console.log('Capturing 1: Utility Tabs & TitleBar buttons...');
   await saveShot('phase9-tabs-and-titlebar.png', 800);
 
-  // 2. Open Smart Paste Modal with sample JSON
-  console.log('Capturing 2: Smart Paste modal with detected JSON...');
+  // 2. Open Smart Paste Modal and inject sample JSON (Dark)
+  console.log('Capturing 2: Smart Paste modal with detected JSON (Dark)...');
   await win.webContents.executeJavaScript(`(() => {
     const trigger = document.querySelector('button[title*="Smart Paste"]');
     if (trigger) trigger.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 600));
+
+  await win.webContents.executeJavaScript(`(() => {
+    const textarea = document.querySelector('.smart-paste-preview-box');
+    if (textarea) {
+      const sample = JSON.stringify({
+        app: "Toiloki",
+        version: "1.0.0",
+        offline: true,
+        features: ["SmartPaste", "Pipes", "Chains", "Quarantine"]
+      }, null, 2);
+      const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+      nativeSetter.call(textarea, sample);
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    }
   })()`);
   await saveShot('phase9-smart-paste-modal.png', 800);
 
@@ -56,13 +76,53 @@ async function run() {
   })()`);
   await new Promise((r) => setTimeout(r, 400));
 
-  // 3. Open Chains & Presets Modal
+  // 2b. Light mode Smart Paste
+  console.log('Capturing 2b: Smart Paste modal in Light Mode...');
+  await win.loadURL(targetLightUrl);
+  await new Promise((r) => setTimeout(r, 1800));
+
+  await win.webContents.executeJavaScript(`(() => {
+    const trigger = document.querySelector('button[title*="Smart Paste"]');
+    if (trigger) trigger.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 600));
+
+  await win.webContents.executeJavaScript(`(() => {
+    const textarea = document.querySelector('.smart-paste-preview-box');
+    if (textarea) {
+      const sample = JSON.stringify({
+        app: "Toiloki",
+        version: "1.0.0",
+        offline: true,
+        features: ["SmartPaste", "Pipes", "Chains", "Quarantine"]
+      }, null, 2);
+      const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+      nativeSetter.call(textarea, sample);
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  })()`);
+  await saveShot('phase9-smart-paste-modal-light.png', 800);
+
+  // Return to Dark Mode
+  await win.loadURL(targetDarkUrl);
+  await new Promise((r) => setTimeout(r, 1800));
+
+  // 3. Open Chains & Presets Modal (Execution Chains Tab)
   console.log('Capturing 3: Chains & Presets modal...');
   await win.webContents.executeJavaScript(`(() => {
     const trigger = document.querySelector('button[title*="Chains"]');
     if (trigger) trigger.click();
   })()`);
   await saveShot('phase9-chains-modal.png', 800);
+
+  // 3b. Switch to Utility Presets tab
+  await win.webContents.executeJavaScript(`(() => {
+    const btns = Array.from(document.querySelectorAll('.chains-tab-btn'));
+    const presetsBtn = btns.find(b => b.textContent.includes('Presets'));
+    if (presetsBtn) presetsBtn.click();
+  })()`);
+  await saveShot('phase9-presets-tab.png', 800);
 
   // Close Chains Modal
   await win.webContents.executeJavaScript(`(() => {
