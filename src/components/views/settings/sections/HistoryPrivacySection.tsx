@@ -22,6 +22,7 @@ export const HistoryPrivacySection: React.FC<HistoryPrivacySectionProps> = ({
       retentionDays: DEFAULT_SETTINGS.retentionDays,
       clearOnExit: DEFAULT_SETTINGS.clearOnExit,
       logLevel: DEFAULT_SETTINGS.logLevel,
+      showSavingsSummary: DEFAULT_SETTINGS.showSavingsSummary,
     });
   };
 
@@ -126,6 +127,19 @@ export const HistoryPrivacySection: React.FC<HistoryPrivacySectionProps> = ({
           checked={settings.logLevel !== 'off'}
           onChange={(checked) => onUpdateSettings({ logLevel: checked ? 'info' : 'off' })}
           aria-label="Local error diagnostics"
+        />
+      </div>
+
+      {/* ─── 5B. STORAGE SAVINGS SUMMARY ─── */}
+      <div className="settings-row">
+        <div className="settings-row-info">
+          <label className="settings-label">Storage savings summary</label>
+          <span className="settings-helper">Display a local-only summary of disk space saved on the Home dashboard. Off by default.</span>
+        </div>
+        <ToggleSwitch
+          checked={settings.showSavingsSummary ?? false}
+          onChange={(checked) => onUpdateSettings({ showSavingsSummary: checked })}
+          aria-label="Storage savings summary"
         />
       </div>
 

@@ -144,6 +144,16 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
     }
   };
 
+  React.useEffect(() => {
+    const handleCopyEvent = () => {
+      if (outputText) {
+        handleCopyText();
+      }
+    };
+    window.addEventListener('toiloki-trigger-copy-result', handleCopyEvent);
+    return () => window.removeEventListener('toiloki-trigger-copy-result', handleCopyEvent);
+  }, [outputText]);
+
   const executeSave = async (filePath: string) => {
     try {
       if (outputBuffer) {
@@ -449,23 +459,24 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
           </button>
         )}
 
-        {/* Send To compatible utility button & menu */}
+        {/* Use in... compatible utility button & menu */}
         {compatibleTargets.length > 0 && (
           <div className="send-to-container">
             <button
               className="tool-btn secondary"
               onClick={() => setIsSendToOpen(!isSendToOpen)}
               type="button"
-              title="Pass output directly into another local utility"
+              title="Pass output directly into another compatible utility"
+              aria-label="Use in compatible utility"
             >
               <Share2 size={13} />
-              <span>Send To...</span>
+              <span>Use in...</span>
               <ChevronDown size={11} style={{ opacity: 0.7 }} />
             </button>
 
             {isSendToOpen && (
               <div className="send-to-menu">
-                <div className="send-to-menu-header">Send Output To:</div>
+                <div className="send-to-menu-header">Use Output In:</div>
                 {compatibleTargets.map((target) => (
                   <button
                     key={`${target.workspaceId}-${target.utilityId}`}

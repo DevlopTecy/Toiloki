@@ -17,6 +17,7 @@ import { NetworkWorkspaceView } from './network/NetworkWorkspaceView';
 import { SystemWorkspaceView } from './system/SystemWorkspaceView';
 import { MediaWorkspaceView } from './media/MediaWorkspaceView';
 import { FavoritesService } from '../core/services/favorites.service';
+import { UtilityRegistry } from '../core/registry/tool-registry';
 import { SoonState } from '../components/common/SoonState';
 import { findUtilityByFeatureId } from '../core/registry/app-registry';
 import { SettingsService, AppSettings } from '../core/services/settings.service';
@@ -159,6 +160,16 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
       description: activeUtility.description,
       workspaceName: workspace.name,
     });
+    // Header star pins to Home and Favorites
+    if (updated) {
+      const currentPinned = UtilityRegistry.getPinnedIds();
+      if (!currentPinned.includes(activeUtility.id)) {
+        UtilityRegistry.setPinnedIds([...currentPinned, activeUtility.id]);
+      }
+    } else {
+      const currentPinned = UtilityRegistry.getPinnedIds();
+      UtilityRegistry.setPinnedIds(currentPinned.filter((id) => id !== activeUtility.id));
+    }
     setIsFav(updated);
   };
 
@@ -307,6 +318,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                   features={activeUtility.features}
                   activeFeatureId={activeFeatureId}
                   onFeatureSelect={handleFeatureSelect}
+                  utilityId={activeUtility.id}
                 />
               </div>
             )}

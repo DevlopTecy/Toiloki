@@ -9,6 +9,8 @@ import { CommandPalette } from './components/search/CommandPalette';
 import { SmartPasteModal } from './components/common/SmartPasteModal';
 import { DropAnywhereOverlay, DropTargetUtility } from './components/common/DropAnywhereOverlay';
 import { ChainsModal } from './components/common/ChainsModal';
+import { ShortcutSheetModal } from './components/common/ShortcutSheetModal';
+import { IntroModal } from './components/common/IntroModal';
 import { FavoritesView } from './components/views/FavoritesView';
 import { HistoryView } from './components/views/HistoryView';
 import { SettingsView } from './components/views/SettingsView';
@@ -32,6 +34,10 @@ const AppContent: React.FC = () => {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSmartPasteOpen, setIsSmartPasteOpen] = useState(false);
   const [isChainsOpen, setIsChainsOpen] = useState(false);
+  const [isShortcutSheetOpen, setIsShortcutSheetOpen] = useState(false);
+  const [isIntroOpen, setIsIntroOpen] = useState(() => {
+    return typeof window !== 'undefined' && !localStorage.getItem('toiloki_intro_completed');
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
   // Drop Anywhere state
@@ -237,6 +243,9 @@ const AppContent: React.FC = () => {
   // Global Keyboard Shortcuts (Ctrl+O, Ctrl+S, Ctrl+F, Ctrl+K, Ctrl+Shift+V, Ctrl+W, Ctrl+T, Escape)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const tag = (document.activeElement?.tagName || '').toLowerCase();
+      const isEditable = tag === 'input' || tag === 'textarea' || (document.activeElement as HTMLElement)?.isContentEditable;
+
       // Ctrl+Shift+V: Open Smart Paste
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'v') {
         e.preventDefault();
@@ -254,10 +263,26 @@ const AppContent: React.FC = () => {
           showToast('Motion speed: 5x Slow Motion (Review Mode)', 'info');
         }
       }
+      // Ctrl+Shift+C: Copy active result
+      else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('toiloki-trigger-copy-result'));
+      }
+      // Ctrl+Enter: Run active utility
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('toiloki-trigger-run'));
+        showToast('Running active utility...', 'info');
+      }
       // Ctrl+F or Ctrl+K: Open Search
       else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'f')) {
         e.preventDefault();
         setIsCommandPaletteOpen((prev) => !prev);
+      }
+      // ? (Shift+/): Open Keyboard Shortcuts Cheatsheet
+      else if (!isEditable && (e.key === '?' || (e.shiftKey && e.key === '/'))) {
+        e.preventDefault();
+        setIsShortcutSheetOpen((prev) => !prev);
       }
       // Ctrl+W: Close active tab
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'w') {
@@ -281,6 +306,8 @@ const AppContent: React.FC = () => {
       }
       // Escape: Close modals
       else if (e.key === 'Escape') {
+        if (isShortcutSheetOpen) setIsShortcutSheetOpen(false);
+        if (isIntroOpen) setIsIntroOpen(false);
         if (isCommandPaletteOpen) setIsCommandPaletteOpen(false);
         if (isSmartPasteOpen) setIsSmartPasteOpen(false);
         if (isChainsOpen) setIsChainsOpen(false);
@@ -290,7 +317,7 @@ const AppContent: React.FC = () => {
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [isCommandPaletteOpen, isSmartPasteOpen, isChainsOpen, isDragOverActive, activeTabId, showToast]);
+  }, [isCommandPaletteOpen, isSmartPasteOpen, isChainsOpen, isShortcutSheetOpen, isIntroOpen, isDragOverActive, activeTabId, showToast]);
 
   // Tab management
   const handleSelectTab = (tabId: string) => {
@@ -509,6 +536,18 @@ const AppContent: React.FC = () => {
           onCancel={() => setIsDragOverActive(false)}
         />
       )}
+
+      {/* Keyboard Shortcuts Cheatsheet Modal */}
+      <ShortcutSheetModal
+        isOpen={isShortcutSheetOpen}
+        onClose={() => setIsShortcutSheetOpen(false)}
+      />
+
+      {/* First-Run Intro / Onboarding Tour Modal */}
+      <IntroModal
+        isOpen={isIntroOpen}
+        onClose={() => setIsIntroOpen(false)}
+      />
     </div>
   );
 };

@@ -42,6 +42,7 @@ export interface AppSettings {
   keepHistory: boolean;
   retentionDays: string;
   clearOnExit: boolean;
+  showSavingsSummary?: boolean;
 
   // Developer & Diagnostics
   showDeveloper: boolean;
@@ -104,6 +105,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   keepHistory: true,
   retentionDays: '30',
   clearOnExit: false,
+  showSavingsSummary: false,
 
   showDeveloper: false,
   logLevel: 'info',

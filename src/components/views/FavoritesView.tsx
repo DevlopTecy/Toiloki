@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Trash2, ArrowUpRight, Search } from 'lucide-react';
+import { Star, Trash2, ArrowUpRight, Search, GripVertical } from 'lucide-react';
 import { WorkspaceId } from '../../core/types/workspace';
 import { FavoritesService, FavoriteItem } from '../../core/services/favorites.service';
 import './FavoritesView.css';
@@ -11,12 +11,34 @@ interface FavoritesViewProps {
 export const FavoritesView: React.FC<FavoritesViewProps> = ({ onSelectUtility }) => {
   const [search, setSearch] = useState('');
   const [favorites, setFavorites] = useState<FavoriteItem[]>(() => FavoritesService.getFavorites());
+  const [draggedFavIdx, setDraggedFavIdx] = useState<number | null>(null);
 
   React.useEffect(() => {
     const handleFavChange = () => setFavorites(FavoritesService.getFavorites());
     window.addEventListener('toiloki_favorites_changed', handleFavChange);
     return () => window.removeEventListener('toiloki_favorites_changed', handleFavChange);
   }, []);
+
+  const handleFavDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedFavIdx(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleFavDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleFavDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedFavIdx === null || draggedFavIdx === targetIndex) return;
+    const reordered = [...favorites];
+    const [moved] = reordered.splice(draggedFavIdx, 1);
+    reordered.splice(targetIndex, 0, moved);
+    setFavorites(reordered);
+    FavoritesService.saveFavorites(reordered);
+    setDraggedFavIdx(null);
+  };
 
   const handleRemoveFavorite = (e: React.MouseEvent, utilityId: string) => {
     e.stopPropagation();
@@ -76,21 +98,30 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({ onSelectUtility })
         </div>
       ) : (
         <div className="favorites-grid">
-          {filteredFavorites.map((fav) => (
+          {filteredFavorites.map((fav, idx) => (
             <div
               key={fav.utilityId}
-              className="fav-card"
+              draggable
+              onDragStart={(e) => handleFavDragStart(e, idx)}
+              onDragOver={(e) => handleFavDragOver(e, idx)}
+              onDrop={(e) => handleFavDrop(e, idx)}
+              onDragEnd={() => setDraggedFavIdx(null)}
+              className={`fav-card ${draggedFavIdx === idx ? 'is-dragging' : ''}`}
+              title="Drag to reorder favorites"
               onClick={() => onSelectUtility?.(fav.workspaceId, fav.groupId, fav.utilityId)}
             >
               <div className="fav-card-top">
                 <span className="fav-workspace-pill">{fav.workspaceName}</span>
-                <button
-                  className="fav-unstar-btn"
-                  onClick={(e) => handleRemoveFavorite(e, fav.utilityId)}
-                  title="Remove from favorites"
-                >
-                  <Star size={16} fill="var(--color-warning)" color="var(--color-warning)" />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <GripVertical size={13} className="fav-grip-handle" />
+                  <button
+                    className="fav-unstar-btn"
+                    onClick={(e) => handleRemoveFavorite(e, fav.utilityId)}
+                    title="Remove from favorites"
+                  >
+                    <Star size={16} fill="var(--color-warning)" color="var(--color-warning)" />
+                  </button>
+                </div>
               </div>
 
               <div className="fav-card-body">

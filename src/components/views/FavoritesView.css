@@ -198,3 +198,28 @@
 .fav-card:hover .fav-card-footer {
   color: var(--accent-amber);
 }
+
+/* ─── Drag Reordering in Favorites ─── */
+.fav-card {
+  cursor: grab;
+}
+
+.fav-card:active {
+  cursor: grabbing;
+}
+
+.fav-card.is-dragging {
+  opacity: 0.35;
+  border-style: dashed;
+}
+
+.fav-grip-handle {
+  color: var(--text-tertiary);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.fav-card:hover .fav-grip-handle {
+  opacity: 0.6;
+}
+

@@ -192,6 +192,93 @@ export class UtilityRegistry {
     const ids = this.getFavoriteIds();
     return ids.map((id) => this.getUtilityById(id)).filter((u): u is RegisteredUtility => !!u);
   }
+
+  /**
+   * Reorder favorite utility IDs (Drag and Drop)
+   */
+  static reorderFavorites(newOrderIds: string[]): void {
+    try {
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(newOrderIds));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('toiloki-favorites-updated', { detail: newOrderIds }));
+      }
+    } catch (err) {
+      console.error('Failed to reorder favorites:', err);
+    }
+  }
+
+  /**
+   * Get pinned utility IDs for Home dashboard
+   */
+  static getPinnedIds(): string[] {
+    const PINNED_KEY = 'toiloki_pinned_quick_actions';
+    try {
+      const raw = localStorage.getItem(PINNED_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (err) {}
+    return ['merge-pdf', 'img-resize', 'format-json-code', 'file-analyzer-full', 'text-diff', 'create-zip-archive'];
+  }
+
+  /**
+   * Set pinned utility IDs for Home dashboard (Drag and Drop reorder or Pin action)
+   */
+  static setPinnedIds(pinnedIds: string[]): void {
+    const PINNED_KEY = 'toiloki_pinned_quick_actions';
+    try {
+      localStorage.setItem(PINNED_KEY, JSON.stringify(pinnedIds));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('toiloki-pinned-updated', { detail: pinnedIds }));
+      }
+    } catch (err) {
+      console.error('Failed to set pinned utility IDs:', err);
+    }
+  }
+
+  /**
+   * Pin or unpin a utility from Home dashboard
+   */
+  static togglePinned(utilityId: string): boolean {
+    const current = this.getPinnedIds();
+    const exists = current.includes(utilityId);
+    let next: string[];
+    if (exists) {
+      next = current.filter((id) => id !== utilityId);
+    } else {
+      next = [...current, utilityId];
+    }
+    this.setPinnedIds(next);
+    return !exists;
+  }
+
+  /**
+   * Save last options for a utility ("Continue where you left off").
+   * Strips all file content, file buffers, dataUri, and paths - ONLY stores options.
+   */
+  static saveLastOptions(utilityId: string, options: Record<string, any>): void {
+    try {
+      const cleanOptions: Record<string, any> = {};
+      const forbidden = /^(file|buffer|content|bytes|dataUri|path|input|source|payload)$/i;
+      for (const [k, v] of Object.entries(options)) {
+        if (!forbidden.test(k) && typeof v !== 'function') {
+          cleanOptions[k] = v;
+        }
+      }
+      localStorage.setItem(`toiloki_last_options_${utilityId}`, JSON.stringify(cleanOptions));
+    } catch (err) {
+      console.error('Failed to save last options:', err);
+    }
+  }
+
+  /**
+   * Get last options for a utility ("Continue where you left off").
+   */
+  static getLastOptions(utilityId: string): Record<string, any> | null {
+    try {
+      const raw = localStorage.getItem(`toiloki_last_options_${utilityId}`);
+      if (raw) return JSON.parse(raw);
+    } catch (err) {}
+    return null;
+  }
 }
 
 // Synonyms for convenience

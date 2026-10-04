@@ -106,6 +106,18 @@ export class FavoritesService {
   }
 
   /**
+   * Save entire reordered list of favorites
+   */
+  static saveFavorites(items: FavoriteItem[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      window.dispatchEvent(new CustomEvent('toiloki_favorites_changed'));
+    } catch (err) {
+      console.error('Failed to save reordered favorites:', err);
+    }
+  }
+
+  /**
    * Clear all favorites
    */
   static clearAll(): void {

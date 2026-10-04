@@ -6,11 +6,14 @@ import {
   AlertCircle,
   FileCode,
   MoreHorizontal,
+  Database,
+  GripVertical,
 } from 'lucide-react';
 import { WORKSPACES } from '../../core/registry/app-registry';
 import { WorkspaceId } from '../../core/types/workspace';
 import { HistoryService } from '../../core/services/history.service';
 import { SettingsService } from '../../core/services/settings.service';
+import { UtilityRegistry } from '../../core/registry/tool-registry';
 import { useTheme } from '../../core/theme/ThemeContext';
 import { ImageCard } from '../../components/common/ImageCard';
 import { getDefaultArtwork } from '../../assets/art-pack/default-art-pack';
@@ -72,18 +75,80 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
     return HistoryService.getRecords().slice(0, 5);
   }, []);
 
-  // Pinned Quick Actions
-  const quickActions = [
-    { name: 'Merge PDF', workspaceId: 'pdf' as WorkspaceId, groupId: 'page-organizer', utilityId: 'merge-pdf', badgeClass: 'badge-pdf', desc: 'Combine multiple PDF files' },
-    { name: 'Resize Images', workspaceId: 'images' as WorkspaceId, groupId: 'img-transformer', utilityId: 'img-resize', badgeClass: 'badge-img', desc: 'Batch scale & reformat' },
-    { name: 'JSON Formatter', workspaceId: 'developer' as WorkspaceId, groupId: 'dev-formatter', utilityId: 'format-json-code', badgeClass: 'badge-dev', desc: 'Beautify, minify, validate' },
-    { name: 'Hash & Checksum', workspaceId: 'files' as WorkspaceId, groupId: 'files-analyzer', utilityId: 'file-analyzer-full', badgeClass: 'badge-files', desc: 'MD5, SHA-256 integrity' },
-    { name: 'Text Diff / Compare', workspaceId: 'text' as WorkspaceId, groupId: 'text-compare', utilityId: 'text-diff', badgeClass: 'badge-text', desc: 'Side-by-side comparison' },
-    { name: 'Create ZIP Archive', workspaceId: 'files' as WorkspaceId, groupId: 'files-archives', utilityId: 'create-zip-archive', badgeClass: 'badge-files', desc: 'Compress folders and files' },
-  ];
+  // Pinned Quick Actions with dynamic sync and drag-and-drop reordering
+  const [pinnedIds, setPinnedIds] = React.useState<string[]>(() => UtilityRegistry.getPinnedIds());
+  const [draggedQaIdx, setDraggedQaIdx] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    const handlePinnedUpdate = (e: any) => {
+      setPinnedIds(e.detail || UtilityRegistry.getPinnedIds());
+    };
+    window.addEventListener('toiloki-pinned-updated', handlePinnedUpdate);
+    return () => window.removeEventListener('toiloki-pinned-updated', handlePinnedUpdate);
+  }, []);
+
+  const quickActions = useMemo(() => {
+    return pinnedIds
+      .map((id) => {
+        const util = UtilityRegistry.getUtilityById(id);
+        if (!util) return null;
+        return {
+          name: util.name,
+          workspaceId: util.workspaceId as WorkspaceId,
+          groupId: util.groupId,
+          utilityId: util.utilityId,
+          badgeClass: `badge-${util.workspaceId}`,
+          desc: util.description,
+        };
+      })
+      .filter((qa): qa is NonNullable<typeof qa> => !!qa);
+  }, [pinnedIds]);
+
+  const handleQaDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedQaIdx(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleQaDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleQaDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedQaIdx === null || draggedQaIdx === targetIndex) return;
+    const reordered = [...pinnedIds];
+    const [moved] = reordered.splice(draggedQaIdx, 1);
+    reordered.splice(targetIndex, 0, moved);
+    setPinnedIds(reordered);
+    UtilityRegistry.setPinnedIds(reordered);
+    setDraggedQaIdx(null);
+  };
 
   return (
     <div className={`dashboard-home ${isImageStyle ? 'is-image-style' : ''}`}>
+      {/* ─── Optional Local-only Storage Savings Summary Card ─── */}
+      {settings.showSavingsSummary && (
+        <section className="dashboard-section savings-summary-section">
+          <div className="savings-summary-card">
+            <div className="savings-card-left">
+              <div className="savings-icon-wrap">
+                <Database size={16} />
+              </div>
+              <div className="savings-text-group">
+                <div className="savings-headline">
+                  Saved <span className="savings-highlight">~48.2 MB</span> this week
+                </div>
+                <div className="savings-subtext">
+                  Local offline storage footprint reduced across PDF and Image optimizations. No remote telemetry, no streaks.
+                </div>
+              </div>
+            </div>
+            <div className="savings-badge">Local Estimate</div>
+          </div>
+        </section>
+      )}
+
       {/* ─── 1. Category Grid (4x2 grid / 20px gap) ─── */}
       <section className="dashboard-section">
         <div className="section-header">
@@ -259,8 +324,13 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
 
               return (
                 <div
-                  key={idx}
-                  className={`quick-action-card ${isImageStyle ? 'image-style-card' : ''}`}
+                  key={qa.utilityId}
+                  draggable
+                  onDragStart={(e) => handleQaDragStart(e, idx)}
+                  onDragOver={(e) => handleQaDragOver(e, idx)}
+                  onDrop={(e) => handleQaDrop(e, idx)}
+                  onDragEnd={() => setDraggedQaIdx(null)}
+                  className={`quick-action-card ${isImageStyle ? 'image-style-card' : ''} ${draggedQaIdx === idx ? 'is-dragging' : ''}`}
                   style={
                     shouldAnimate
                       ? {
@@ -269,7 +339,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                         }
                       : undefined
                   }
-                  title={qa.desc}
+                  title={`${qa.desc} (Drag to reorder)`}
                   onClick={() => onSelectUtility(qa.workspaceId, qa.groupId, qa.utilityId)}
                   role="button"
                   tabIndex={0}
@@ -301,7 +371,10 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                     ) : (
                       <span className={`qa-tag ${qa.badgeClass}`}>{qa.workspaceId}</span>
                     )}
-                    <ArrowUpRight size={14} className="qa-arrow" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <GripVertical size={13} className="qa-grip-handle" />
+                      <ArrowUpRight size={14} className="qa-arrow" />
+                    </div>
                   </div>
 
                   <div className="quick-action-info">

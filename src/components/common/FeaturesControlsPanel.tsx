@@ -1,18 +1,22 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FeatureDefinition } from '../../core/types/workspace';
-import { Sliders, Layers, ArrowRight, Download, Zap } from 'lucide-react';
+import { Sliders, Layers, ArrowRight, Download, Zap, Bookmark, Plus, Check, X } from 'lucide-react';
+import { PresetsService, UtilityPreset } from '../../core/services/presets.service';
+import { UtilityRegistry } from '../../core/registry/tool-registry';
 import './FeaturesControlsPanel.css';
 
 interface FeaturesControlsPanelProps {
   features?: FeatureDefinition[];
   activeFeatureId?: string | null;
   onFeatureSelect?: (featureId: string) => void;
+  utilityId?: string;
 }
 
 export const FeaturesControlsPanel: React.FC<FeaturesControlsPanelProps> = ({
   features = [],
   activeFeatureId,
   onFeatureSelect,
+  utilityId,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -23,10 +27,54 @@ export const FeaturesControlsPanel: React.FC<FeaturesControlsPanelProps> = ({
   const actions = features.filter((f) => f.kind === 'action');
   const batch = features.filter((f) => f.kind === 'batch');
 
+  // Load last saved options if available ("Continue where you left off")
+  const savedOptions = utilityId ? UtilityRegistry.getLastOptions(utilityId) : null;
+
   // Track active mode/option state locally for interactive feel
-  const [selectedMode, setSelectedMode] = React.useState<string>(() => modes[0]?.id || '');
-  const [toggledOptions, setToggledOptions] = React.useState<Record<string, boolean>>({});
-  const [selectedOutput, setSelectedOutput] = React.useState<string>(() => outputs[0]?.id || '');
+  const [selectedMode, setSelectedMode] = useState<string>(() => {
+    if (savedOptions?.selectedMode) return savedOptions.selectedMode;
+    return modes[0]?.id || '';
+  });
+  const [toggledOptions, setToggledOptions] = useState<Record<string, boolean>>(() => {
+    if (savedOptions?.toggledOptions) return savedOptions.toggledOptions;
+    return {};
+  });
+  const [selectedOutput, setSelectedOutput] = useState<string>(() => {
+    if (savedOptions?.selectedOutput) return savedOptions.selectedOutput;
+    return outputs[0]?.id || '';
+  });
+
+  // Presets state
+  const [presets, setPresets] = useState<UtilityPreset[]>(() => {
+    return utilityId ? PresetsService.getPresetsForUtility(utilityId) : [];
+  });
+  const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [isAddingPreset, setIsAddingPreset] = useState(false);
+  const [newPresetName, setNewPresetName] = useState('');
+
+  // Refresh presets if utilityId changes
+  useEffect(() => {
+    if (utilityId) {
+      setPresets(PresetsService.getPresetsForUtility(utilityId));
+      const last = UtilityRegistry.getLastOptions(utilityId);
+      if (last) {
+        if (last.selectedMode) setSelectedMode(last.selectedMode);
+        if (last.toggledOptions) setToggledOptions(last.toggledOptions);
+        if (last.selectedOutput) setSelectedOutput(last.selectedOutput);
+      }
+    }
+  }, [utilityId]);
+
+  // Save last options whenever options change (never saves file contents)
+  useEffect(() => {
+    if (utilityId) {
+      UtilityRegistry.saveLastOptions(utilityId, {
+        selectedMode,
+        toggledOptions,
+        selectedOutput,
+      });
+    }
+  }, [utilityId, selectedMode, toggledOptions, selectedOutput]);
 
   // Handle deep link / activeFeatureId scroll and highlight
   useEffect(() => {
@@ -42,6 +90,41 @@ export const FeaturesControlsPanel: React.FC<FeaturesControlsPanelProps> = ({
     }
   }, [activeFeatureId]);
 
+  const handleApplyPreset = (preset: UtilityPreset) => {
+    setActivePresetId(preset.id);
+    if (preset.values.selectedMode) setSelectedMode(preset.values.selectedMode);
+    if (preset.values.targetCase) setSelectedMode(preset.values.targetCase);
+    if (preset.values.selectedOutput) setSelectedOutput(preset.values.selectedOutput);
+    if (preset.values.toggledOptions) {
+      setToggledOptions(preset.values.toggledOptions);
+    } else {
+      // Map arbitrary key-value preset flags
+      const flags: Record<string, boolean> = {};
+      for (const [k, v] of Object.entries(preset.values)) {
+        if (typeof v === 'boolean') flags[k] = v;
+      }
+      setToggledOptions((prev) => ({ ...prev, ...flags }));
+    }
+  };
+
+  const handleSaveCustomPreset = () => {
+    if (!utilityId || !newPresetName.trim()) return;
+    const created = PresetsService.saveCustomPreset({
+      utilityId,
+      name: newPresetName.trim(),
+      description: 'User saved configuration',
+      values: {
+        selectedMode,
+        toggledOptions,
+        selectedOutput,
+      },
+    });
+    setPresets(PresetsService.getPresetsForUtility(utilityId));
+    setActivePresetId(created.id);
+    setNewPresetName('');
+    setIsAddingPreset(false);
+  };
+
   if (!features || features.length === 0) return null;
 
   return (
@@ -55,6 +138,81 @@ export const FeaturesControlsPanel: React.FC<FeaturesControlsPanelProps> = ({
       </div>
 
       <div className="features-groups-flow">
+        {/* Presets Chips Row */}
+        {(presets.length > 0 || utilityId) && (
+          <div className="feature-group-section preset-section">
+            <div className="preset-section-header">
+              <label className="feature-group-label">Presets</label>
+              {!isAddingPreset && (
+                <button
+                  type="button"
+                  className="preset-add-trigger-btn"
+                  onClick={() => setIsAddingPreset(true)}
+                  title="Save current configuration as a preset"
+                >
+                  <Plus size={11} />
+                  <span>Save as preset</span>
+                </button>
+              )}
+            </div>
+
+            {/* Inline new preset name input */}
+            {isAddingPreset && (
+              <div className="preset-input-inline-form">
+                <input
+                  type="text"
+                  className="preset-name-input"
+                  placeholder="Preset name (e.g. Production Web)"
+                  value={newPresetName}
+                  onChange={(e) => setNewPresetName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveCustomPreset();
+                    if (e.key === 'Escape') setIsAddingPreset(false);
+                  }}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  className="preset-save-confirm-btn"
+                  onClick={handleSaveCustomPreset}
+                  disabled={!newPresetName.trim()}
+                >
+                  <Check size={12} />
+                  <span>Save</span>
+                </button>
+                <button
+                  type="button"
+                  className="preset-cancel-btn"
+                  onClick={() => {
+                    setIsAddingPreset(false);
+                    setNewPresetName('');
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            )}
+
+            <div className="presets-chips-row">
+              {presets.map((p) => {
+                const isActive = activePresetId === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`preset-chip-btn ${isActive ? 'active' : ''}`}
+                    onClick={() => handleApplyPreset(p)}
+                    title={p.description || p.name}
+                  >
+                    <Bookmark size={11} className="preset-chip-icon" />
+                    <span>{p.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* 1. Modes (Segmented Control) */}
         {modes.length > 0 && (
           <div className="feature-group-section mode-section">
