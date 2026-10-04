@@ -3899,6 +3899,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 4. DATA WORKSPACE
   {
     id: 'data',
+    workbench: 'file',
     name: 'Data',
     description: 'View, convert, transform, validate, and format tabular data.',
     icon: Database,
@@ -5118,6 +5119,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 5. TEXT WORKSPACE
   {
     id: 'text',
+    workbench: 'file',
     name: 'Text',
     description: 'Transform, clean, analyze, encode, and compare text.',
     icon: Type,

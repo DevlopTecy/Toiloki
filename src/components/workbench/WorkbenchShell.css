@@ -1089,3 +1089,54 @@
   font-weight: 600;
   margin-top: 8px;
 }
+
+/* ─── Phase 6: Data & Text Workbench Layouts ─── */
+.data-canvas-zone,
+.text-canvas-zone {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg);
+}
+
+.workbench-textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text-primary);
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  padding: 8px;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.workbench-textarea:focus {
+  border-color: var(--accent);
+}
+
+.schema-val-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.schema-val-badge.is-valid {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.schema-val-badge.is-invalid {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}

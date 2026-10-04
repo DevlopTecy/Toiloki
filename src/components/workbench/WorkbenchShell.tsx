@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PDFDocument } from 'pdf-lib';
+import Papa from 'papaparse';
 import { WorkspaceDefinition, GroupDefinition, UtilityDefinition } from '../../core/types/workspace';
 import { SettingsService } from '../../core/services/settings.service';
 import { FileDropzone, SelectedFile } from '../file-system/FileDropzone';
@@ -34,8 +35,12 @@ import { PdfSecurityEngine } from '../../engines/pdf/pdf-security.engine';
 import { DocumentEngine } from '../../engines/documents/document.engine';
 import { ImageEngine, ImageTransformOptions } from '../../engines/images/image.engine';
 import { ExifEngine } from '../../engines/images/exif.engine';
+import { DataEngine } from '../../engines/data/data.engine';
+import { TextEngine, CaseType } from '../../engines/text/text.engine';
 import { ImageCanvas, CropRect } from './images/ImageCanvas';
 import { DocumentCanvas } from './documents/DocumentCanvas';
+import { DataCanvas, DataViewMode } from './data/DataCanvas';
+import { TextCanvas, TextViewMode } from './editor/TextCanvas';
 import { PdfPagesCanvas, PageCardItem } from './pdf/PdfPagesCanvas';
 import { PdfTrayCanvas } from './pdf/PdfTrayCanvas';
 import { PdfMarkersCanvas } from './pdf/PdfMarkersCanvas';
@@ -111,6 +116,58 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
   const [docRawText, setDocRawText] = useState<string>('');
   const [docIncludeHeader, setDocIncludeHeader] = useState<boolean>(true);
 
+  // Phase 6: Data Workbench State
+  const [dataContent, setDataContent] = useState<string>(
+    'id,name,role,department,salary\n1,Alice Morgan,Lead Architect,Core Engine,145000\n2,Bob Jenkins,UI/UX Designer,Product,105000\n3,Carol Zhao,Senior Data Scientist,Analytics,132000\n4,David Kim,DevOps Architect,Infrastructure,138000\n5,Elena Rossi,QA Engineer,Quality,98000\n6,Frank Miller,Security Engineer,Security,140000'
+  );
+  const [dataFormat, setDataFormat] = useState<'csv' | 'json' | 'yaml' | 'xml' | 'tsv' | 'xlsx'>('csv');
+  const [dataViewMode, setDataViewMode] = useState<DataViewMode>('grid');
+  const [dataDelimiter, setDataDelimiter] = useState<string>(',');
+  const [dataHasHeader, setDataHasHeader] = useState<boolean>(true);
+  const [dataFilterQuery, setDataFilterQuery] = useState<string>('');
+  const [dataSortCol, setDataSortCol] = useState<string>('');
+  const [dataSortDir, setDataSortDir] = useState<'asc' | 'desc'>('asc');
+  const [dataSchemaInput, setDataSchemaInput] = useState<string>(
+    JSON.stringify(
+      {
+        type: 'object',
+        required: ['id', 'name', 'salary'],
+        properties: {
+          id: { type: 'number' },
+          name: { type: 'string' },
+          salary: { type: 'number' },
+        },
+      },
+      null,
+      2
+    )
+  );
+  const [dataSchemaValidation, setDataSchemaValidation] = useState<{ valid: boolean; message: string } | null>(null);
+  const [dataSqlQuery, setDataSqlQuery] = useState<string>('SELECT * WHERE salary > 100000 ORDER BY salary DESC');
+  const [dataPivotCol, setDataPivotCol] = useState<string>('department');
+  const [dataPivotAggCol, setDataPivotAggCol] = useState<string>('salary');
+  const [dataPivotFunc, setDataPivotFunc] = useState<'count' | 'sum' | 'avg' | 'min' | 'max'>('avg');
+
+  // Phase 6: Text Workbench State
+  const [textContent, setTextContent] = useState<string>(
+    'Toiloki is a high-performance offline desktop suite engineered for precision and privacy.\n\nAll tools execute locally on your machine with zero cloud dependencies or telemetry.\nThe suite includes dedicated workbenches for PDF, Documents, Images, Data, and Text.\n\nKey features:\n- Offline document editing and format conversion\n- Tabular data analysis and schema verification\n- Instant line sorting, deduplication, and regex filtering\n- Contact technical support at support@toiloki.org or visit https://toiloki.dev for documentation.\n- Gateway addresses: 192.168.1.1 and 10.0.0.1 (verified on 2026-10-04)'
+  );
+  const [textOriginalContent, setTextOriginalContent] = useState<string>(
+    'Toiloki is a high-performance offline desktop suite engineered for precision and privacy.\n\nAll tools execute locally on your machine with zero cloud dependencies or telemetry.\nThe suite includes dedicated workbenches for PDF, Documents, Images, Data, and Text.\n\nKey features:\n- Offline document editing and format conversion\n- Tabular data analysis and schema verification\n- Instant line sorting, deduplication, and regex filtering\n- Contact technical support at support@toiloki.org or visit https://toiloki.dev for documentation.\n- Gateway addresses: 192.168.1.1 and 10.0.0.1 (verified on 2026-10-04)'
+  );
+  const [textViewMode, setTextViewMode] = useState<TextViewMode>('editor');
+  const [textFontSize, setTextFontSize] = useState<number>(13);
+  const [textWordWrap, setTextWordWrap] = useState<boolean>(true);
+  const [textCaseType, setTextCaseType] = useState<CaseType>('upper');
+  const [textSlugSep, setTextSlugSep] = useState<'-' | '_' | '.'>('-');
+  const [textSlugMax, setTextSlugMax] = useState<number>(60);
+  const [textSortDir, setTextSortDir] = useState<'asc' | 'desc'>('asc');
+  const [textDelim, setTextDelim] = useState<string>(',');
+  const [textRegexPattern, setTextRegexPattern] = useState<string>('([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+)');
+  const [textRegexReplacement, setTextRegexReplacement] = useState<string>('$1@[HIDDEN]');
+  const [textLoremCount, setTextLoremCount] = useState<number>(3);
+  const [textLoremUnit, setTextLoremUnit] = useState<'paragraphs' | 'sentences' | 'words'>('paragraphs');
+
   // Sync format preselection when clicking format-specific converter utilities
   useEffect(() => {
     if (workspace.id === 'images') {
@@ -122,8 +179,33 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
       else if (activeUtility.id === 'img-svg-to-png') setImageFormat('svg');
       else if (activeUtility.id === 'img-heic-converter') setImageFormat('heic');
       else if (activeUtility.id === 'img-avif-converter') setImageFormat('avif');
+    } else if (workspace.id === 'data') {
+      if (activeUtility.id.startsWith('csv-') || activeUtility.id === 'data-table') {
+        setDataFormat('csv');
+        setDataViewMode('grid');
+      } else if (activeUtility.id.startsWith('json-')) {
+        setDataFormat('json');
+      } else if (activeUtility.id.startsWith('yaml-')) {
+        setDataFormat('yaml');
+      } else if (activeUtility.id.startsWith('xml-')) {
+        setDataFormat('xml');
+      } else if (activeUtility.id.startsWith('xlsx-')) {
+        setDataFormat('xlsx');
+      } else if (activeUtility.id === 'data-schema' || activeUtility.id === 'data-validator') {
+        setDataViewMode('schema');
+      } else if (activeGroup.id === 'data-viewer') {
+        setDataViewMode('grid');
+      }
+    } else if (workspace.id === 'text') {
+      if (activeUtility.id === 'text-diff' || activeGroup.id === 'text-compare') {
+        setTextViewMode('diff');
+      } else if (activeUtility.id === 'text-statistics' || activeGroup.id === 'text-analyzer') {
+        setTextViewMode('analysis');
+      } else if (activeGroup.id === 'text-transformer' || activeGroup.id === 'text-cleaner') {
+        setTextViewMode('editor');
+      }
     }
-  }, [activeUtility.id, workspace.id]);
+  }, [activeUtility.id, activeGroup.id, workspace.id]);
 
   // Load EXIF metadata when on Images workspace
   useEffect(() => {
@@ -207,7 +289,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
   const ensureBuffer = useCallback(async (file: SelectedFile): Promise<Uint8Array> => {
     // If the file already has a valid buffer
     if (file.buffer && file.buffer.byteLength > 0) {
-      if (workspace.id === 'images' || workspace.id === 'documents') {
+      if (workspace.id === 'images' || workspace.id === 'documents' || workspace.id === 'data' || workspace.id === 'text') {
         return file.buffer;
       }
       if (file.buffer.byteLength > 200) {
@@ -265,6 +347,18 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     // Default fallback asset for documents
     if (workspace.id === 'documents') {
       const sampleText = `# ${file.name || 'Toiloki Document'}\n\nThis document is ready for local offline conversion, editing, and diff comparison.\n\n## Key Highlights\n- Zero cloud dependencies\n- Fast deterministic transformations\n- Multi-format OpenXML and Markdown parsing\n`;
+      return new TextEncoder().encode(sampleText);
+    }
+
+    // Default fallback asset for data
+    if (workspace.id === 'data') {
+      const sampleText = 'id,name,role,department,salary\n1,Alice Morgan,Lead Architect,Core Engine,145000\n2,Bob Jenkins,UI/UX Designer,Product,105000\n3,Carol Zhao,Senior Data Scientist,Analytics,132000\n4,David Kim,DevOps Architect,Infrastructure,138000\n5,Elena Rossi,QA Engineer,Quality,98000\n6,Frank Miller,Security Engineer,Security,140000\n';
+      return new TextEncoder().encode(sampleText);
+    }
+
+    // Default fallback asset for text
+    if (workspace.id === 'text') {
+      const sampleText = 'Toiloki is a high-performance offline desktop suite engineered for precision and privacy.\n\nAll tools execute locally on your machine with zero cloud dependencies or telemetry.\nThe suite includes dedicated workbenches for PDF, Documents, Images, Data, and Text.\n\nKey features:\n- Offline document editing and format conversion\n- Tabular data analysis and schema verification\n- Instant line sorting, deduplication, and regex filtering\n- Contact technical support at support@toiloki.org or visit https://toiloki.dev for documentation.\n- Gateway addresses: 192.168.1.1 and 10.0.0.1 (verified on 2026-10-04)\n';
       return new TextEncoder().encode(sampleText);
     }
 
@@ -404,7 +498,87 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
         } catch {}
       }
     }
-  }, [ensureBuffer, refreshPagesFromBuffer, loadInfoDataForUtility, activeUtility.id]);
+
+    // Phase 6: Parse dropped files in Data / Text workbenches
+    if (workspace.id === 'data') {
+      try {
+        if (first.name.endsWith('.xlsx')) {
+          const res = await DataEngine.xlsxToCsv(initialBuffer);
+          if (res.success && res.data) {
+            setDataContent(res.data);
+            setDataFormat('csv');
+          }
+        } else {
+          const decoded = new TextDecoder().decode(initialBuffer);
+          setDataContent(decoded);
+          if (first.name.endsWith('.json')) setDataFormat('json');
+          else if (first.name.endsWith('.yaml') || first.name.endsWith('.yml')) setDataFormat('yaml');
+          else if (first.name.endsWith('.xml')) setDataFormat('xml');
+          else if (first.name.endsWith('.tsv')) setDataFormat('tsv');
+          else setDataFormat('csv');
+        }
+      } catch {}
+    } else if (workspace.id === 'text') {
+      try {
+        const decoded = new TextDecoder().decode(initialBuffer);
+        setTextContent(decoded);
+        setTextOriginalContent(decoded);
+      } catch {}
+    }
+  }, [ensureBuffer, refreshPagesFromBuffer, loadInfoDataForUtility, activeUtility.id, workspace.id]);
+
+  // Load sample dataset for Data workbench
+  const handleLoadSampleData = useCallback(() => {
+    const sample = 'id,name,role,department,salary\n1,Alice Morgan,Lead Architect,Core Engine,145000\n2,Bob Jenkins,UI/UX Designer,Product,105000\n3,Carol Zhao,Senior Data Scientist,Analytics,132000\n4,David Kim,DevOps Architect,Infrastructure,138000\n5,Elena Rossi,QA Engineer,Quality,98000\n6,Frank Miller,Security Engineer,Security,140000\n';
+    setDataContent(sample);
+    setDataFormat('csv');
+    const buf = new TextEncoder().encode(sample);
+    const mockFile: SelectedFile = {
+      name: 'sample-employees.csv',
+      size: buf.byteLength,
+      buffer: buf,
+    };
+    setFiles([mockFile]);
+    const ver: VersionItem = {
+      id: `v0-${Date.now()}`,
+      name: 'Original Sample',
+      buffer: buf,
+      timestamp: Date.now(),
+    };
+    setVersionStack([ver]);
+    setVersionIndex(0);
+  }, []);
+
+  // Load sample text for Text workbench
+  const handleLoadSampleText = useCallback(() => {
+    const sample = 'Toiloki is a high-performance offline desktop suite engineered for precision and privacy.\n\nAll tools execute locally on your machine with zero cloud dependencies or telemetry.\nThe suite includes dedicated workbenches for PDF, Documents, Images, Data, and Text.\n\nKey features:\n- Offline document editing and format conversion\n- Tabular data analysis and schema verification\n- Instant line sorting, deduplication, and regex filtering\n- Contact technical support at support@toiloki.org or visit https://toiloki.dev for documentation.\n- Gateway addresses: 192.168.1.1 and 10.0.0.1 (verified on 2026-10-04)\n';
+    setTextContent(sample);
+    setTextOriginalContent(sample);
+    const buf = new TextEncoder().encode(sample);
+    const mockFile: SelectedFile = {
+      name: 'sample-document.txt',
+      size: buf.byteLength,
+      buffer: buf,
+    };
+    setFiles([mockFile]);
+    const ver: VersionItem = {
+      id: `v0-${Date.now()}`,
+      name: 'Original Sample',
+      buffer: buf,
+      timestamp: Date.now(),
+    };
+    setVersionStack([ver]);
+    setVersionIndex(0);
+  }, []);
+
+  // Auto-seed sample files when entering Data or Text workbenches
+  useEffect(() => {
+    if (workspace.id === 'data' && files.length === 0) {
+      handleLoadSampleData();
+    } else if (workspace.id === 'text' && files.length === 0) {
+      handleLoadSampleText();
+    }
+  }, [workspace.id, files.length, handleLoadSampleData, handleLoadSampleText]);
 
   // Handle switching active utilities
   const handleUtilityClick = useCallback((group: GroupDefinition, util: UtilityDefinition) => {
@@ -498,6 +672,288 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     setIsProcessing(false);
     setProgressPercent(100);
   };
+
+  // Phase 6 Data Handlers
+  const handleConvertDataFormat = useCallback(async (targetFmt: 'csv' | 'json' | 'yaml' | 'xml' | 'tsv' | 'xlsx') => {
+    try {
+      setIsProcessing(true);
+      setProgressPercent(40);
+      let convertedStr = '';
+      let outBuf: Uint8Array | null = null;
+
+      if (targetFmt === 'json') {
+        if (dataFormat === 'csv' || dataFormat === 'tsv') {
+          const res = DataEngine.csvToJson(dataContent);
+          if (res.success && res.data) convertedStr = res.data;
+        } else if (dataFormat === 'yaml') {
+          const res = DataEngine.yamlToJson(dataContent);
+          if (res.success && res.data) convertedStr = res.data;
+        } else if (dataFormat === 'xml') {
+          const res = DataEngine.xmlToJson(dataContent);
+          if (res.success && res.data) convertedStr = res.data;
+        } else {
+          convertedStr = DataEngine.formatJson(dataContent).data || dataContent;
+        }
+      } else if (targetFmt === 'csv') {
+        if (dataFormat === 'json') {
+          const res = DataEngine.jsonToCsv(dataContent);
+          if (res.success && res.data) convertedStr = res.data;
+        } else if (dataFormat === 'yaml') {
+          const jsonRes = DataEngine.yamlToJson(dataContent);
+          if (jsonRes.success && jsonRes.data) {
+            const csvRes = DataEngine.jsonToCsv(jsonRes.data);
+            if (csvRes.success && csvRes.data) convertedStr = csvRes.data;
+          }
+        } else if (dataFormat === 'tsv') {
+          convertedStr = dataContent.replace(/\t/g, ',');
+        } else {
+          convertedStr = dataContent;
+        }
+      } else if (targetFmt === 'yaml') {
+        if (dataFormat === 'json') {
+          const res = DataEngine.jsonToYaml(dataContent);
+          if (res.success && res.data) convertedStr = res.data;
+        } else if (dataFormat === 'csv' || dataFormat === 'tsv') {
+          const jsonRes = DataEngine.csvToJson(dataContent);
+          if (jsonRes.success && jsonRes.data) {
+            const res = DataEngine.jsonToYaml(jsonRes.data);
+            if (res.success && res.data) convertedStr = res.data;
+          }
+        }
+      } else if (targetFmt === 'xml') {
+        if (dataFormat === 'json') {
+          const res = DataEngine.jsonToXml(dataContent);
+          if (res.success && res.data) convertedStr = res.data;
+        } else if (dataFormat === 'csv') {
+          const jsonRes = DataEngine.csvToJson(dataContent);
+          if (jsonRes.success && jsonRes.data) {
+            const res = DataEngine.jsonToXml(jsonRes.data);
+            if (res.success && res.data) convertedStr = res.data;
+          }
+        }
+      } else if (targetFmt === 'tsv') {
+        if (dataFormat === 'csv') {
+          convertedStr = dataContent.replace(/,/g, '\t');
+        } else if (dataFormat === 'json') {
+          const res = DataEngine.ndjsonTsvConvert(dataContent, 'json', 'tsv');
+          if (res.success && res.data) convertedStr = res.data;
+        }
+      } else if (targetFmt === 'xlsx') {
+        const csvSource = dataFormat === 'csv' ? dataContent : DataEngine.jsonToCsv(dataContent).data || '';
+        const res = await DataEngine.csvToXlsx(csvSource);
+        if (res.success && res.data) {
+          outBuf = res.data;
+          convertedStr = csvSource;
+        }
+      }
+
+      if (convertedStr || outBuf) {
+        if (convertedStr) setDataContent(convertedStr);
+        setDataFormat(targetFmt);
+        const buf = outBuf || new TextEncoder().encode(convertedStr);
+        await pushNewVersion(`Converted to ${targetFmt.toUpperCase()}`, buf);
+        setSuccessResult(true);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Conversion failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [dataContent, dataFormat]);
+
+  const handleDeduplicateRows = useCallback(async () => {
+    try {
+      const res = Papa.parse(dataContent, { header: false, skipEmptyLines: true });
+      if (res.data && res.data.length > 0) {
+        const rows = res.data as string[][];
+        const seen = new Set<string>();
+        const uniqueRows: string[][] = [];
+        rows.forEach((r, idx) => {
+          if (idx === 0 && dataHasHeader) {
+            uniqueRows.push(r);
+            return;
+          }
+          const serialized = JSON.stringify(r);
+          if (!seen.has(serialized)) {
+            seen.add(serialized);
+            uniqueRows.push(r);
+          }
+        });
+        const out = Papa.unparse(uniqueRows);
+        setDataContent(out);
+        const buf = new TextEncoder().encode(out);
+        await pushNewVersion('Deduplicated rows', buf);
+        setSuccessResult(true);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Deduplication failed');
+    }
+  }, [dataContent, dataHasHeader]);
+
+  const handleTransposeData = useCallback(async () => {
+    try {
+      const res = Papa.parse(dataContent, { header: false, skipEmptyLines: true });
+      if (res.data && res.data.length > 0) {
+        const matrix = res.data as string[][];
+        const maxCols = Math.max(...matrix.map((r) => r.length));
+        const transposed: string[][] = [];
+        for (let col = 0; col < maxCols; col++) {
+          const newRow: string[] = [];
+          for (let row = 0; row < matrix.length; row++) {
+            newRow.push(matrix[row][col] !== undefined ? matrix[row][col] : '');
+          }
+          transposed.push(newRow);
+        }
+        const out = Papa.unparse(transposed);
+        setDataContent(out);
+        const buf = new TextEncoder().encode(out);
+        await pushNewVersion('Transposed rows and columns', buf);
+        setSuccessResult(true);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Transpose failed');
+    }
+  }, [dataContent]);
+
+  const handleValidateSchema = useCallback(() => {
+    try {
+      const schemaObj = JSON.parse(dataSchemaInput);
+      const res = DataEngine.validateJsonSchema(dataContent, schemaObj);
+      if (res.success && res.data?.valid) {
+        setDataSchemaValidation({ valid: true, message: 'Valid: Dataset matches schema.' });
+      } else {
+        setDataSchemaValidation({
+          valid: false,
+          message: res.data?.errors?.[0] || res.error || 'Schema validation failed.',
+        });
+      }
+    } catch (err: any) {
+      setDataSchemaValidation({ valid: false, message: `Invalid schema JSON: ${err.message}` });
+    }
+  }, [dataContent, dataSchemaInput]);
+
+  const handleExecuteSql = useCallback(async () => {
+    try {
+      setIsProcessing(true);
+      const res = DataEngine.sqlOnCsv(dataContent, dataSqlQuery);
+      if (res.success && res.data) {
+        setDataContent(res.data);
+        const buf = new TextEncoder().encode(res.data);
+        await pushNewVersion('Executed SQL Query', buf);
+        setSuccessResult(true);
+      } else {
+        setErrorMessage(res.error || 'SQL execution failed');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'SQL query failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [dataContent, dataSqlQuery]);
+
+  // Phase 6 Text Handlers
+  const handleApplyCase = useCallback(async (caseType: CaseType) => {
+    const res = TextEngine.transformCase(textContent, caseType);
+    if (res.success && res.data) {
+      setTextContent(res.data);
+      const buf = new TextEncoder().encode(res.data);
+      await pushNewVersion(`Applied ${caseType} case`, buf);
+      setSuccessResult(true);
+    }
+  }, [textContent]);
+
+  const handleSortLines = useCallback(async (dir: 'asc' | 'desc' | 'natural') => {
+    const linesArr = textContent.split('\n');
+    let sorted: string[] = [];
+    if (dir === 'natural') {
+      const res = TextEngine.naturalSort(linesArr, 'asc');
+      sorted = res.success && res.data ? res.data : linesArr;
+    } else {
+      sorted = [...linesArr].sort((a, b) => (dir === 'asc' ? a.localeCompare(b) : b.localeCompare(a)));
+    }
+    const out = sorted.join('\n');
+    setTextContent(out);
+    const buf = new TextEncoder().encode(out);
+    await pushNewVersion(`Sorted lines (${dir})`, buf);
+    setSuccessResult(true);
+  }, [textContent]);
+
+  const handleDeduplicateLines = useCallback(async () => {
+    const linesArr = textContent.split('\n');
+    const seen = new Set<string>();
+    const unique = linesArr.filter((l) => {
+      if (seen.has(l)) return false;
+      seen.add(l);
+      return true;
+    });
+    const out = unique.join('\n');
+    setTextContent(out);
+    const buf = new TextEncoder().encode(out);
+    await pushNewVersion('Deduplicated lines', buf);
+    setSuccessResult(true);
+  }, [textContent]);
+
+  const handleTrimLines = useCallback(async () => {
+    const linesArr = textContent.split('\n').map((l) => l.trim());
+    const out = linesArr.join('\n');
+    setTextContent(out);
+    const buf = new TextEncoder().encode(out);
+    await pushNewVersion('Trimmed lines whitespace', buf);
+    setSuccessResult(true);
+  }, [textContent]);
+
+  const handleRemoveBlankLines = useCallback(async () => {
+    const linesArr = textContent.split('\n').filter((l) => l.trim().length > 0);
+    const out = linesArr.join('\n');
+    setTextContent(out);
+    const buf = new TextEncoder().encode(out);
+    await pushNewVersion('Removed blank lines', buf);
+    setSuccessResult(true);
+  }, [textContent]);
+
+  const handleCollapseSpaces = useCallback(async () => {
+    const out = textContent.replace(/[ \t]+/g, ' ');
+    setTextContent(out);
+    const buf = new TextEncoder().encode(out);
+    await pushNewVersion('Collapsed extra spaces', buf);
+    setSuccessResult(true);
+  }, [textContent]);
+
+  const handleTextToTable = useCallback(async () => {
+    const res = TextEngine.textToTable(textContent, textDelim, true);
+    if (res.success && res.data) {
+      const { headers, rows } = res.data;
+      let md = `| ${headers.join(' | ')} |\n| ${headers.map(() => '---').join(' | ')} |\n`;
+      rows.forEach((r) => {
+        md += `| ${r.join(' | ')} |\n`;
+      });
+      setTextContent(md);
+      const buf = new TextEncoder().encode(md);
+      await pushNewVersion('Converted to Markdown Table', buf);
+      setSuccessResult(true);
+    }
+  }, [textContent, textDelim]);
+
+  const handleSlugify = useCallback(async () => {
+    const res = TextEngine.slugify(textContent, textSlugSep, textSlugMax);
+    if (res.success && res.data) {
+      setTextContent(res.data);
+      const buf = new TextEncoder().encode(res.data);
+      await pushNewVersion('Generated URL Slug', buf);
+      setSuccessResult(true);
+    }
+  }, [textContent, textSlugSep, textSlugMax]);
+
+  const handleGenerateLorem = useCallback(async () => {
+    const res = TextEngine.generateLoremIpsum(textLoremCount, textLoremUnit);
+    if (res.success && res.data) {
+      const out = textContent ? `${textContent}\n\n${res.data}` : res.data;
+      setTextContent(out);
+      const buf = new TextEncoder().encode(out);
+      await pushNewVersion(`Inserted ${textLoremCount} ${textLoremUnit} of Lorem Ipsum`, buf);
+      setSuccessResult(true);
+    }
+  }, [textContent, textLoremCount, textLoremUnit]);
 
   // Execution: Handles Pages actions (Delete, Rotate, Extract, Duplicate, Crop)
   const handleExecutePageAction = async (action: 'delete' | 'rotate' | 'extract' | 'duplicate' | 'crop') => {
@@ -746,6 +1202,70 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
         } else {
           outBuffer = activeBuf;
           actionLabel = `Exported ${docTargetFormat.toUpperCase()}`;
+        }
+
+        if (outBuffer) {
+          await pushNewVersion(actionLabel, outBuffer);
+        }
+        return;
+      }
+
+      // Phase 6: Data Workspace Execution
+      if (workspace.id === 'data') {
+        setProgressPercent(30);
+        let outBuffer: Uint8Array | null = null;
+        let actionLabel = 'Transformed Data';
+
+        if (activeGroup.id === 'data-converter' || activeUtility.id.startsWith('data-convert-')) {
+          await handleConvertDataFormat(dataFormat);
+          return;
+        } else if (activeGroup.id === 'data-validator' || activeUtility.id === 'data-schema') {
+          handleValidateSchema();
+          setIsProcessing(false);
+          setSuccessResult(true);
+          return;
+        } else if (activeGroup.id === 'data-query') {
+          await handleExecuteSql();
+          return;
+        } else if (activeUtility.id === 'data-dedup') {
+          await handleDeduplicateRows();
+          return;
+        } else if (activeUtility.id === 'data-columns' || activeUtility.id === 'data-transpose') {
+          await handleTransposeData();
+          return;
+        } else {
+          outBuffer = new TextEncoder().encode(dataContent);
+          actionLabel = `Exported ${dataFormat.toUpperCase()}`;
+        }
+
+        if (outBuffer) {
+          await pushNewVersion(actionLabel, outBuffer);
+        }
+        return;
+      }
+
+      // Phase 6: Text Workspace Execution
+      if (workspace.id === 'text') {
+        setProgressPercent(30);
+        let outBuffer: Uint8Array | null = null;
+        let actionLabel = 'Processed Text';
+
+        if (activeGroup.id === 'text-transformer') {
+          await handleApplyCase(textCaseType);
+          return;
+        } else if (activeGroup.id === 'text-cleaner') {
+          await handleTrimLines();
+          return;
+        } else if (activeGroup.id === 'text-generator') {
+          await handleGenerateLorem();
+          return;
+        } else if (activeUtility.id === 'text-diff') {
+          setTextOriginalContent(textContent);
+          outBuffer = new TextEncoder().encode(textContent);
+          actionLabel = 'Updated Baseline for Diff';
+        } else {
+          outBuffer = new TextEncoder().encode(textContent);
+          actionLabel = 'Saved Text Document';
         }
 
         if (outBuffer) {
@@ -1051,13 +1571,22 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
       else if (docTargetFormat === 'html') { mime = 'text/html'; ext = '.html'; }
       else if (docTargetFormat === 'rtf') { mime = 'application/rtf'; ext = '.rtf'; }
       else { mime = 'application/pdf'; ext = '.pdf'; }
+    } else if (workspace.id === 'data') {
+      if (dataFormat === 'json') { mime = 'application/json'; ext = '.json'; }
+      else if (dataFormat === 'yaml') { mime = 'text/yaml'; ext = '.yaml'; }
+      else if (dataFormat === 'xml') { mime = 'application/xml'; ext = '.xml'; }
+      else if (dataFormat === 'tsv') { mime = 'text/tab-separated-values'; ext = '.tsv'; }
+      else if (dataFormat === 'xlsx') { mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'; ext = '.xlsx'; }
+      else { mime = 'text/csv'; ext = '.csv'; }
+    } else if (workspace.id === 'text') {
+      mime = 'text/plain'; ext = '.txt';
     }
 
     const blob = new Blob([currentVer.buffer], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    const baseName = files[0]?.name ? files[0].name.replace(/\.pdf$/i, '') : 'document';
+    const baseName = files[0]?.name ? files[0].name.replace(/\.[a-z0-9]+$/i, '') : 'document';
     a.download = `${baseName}-${currentVer.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}${ext}`;
     document.body.appendChild(a);
     a.click();
@@ -1092,6 +1621,23 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
       if (activeGroup.id === 'doc-compare') return 'Save Diff Report';
       if (activeGroup.id === 'doc-metadata') return 'Strip Office Metadata';
       return 'Export Document';
+    }
+
+    if (workspace.id === 'data') {
+      if (activeGroup.id === 'data-converter' || activeUtility.id.startsWith('data-convert-')) return `Convert to ${dataFormat.toUpperCase()}`;
+      if (activeGroup.id === 'data-validator' || activeUtility.id === 'data-schema') return 'Validate Schema';
+      if (activeGroup.id === 'data-query') return 'Execute SQL';
+      if (activeUtility.id === 'data-dedup') return 'Deduplicate Rows';
+      if (activeUtility.id === 'data-columns' || activeUtility.id === 'data-transpose') return 'Transpose Data';
+      return 'Transform Data';
+    }
+
+    if (workspace.id === 'text') {
+      if (activeGroup.id === 'text-transformer') return 'Apply Case Transform';
+      if (activeGroup.id === 'text-cleaner') return 'Clean Whitespace';
+      if (activeGroup.id === 'text-generator') return 'Insert Lorem Ipsum';
+      if (activeUtility.id === 'text-diff') return 'Update Baseline';
+      return 'Apply Text Action';
     }
     const selectedCount = pages.filter((p) => p.selected).length;
     if (activeUtility.primaryLabel) {
@@ -1863,6 +2409,362 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                             <span>Include metadata header</span>
                           </label>
                         </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Phase 6: Data Workspace 3-Zone Layout */}
+            {workspace.id === 'data' && (
+              <div className="workbench-3-zone-layout">
+                {/* Zone 1: Interactive Data Canvas */}
+                <div className="workbench-zone-1 data-canvas-zone">
+                  <DataCanvas
+                    dataContent={dataContent}
+                    onDataChange={(newVal) => {
+                      setDataContent(newVal);
+                      const buf = new TextEncoder().encode(newVal);
+                      if (files[0]) files[0].buffer = buf;
+                    }}
+                    format={dataFormat}
+                    viewMode={dataViewMode}
+                    onViewModeChange={setDataViewMode}
+                    delimiter={dataDelimiter}
+                    hasHeader={dataHasHeader}
+                    onLoadSample={handleLoadSampleData}
+                    fileName={files[0]?.name}
+                  />
+                </div>
+
+                {/* Zone 2: Options Panel for Data */}
+                <div className="workbench-zone-2">
+                  <div className="options-panel-header">
+                    <h3>{activeGroup.id === 'data-converter' ? 'Format Converter' : activeUtility.name}</h3>
+                    <p>{activeGroup.id === 'data-converter' ? 'Convert tabular and structured data across offline formats.' : activeUtility.description}</p>
+                  </div>
+                  <div className="options-panel-body">
+                    {/* Format Converter Tiles */}
+                    <div className="panel-options-section">
+                      <label className="option-label">Target Format</label>
+                      <div className="format-tiles-grid">
+                        {[
+                          { id: 'csv', label: 'CSV', desc: 'Delimited text table' },
+                          { id: 'json', label: 'JSON', desc: 'Structured data tree' },
+                          { id: 'yaml', label: 'YAML', desc: 'Human-readable config' },
+                          { id: 'xml', label: 'XML', desc: 'Markup document' },
+                          { id: 'tsv', label: 'TSV', desc: 'Tab-separated values' },
+                          { id: 'xlsx', label: 'XLSX', desc: 'Excel spreadsheet' },
+                        ].map((tile) => (
+                          <button
+                            key={tile.id}
+                            type="button"
+                            className={`format-tile-card ${dataFormat === tile.id ? 'is-selected' : ''}`}
+                            onClick={() => handleConvertDataFormat(tile.id as any)}
+                          >
+                            <div className="format-tile-header">
+                              <span className="format-tile-ext">.{tile.label}</span>
+                              {dataFormat === tile.id && <Check size={14} style={{ color: 'var(--accent, #D4B06A)' }} />}
+                            </div>
+                            <span className="format-tile-desc">{tile.desc}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Table Options (CSV / TSV) */}
+                    {(dataFormat === 'csv' || dataFormat === 'tsv') && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Table Parsing Options</label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <div style={{ flex: 1 }}>
+                            <label className="option-label">Delimiter</label>
+                            <select
+                              className="workbench-select"
+                              value={dataDelimiter}
+                              onChange={(e) => setDataDelimiter(e.target.value)}
+                            >
+                              <option value=",">Comma (,)</option>
+                              <option value=";">Semicolon (;)</option>
+                              <option value="&#9;">Tab (\t)</option>
+                              <option value="|">Pipe (|)</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{ marginTop: '8px' }}>
+                          <label className="workbench-checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={dataHasHeader}
+                              onChange={(e) => setDataHasHeader(e.target.checked)}
+                            />
+                            <span>First row is header</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Transforms */}
+                    <div className="panel-options-section">
+                      <label className="option-label">Transforms & Operations</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={handleDeduplicateRows}
+                        >
+                          Deduplicate
+                        </button>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={handleTransposeData}
+                        >
+                          Transpose
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Schema Validation Section */}
+                    {(activeGroup.id === 'data-validator' || activeUtility.id === 'data-schema') && (
+                      <div className="panel-options-section">
+                        <label className="option-label">JSON Schema Validator</label>
+                        <textarea
+                          className="workbench-textarea"
+                          rows={4}
+                          value={dataSchemaInput}
+                          onChange={(e) => setDataSchemaInput(e.target.value)}
+                          placeholder="Paste JSON Schema here..."
+                        />
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={handleValidateSchema}
+                          style={{ marginTop: '6px' }}
+                        >
+                          Validate Against Schema
+                        </button>
+                        {dataSchemaValidation && (
+                          <div className={`schema-val-badge ${dataSchemaValidation.valid ? 'is-valid' : 'is-invalid'}`}>
+                            {dataSchemaValidation.valid ? <CheckCircle size={13} /> : <AlertTriangle size={13} />}
+                            <span>{dataSchemaValidation.message}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* SQL on CSV Query Section */}
+                    {activeGroup.id === 'data-query' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">SQL Query (Offline Engine)</label>
+                        <input
+                          type="text"
+                          className="workbench-text-input"
+                          value={dataSqlQuery}
+                          onChange={(e) => setDataSqlQuery(e.target.value)}
+                          placeholder="SELECT * WHERE ..."
+                        />
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={handleExecuteSql}
+                          style={{ marginTop: '6px' }}
+                        >
+                          Run SQL Query
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Phase 6: Text Workspace 3-Zone Layout */}
+            {workspace.id === 'text' && (
+              <div className="workbench-3-zone-layout">
+                {/* Zone 1: Interactive Monospace Text Canvas */}
+                <div className="workbench-zone-1 text-canvas-zone">
+                  <TextCanvas
+                    text={textContent}
+                    onTextChange={(newVal) => {
+                      setTextContent(newVal);
+                      const buf = new TextEncoder().encode(newVal);
+                      if (files[0]) files[0].buffer = buf;
+                    }}
+                    originalText={textOriginalContent}
+                    viewMode={textViewMode}
+                    onViewModeChange={setTextViewMode}
+                    fontSize={textFontSize}
+                    onFontSizeChange={setTextFontSize}
+                    wordWrap={textWordWrap}
+                    onWordWrapChange={setTextWordWrap}
+                    onLoadSample={handleLoadSampleText}
+                  />
+                </div>
+
+                {/* Zone 2: Options Panel for Text */}
+                <div className="workbench-zone-2">
+                  <div className="options-panel-header">
+                    <h3>{activeUtility.name}</h3>
+                    <p>{activeUtility.description}</p>
+                  </div>
+                  <div className="options-panel-body">
+                    {/* 1. Case Conversions */}
+                    <div className="panel-options-section">
+                      <label className="option-label">Case Conversions</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+                        {[
+                          { id: 'upper', label: 'UPPERCASE' },
+                          { id: 'lower', label: 'lowercase' },
+                          { id: 'title', label: 'Title Case' },
+                          { id: 'camel', label: 'camelCase' },
+                          { id: 'snake', label: 'snake_case' },
+                          { id: 'kebab', label: 'kebab-case' },
+                          { id: 'pascal', label: 'PascalCase' },
+                          { id: 'constant', label: 'CONSTANT_CASE' },
+                        ].map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            className="action-btn-secondary"
+                            style={{ fontSize: '11px', padding: '6px' }}
+                            onClick={() => handleApplyCase(c.id as CaseType)}
+                          >
+                            {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 2. Line Sorting */}
+                    <div className="panel-options-section">
+                      <label className="option-label">Sort & Deduplicate Lines</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={() => handleSortLines('asc')}
+                        >
+                          Sort A → Z
+                        </button>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={() => handleSortLines('desc')}
+                        >
+                          Sort Z → A
+                        </button>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={() => handleSortLines('natural')}
+                        >
+                          Natural Sort
+                        </button>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={handleDeduplicateLines}
+                        >
+                          Deduplicate
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 3. Clean & Format Whitespace */}
+                    <div className="panel-options-section">
+                      <label className="option-label">Whitespace & Cleaning</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={handleTrimLines}
+                        >
+                          Trim Leading / Trailing Spaces
+                        </button>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={handleRemoveBlankLines}
+                        >
+                          Remove Blank Lines
+                        </button>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={handleCollapseSpaces}
+                        >
+                          Collapse Extra Spaces
+                        </button>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          onClick={handleTextToTable}
+                        >
+                          Convert Delimited to Markdown Table
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 4. Slugify */}
+                    {activeUtility.id === 'text-slugify' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Slugify Options</label>
+                        <label className="option-label">Separator</label>
+                        <select
+                          className="workbench-select"
+                          value={textSlugSep}
+                          onChange={(e: any) => setTextSlugSep(e.target.value)}
+                        >
+                          <option value="-">Hyphen (-)</option>
+                          <option value="_">Underscore (_)</option>
+                          <option value=".">Dot (.)</option>
+                        </select>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          style={{ marginTop: '8px' }}
+                          onClick={handleSlugify}
+                        >
+                          Generate URL Slug
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 5. Generator: Lorem Ipsum */}
+                    {(activeGroup.id === 'text-generator' || activeUtility.id === 'text-lorem') && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Lorem Ipsum Generator</label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input
+                            type="number"
+                            min="1"
+                            max="20"
+                            className="workbench-text-input"
+                            style={{ width: '60px' }}
+                            value={textLoremCount}
+                            onChange={(e) => setTextLoremCount(parseInt(e.target.value, 10) || 1)}
+                          />
+                          <select
+                            className="workbench-select"
+                            style={{ flex: 1 }}
+                            value={textLoremUnit}
+                            onChange={(e: any) => setTextLoremUnit(e.target.value)}
+                          >
+                            <option value="paragraphs">Paragraphs</option>
+                            <option value="sentences">Sentences</option>
+                            <option value="words">Words</option>
+                          </select>
+                        </div>
+                        <button
+                          type="button"
+                          className="action-btn-secondary"
+                          style={{ marginTop: '8px' }}
+                          onClick={handleGenerateLorem}
+                        >
+                          Insert Placeholder Text
+                        </button>
                       </div>
                     )}
                   </div>
@@ -2643,7 +3545,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               </div>
 
               <span className="file-summary-badge">
-                {files[0]?.name} • {workspace.id === 'images' ? (files.length > 1 ? `${files.length} images` : 'Image Asset') : workspace.id === 'documents' ? 'Document' : files.length > 1 ? `${files.length} files` : `${pages.length} pages`} •{' '}
+                {files[0]?.name} • {workspace.id === 'images' ? (files.length > 1 ? `${files.length} images` : 'Image Asset') : workspace.id === 'documents' ? 'Document' : workspace.id === 'data' ? `${dataFormat.toUpperCase()} Dataset` : workspace.id === 'text' ? 'Text Document' : files.length > 1 ? `${files.length} files` : `${pages.length} pages`} •{' '}
                 {files[0] ? Math.round(files[0].size / 1024) : 0} KB
               </span>
             </>
@@ -2704,7 +3606,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               title="Download result to disk"
             >
               <Download size={14} />
-              <span>{workspace.id === 'images' ? 'Download Image' : workspace.id === 'documents' ? 'Download Document' : 'Download PDF'}</span>
+              <span>{workspace.id === 'images' ? 'Download Image' : workspace.id === 'documents' ? 'Download Document' : workspace.id === 'data' ? `Download ${dataFormat.toUpperCase()}` : workspace.id === 'text' ? 'Download Text' : 'Download PDF'}</span>
             </button>
           )}
 
