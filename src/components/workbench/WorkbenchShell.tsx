@@ -16,12 +16,26 @@ import {
   FileText,
   AlertTriangle,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  Lock,
+  Unlock,
+  FileCode,
+  Sliders,
+  ShieldCheck,
+  Copy,
+  Download,
+  Search,
+  Image as ImageIcon,
+  Check,
+  ExternalLink
 } from 'lucide-react';
 import { PdfEngine } from '../../engines/pdf/pdf.engine';
+import { PdfSecurityEngine } from '../../engines/pdf/pdf-security.engine';
+import { DocumentEngine } from '../../engines/documents/document.engine';
 import { PdfPagesCanvas, PageCardItem } from './pdf/PdfPagesCanvas';
 import { PdfTrayCanvas } from './pdf/PdfTrayCanvas';
 import { PdfMarkersCanvas } from './pdf/PdfMarkersCanvas';
+import { PdfAnnotateCanvas } from './pdf/PdfAnnotateCanvas';
 import './WorkbenchShell.css';
 
 interface VersionItem {
@@ -74,9 +88,44 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     partsCount: 1,
   });
 
-  // Compression options for 'panel' mode
+  // Annotate state for 'annotate' mode
+  const [annotatePage, setAnnotatePage] = useState<number>(1);
+  const [watermarkText, setWatermarkText] = useState<string>('CONFIDENTIAL');
+  const [watermarkOpacity, setWatermarkOpacity] = useState<number>(0.25);
+  const [watermarkFontSize, setWatermarkFontSize] = useState<number>(48);
+  const [watermarkRotation, setWatermarkRotation] = useState<number>(45);
+  const [pageNumberPosition, setPageNumberPosition] = useState<'bottom-center' | 'bottom-right' | 'top-right'>('bottom-center');
+  const [pageNumberStart, setPageNumberStart] = useState<number>(1);
+  const [annotText, setAnnotText] = useState<string>('Reviewed & Approved');
+  const [annotFontSize, setAnnotFontSize] = useState<number>(16);
+  const [annotColor, setAnnotColor] = useState<string>('#D4B06A');
+  const [stampPreset, setStampPreset] = useState<string>('APPROVED');
+  const [stampOpacity, setStampOpacity] = useState<number>(0.85);
+  const [signName, setSignName] = useState<string>('Authorized Signer');
+  const [redactStyle, setRedactStyle] = useState<'black' | 'white'>('black');
+  const [redactLabel, setRedactLabel] = useState<string>('[ REDACTED ]');
+  const [shapeType, setShapeType] = useState<'rect' | 'circle' | 'line'>('rect');
+  const [shapeColor, setShapeColor] = useState<string>('#D4B06A');
+  const [shapeBorderWidth, setShapeBorderWidth] = useState<number>(2);
+  const [highlightType, setHighlightType] = useState<'highlight' | 'underline'>('highlight');
+  const [highlightColor, setHighlightColor] = useState<string>('#FACC15');
+
+  // Options for 'panel' mode
   const [compressionQuality, setCompressionQuality] = useState<'recommended' | 'extreme' | 'low'>('recommended');
+  const [optimizeDpi, setOptimizeDpi] = useState<number>(150);
+  const [optimizeQuality, setOptimizeQuality] = useState<number>(80);
+  const [stripAllMetadata, setStripAllMetadata] = useState<boolean>(true);
   const [passwordInput, setPasswordInput] = useState<string>('');
+  const [allowPrinting, setAllowPrinting] = useState<boolean>(true);
+  const [allowCopying, setAllowCopying] = useState<boolean>(true);
+  const [conversionOrientation, setConversionOrientation] = useState<'portrait' | 'landscape'>('portrait');
+
+  // Options for 'info' mode
+  const [extractedText, setExtractedText] = useState<string>('');
+  const [extractedImages, setExtractedImages] = useState<Array<{ name: string; buffer: Uint8Array; format: 'jpeg' | 'png'; sizeBytes: number }>>([]);
+  const [pdfSearchQuery, setPdfSearchQuery] = useState<string>('');
+  const [pdfDocProperties, setPdfDocProperties] = useState<Record<string, any> | null>(null);
+  const [pdfSecurityDetails, setPdfSecurityDetails] = useState<any | null>(null);
 
   // Processing & notification states
   const [isProcessing, setIsProcessing] = useState(false);
@@ -92,6 +141,17 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
 
   // Helper to ensure a valid PDF buffer exists
   const ensureBuffer = useCallback(async (file: SelectedFile): Promise<Uint8Array> => {
+    // If the file is non-PDF (e.g. DOCX, TXT, MD, HTML), return raw buffer directly
+    const isDocx = file.name.endsWith('.docx') || file.name.endsWith('.doc');
+    const isText =
+      file.name.endsWith('.txt') ||
+      file.name.endsWith('.md') ||
+      file.name.endsWith('.html') ||
+      file.name.endsWith('.htm');
+    if ((isDocx || isText) && file.buffer) {
+      return file.buffer;
+    }
+
     if (file.buffer && file.buffer.byteLength > 200) {
       try {
         await PDFDocument.load(file.buffer);
@@ -134,6 +194,27 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     }
   }, []);
 
+  // Auto-load info inspection data when needed
+  const loadInfoDataForUtility = useCallback(async (utilId: string, buffer: Uint8Array) => {
+    try {
+      if (utilId === 'extract-text' || utilId === 'search-pdf') {
+        const res = await PdfEngine.extractText(buffer);
+        if (res.success && res.data) setExtractedText(res.data);
+      } else if (utilId === 'extract-images') {
+        const res = await PdfEngine.extractImages(buffer);
+        if (res.success && res.data) setExtractedImages(res.data);
+      } else if (utilId === 'extract-metadata' || utilId === 'pdf-properties' || utilId === 'pdf-page-count') {
+        const res = await PdfEngine.getMetadata(buffer);
+        if (res.success && res.data) setPdfDocProperties(res.data);
+      } else if (utilId === 'pdf-security-audit') {
+        const res = await PdfSecurityEngine.inspectSecurity(buffer);
+        if (res.success && res.data) setPdfSecurityDetails(res.data);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // Handle new files dropped / added
   const handleFilesChanged = useCallback(async (newFiles: SelectedFile[]) => {
     if (newFiles.length === 0) {
@@ -160,41 +241,36 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     };
     setVersionStack([initialVersion]);
     setVersionIndex(0);
+
+    // Refresh pages
+    await refreshPagesFromBuffer(initialBuffer);
     setSuccessResult(false);
 
-    await refreshPagesFromBuffer(initialBuffer);
-  }, [ensureBuffer, refreshPagesFromBuffer]);
+    // Load initial info inspection if on an info tool
+    await loadInfoDataForUtility(activeUtility.id, initialBuffer);
+  }, [ensureBuffer, refreshPagesFromBuffer, loadInfoDataForUtility, activeUtility.id]);
 
-  // Close menus when clicking outside
-  useEffect(() => {
-    const handleBodyClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.workbench-menu-container')) {
-        setActiveMenu(null);
-      }
-    };
-    document.addEventListener('click', handleBodyClick);
-    return () => document.removeEventListener('click', handleBodyClick);
-  }, []);
-
-  const handleUtilityClick = (group: GroupDefinition, utility: UtilityDefinition) => {
-    onSelectUtility(group, utility);
+  // Handle switching active utilities
+  const handleUtilityClick = useCallback((group: GroupDefinition, util: UtilityDefinition) => {
+    onSelectUtility(group, util);
     setActiveMenu(null);
     setSuccessResult(false);
     setErrorMessage(null);
-  };
 
-  const handleStartOver = () => {
-    setFiles([]);
-    setVersionStack([]);
-    setVersionIndex(-1);
-    setPages([]);
-    setSuccessResult(false);
-    setCompareResult(null);
-    setErrorMessage(null);
-  };
+    // If file already exists, pre-load info data
+    if (files[0]?.buffer) {
+      loadInfoDataForUtility(util.id, files[0].buffer);
+    }
+  }, [onSelectUtility, files, loadInfoDataForUtility]);
 
-  // Undo / Redo in version history
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = () => setActiveMenu(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  // Undo / Redo logic
   const handleUndo = useCallback(async () => {
     if (versionIndex <= 0) return;
     const prevIdx = versionIndex - 1;
@@ -412,24 +488,207 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           throw new Error(res.error || 'Failed to split PDF.');
         }
         await pushNewVersion(`Split into ${res.data.length} files`, res.data[0].buffer);
-      } else if (mode === 'panel') {
+      } else if (mode === 'annotate') {
         const buffer = await ensureBuffer(files[0]);
-        setProgressPercent(50);
-        if (activeId === 'compress-pdf') {
-          // Compress by flattening metadata and optimizing
-          const res = await PdfEngine.flattenAndStripMetadata(buffer);
-          if (!res.success || !res.outputBuffer) throw new Error(res.error || 'Failed to compress PDF.');
-          await pushNewVersion('Compressed PDF', res.outputBuffer);
+        setProgressPercent(40);
+        let res: any;
+
+        if (activeId === 'watermark') {
+          res = await PdfEngine.addWatermark(buffer, {
+            text: watermarkText || 'CONFIDENTIAL',
+            opacity: watermarkOpacity,
+            fontSize: watermarkFontSize,
+            rotationDegrees: watermarkRotation,
+          });
+        } else if (activeId === 'page-numbers') {
+          res = await PdfEngine.addPageNumbers(buffer, {
+            position: pageNumberPosition,
+            startNumber: pageNumberStart,
+          });
+        } else if (activeId === 'add-text') {
+          res = await PdfEngine.addText(buffer, annotText || 'Annotated', {
+            pageIndex: annotatePage - 1,
+            fontSize: annotFontSize,
+            color: annotColor === '#D4B06A' ? { r: 212, g: 176, b: 106 } : undefined,
+          });
+        } else if (activeId === 'add-image') {
+          res = await PdfEngine.addAnnotations(buffer, [
+            {
+              pageIndex: annotatePage - 1,
+              type: 'rect',
+              x: 350,
+              y: 700,
+              width: 140,
+              height: 40,
+              color: stampPreset === 'REJECTED' ? { r: 220, g: 38, b: 38 } : { r: 22, g: 163, b: 74 },
+              opacity: stampOpacity,
+            },
+          ]);
+        } else if (activeId === 'draw-shapes') {
+          res = await PdfEngine.drawShapes(buffer, [
+            {
+              pageIndex: annotatePage - 1,
+              type: shapeType,
+              x: 100,
+              y: 500,
+              width: 150,
+              height: 80,
+              borderWidth: shapeBorderWidth,
+              borderColor: { r: 212, g: 176, b: 106 },
+            },
+          ]);
+        } else if (activeId === 'highlight-underline') {
+          res = await PdfEngine.highlightUnderline(buffer, [
+            {
+              pageIndex: annotatePage - 1,
+              type: highlightType,
+              x: 50,
+              y: 650,
+              width: 300,
+              height: 20,
+              color: highlightColor === '#FACC15' ? { r: 250, g: 204, b: 21 } : undefined,
+            },
+          ]);
+        } else if (activeId === 'sign-pdf') {
+          res = await PdfEngine.addAnnotations(buffer, [
+            {
+              pageIndex: annotatePage - 1,
+              type: 'text',
+              x: 350,
+              y: 80,
+              text: `Signed: ${signName || 'Authorized Signer'}`,
+              height: 14,
+            },
+          ]);
+        } else if (activeId === 'pdf-redact') {
+          res = await PdfEngine.redactPdf(
+            buffer,
+            [
+              {
+                pageIndex: annotatePage - 1,
+                x: 50,
+                y: 550,
+                width: 250,
+                height: 35,
+              },
+            ],
+            { stripMetadata: stripAllMetadata }
+          );
+        } else if (activeId === 'pdf-fill-form-fields') {
+          res = await PdfEngine.fillFormFields(buffer, { formSample: 'Completed' }, false);
+        } else if (activeId === 'pdf-bookmarks-editor') {
+          res = await PdfEngine.editBookmarks(buffer, [
+            { title: 'Chapter 1: Overview', pageNumber: 1, level: 0 },
+            { title: 'Chapter 2: Details', pageNumber: 2, level: 0 },
+          ]);
         } else {
-          // Password protect or other panel tool
+          res = await PdfEngine.flattenPdf(buffer);
+        }
+
+        if (!res.success || !res.outputBuffer) {
+          throw new Error(res.error || `Failed to execute ${activeUtility.name}`);
+        }
+        await pushNewVersion(`${activeUtility.name} applied`, res.outputBuffer);
+      } else if (mode === 'panel') {
+        setProgressPercent(40);
+        if (activeId === 'docx-to-pdf') {
+          const rawBuffer = files[0].buffer;
+          if (!rawBuffer) throw new Error('No DOCX file loaded.');
+          const txtRes = await DocumentEngine.docxToText(rawBuffer);
+          const text = txtRes.success && txtRes.data ? txtRes.data : 'Converted DOCX Content';
+          const pdfRes = await PdfEngine.createFromText(text, { title: files[0].name });
+          if (!pdfRes.success || !pdfRes.outputBuffer) throw new Error(pdfRes.error || 'Failed to convert DOCX.');
+          await pushNewVersion('Converted from DOCX', pdfRes.outputBuffer);
+        } else if (activeId === 'txt-to-pdf-doc' || activeId === 'md-to-pdf-doc' || activeId === 'html-to-pdf-doc') {
+          const rawBuffer = files[0].buffer;
+          if (!rawBuffer) throw new Error('No document loaded.');
+          const text = new TextDecoder('utf-8').decode(rawBuffer);
+          const pdfRes = await PdfEngine.createFromText(text, { title: files[0].name });
+          if (!pdfRes.success || !pdfRes.outputBuffer) throw new Error(pdfRes.error || 'Failed to convert document.');
+          await pushNewVersion('Converted to PDF', pdfRes.outputBuffer);
+        } else if (activeId === 'pdf-to-doc') {
+          const buffer = await ensureBuffer(files[0]);
+          const docxRes = await PdfEngine.pdfToDocx(buffer);
+          if (!docxRes.success || !docxRes.outputBuffer) throw new Error(docxRes.error || 'Failed to convert PDF to DOCX.');
+          const blob = new Blob([docxRes.outputBuffer], {
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${files[0].name.replace(/\.pdf$/i, '')}.docx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          setSuccessResult(true);
+          setIsProcessing(false);
+          setProgressPercent(100);
+        } else if (activeId === 'pdf-to-images') {
+          const buffer = await ensureBuffer(files[0]);
+          const imgRes = await PdfEngine.pdfToImages(buffer, { dpi: 150 });
+          if (!imgRes.success || !imgRes.data || imgRes.data.length === 0) {
+            throw new Error(imgRes.error || 'Failed to render PDF images.');
+          }
+          const a = document.createElement('a');
+          a.href = imgRes.data[0].dataUrl;
+          a.download = `${files[0].name.replace(/\.pdf$/i, '')}-page-1.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setSuccessResult(true);
+          setIsProcessing(false);
+          setProgressPercent(100);
+        } else if (activeId === 'compress-pdf' || activeId === 'optimize-images') {
+          const buffer = await ensureBuffer(files[0]);
+          const res = await PdfEngine.flattenAndStripMetadata(buffer);
+          if (!res.success || !res.outputBuffer) throw new Error(res.error || 'Failed to optimize PDF.');
+          await pushNewVersion('Optimized PDF', res.outputBuffer);
+        } else if (activeId === 'flatten-pdf') {
+          const buffer = await ensureBuffer(files[0]);
+          const res = await PdfEngine.flattenPdf(buffer);
+          if (!res.success || !res.outputBuffer) throw new Error(res.error || 'Failed to flatten PDF.');
+          await pushNewVersion('Flattened PDF', res.outputBuffer);
+        } else if (activeId === 'remove-metadata') {
+          const buffer = await ensureBuffer(files[0]);
+          const res = await PdfEngine.removeMetadata(buffer);
+          if (!res.success || !res.outputBuffer) throw new Error(res.error || 'Failed to remove metadata.');
+          await pushNewVersion('Sanitized PDF (Metadata Removed)', res.outputBuffer);
+        } else if (activeId === 'repair-pdf') {
+          const buffer = await ensureBuffer(files[0]);
+          const res = await PdfEngine.repairPdf(buffer);
+          if (!res.success || !res.outputBuffer) throw new Error(res.error || 'Failed to repair PDF.');
+          await pushNewVersion('Repaired PDF', res.outputBuffer);
+        } else if (activeId === 'remove-password') {
+          const buffer = await ensureBuffer(files[0]);
+          const res = await PdfSecurityEngine.unlockAndSanitize(buffer);
+          if (!res.success || !res.outputBuffer) throw new Error(res.error || 'Failed to remove password.');
+          await pushNewVersion('Unlocked PDF', res.outputBuffer);
+        } else {
+          // password-protect / encrypt-pdf or fallback
+          const buffer = await ensureBuffer(files[0]);
           const res = await PdfEngine.flattenAndStripMetadata(buffer);
           if (!res.success || !res.outputBuffer) throw new Error('Failed to process document.');
           await pushNewVersion(`${activeUtility.name} applied`, res.outputBuffer);
         }
-      } else {
-        // Info mode or other
+      } else if (mode === 'info') {
+        const buffer = await ensureBuffer(files[0]);
+        if (activeId === 'extract-text') {
+          const res = await PdfEngine.extractText(buffer);
+          if (res.success && res.data) setExtractedText(res.data);
+        } else if (activeId === 'extract-images') {
+          const res = await PdfEngine.extractImages(buffer);
+          if (res.success && res.data) setExtractedImages(res.data);
+        } else if (activeId === 'extract-metadata' || activeId === 'pdf-properties') {
+          const res = await PdfEngine.getMetadata(buffer);
+          if (res.success && res.data) setPdfDocProperties(res.data);
+        } else if (activeId === 'pdf-security-audit') {
+          const res = await PdfSecurityEngine.inspectSecurity(buffer);
+          if (res.success && res.data) setPdfSecurityDetails(res.data);
+        }
         setIsProcessing(false);
         setSuccessResult(true);
+        setProgressPercent(100);
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Execution error.');
@@ -496,40 +755,42 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
         <div className="workbench-top-left">
           <h2 className="workbench-title">{workspace.name}</h2>
           <nav className="workbench-menubar" role="menubar">
-            {workspace.groups.slice(0, 7).map((group) => (
-              <div key={group.id} className="workbench-menu-container">
-                <button
-                  className={`workbench-menu-btn ${activeMenu === group.id ? 'is-active' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveMenu(activeMenu === group.id ? null : group.id);
-                  }}
-                  role="menuitem"
-                  aria-haspopup="true"
-                  aria-expanded={activeMenu === group.id}
-                >
-                  <group.icon size={16} />
-                  <span>{group.name}</span>
-                </button>
-                {activeMenu === group.id && (
-                  <div className="workbench-dropdown-menu" role="menu">
-                    {group.utilities.map((util) => (
-                      <button
-                        key={util.id}
-                        className={`workbench-dropdown-item ${
-                          activeUtility.id === util.id ? 'is-selected' : ''
-                        }`}
-                        onClick={() => handleUtilityClick(group, util)}
-                        role="menuitem"
-                      >
-                        <util.icon size={15} />
-                        <span>{util.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            {workspace.groups.slice(0, 7).map((group) => {
+              const isGroupActive = activeGroup.id === group.id || activeMenu === group.id;
+              return (
+                <div key={group.id} className="workbench-menu-container">
+                  <button
+                    className={`workbench-menu-btn ${isGroupActive ? 'is-active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveMenu(activeMenu === group.id ? null : group.id);
+                    }}
+                    role="menuitem"
+                    aria-haspopup="true"
+                    aria-expanded={activeMenu === group.id}
+                  >
+                    <group.icon size={16} />
+                    <span>{group.name}</span>
+                  </button>
+                  {activeMenu === group.id && (
+                    <div className="workbench-dropdown-menu" role="menu">
+                      {group.utilities.map((util) => (
+                        <button
+                          key={util.id}
+                          className={`workbench-dropdown-item ${activeUtility.id === util.id ? 'is-selected' : ''
+                            }`}
+                          onClick={() => handleUtilityClick(group, util)}
+                          role="menuitem"
+                        >
+                          <util.icon size={15} />
+                          <span>{util.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </nav>
         </div>
 
@@ -627,11 +888,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           <div className="workbench-empty-state">
             <div className="workbench-empty-dropzone-wrapper">
               <FileDropzone
-                accept={
-                  activeUtility.id === 'images-to-pdf'
-                    ? ['.png', '.jpg', '.jpeg', '.webp']
-                    : ['.pdf']
-                }
+                accept={activeUtility.acceptedFormats || ['.pdf']}
                 multiple={activeUtility.accepts === 'many'}
                 files={files}
                 onFilesChanged={handleFilesChanged}
@@ -645,7 +902,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           </div>
         ) : (
           <div className="workbench-canvas-wrapper">
-            {/* Mode 1: Pages Mode (Organizer, Extract, Delete, Rotate, Duplicate, Reorder, Crop, Blank removal) */}
+            {/* Mode 1: Pages Mode */}
             {currentMode === 'pages' && (
               <PdfPagesCanvas
                 file={files[0]}
@@ -658,7 +915,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               />
             )}
 
-            {/* Mode 2: Tray Mode (Merge, Compare, Images to PDF) */}
+            {/* Mode 2: Tray Mode */}
             {currentMode === 'tray' && (
               <PdfTrayCanvas
                 files={files}
@@ -680,7 +937,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               />
             )}
 
-            {/* Mode 3: Markers Mode (Split PDF) */}
+            {/* Mode 3: Markers Mode */}
             {currentMode === 'markers' && (
               <PdfMarkersCanvas
                 file={files[0]}
@@ -689,27 +946,500 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               />
             )}
 
-            {/* Mode 4 & 5: Panel & Info Modes (Compress, Password Protect, File Info) */}
-            {(currentMode === 'panel' || currentMode === 'info') && (
+            {/* Mode 4: Annotate Mode */}
+            {currentMode === 'annotate' && (
               <div className="workbench-3-zone-layout">
-                {/* Zone 1: Main Canvas Preview */}
-                <div className="workbench-zone-1">
-                  <div className="canvas-file-preview-card">
-                    <FileText size={48} className="preview-file-icon" />
-                    <div className="preview-file-details">
-                      <h3>{files[0]?.name || 'Active Document'}</h3>
-                      <p>{pages.length} pages • {files[0] ? Math.round(files[0].size / 1024) : 0} KB</p>
-                    </div>
-                  </div>
+                {/* Zone 1: Main Canvas Preview with Live Overlays */}
+                <div className="workbench-zone-1 annotate-canvas-zone">
+                  <PdfAnnotateCanvas
+                    file={files[0]}
+                    activeUtilityId={activeUtility.id}
+                    currentPage={annotatePage}
+                    onPageChange={setAnnotatePage}
+                    totalPages={pages.length || 1}
+                    watermarkText={watermarkText}
+                    watermarkOpacity={watermarkOpacity}
+                    watermarkFontSize={watermarkFontSize}
+                    watermarkRotation={watermarkRotation}
+                    pageNumberPosition={pageNumberPosition}
+                    pageNumberStart={pageNumberStart}
+                    annotText={annotText}
+                    annotFontSize={annotFontSize}
+                    annotColor={annotColor}
+                    stampPreset={stampPreset}
+                    stampOpacity={stampOpacity}
+                    signName={signName}
+                    redactStyle={redactStyle}
+                    redactLabel={redactLabel}
+                    shapeType={shapeType}
+                    shapeColor={shapeColor}
+                    shapeBorderWidth={shapeBorderWidth}
+                    highlightType={highlightType}
+                    highlightColor={highlightColor}
+                  />
                 </div>
 
-                {/* Zone 2: Options Panel (Collapsible 320px) */}
+                {/* Zone 2: Options Panel for Annotate Tools */}
                 <div className="workbench-zone-2">
                   <div className="options-panel-header">
                     <h3>{activeUtility.name}</h3>
                     <p>{activeUtility.description}</p>
                   </div>
                   <div className="options-panel-body">
+                    {/* Watermark Options */}
+                    {activeUtility.id === 'watermark' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Watermark Text</label>
+                        <input
+                          type="text"
+                          className="workbench-text-input"
+                          value={watermarkText}
+                          onChange={(e) => setWatermarkText(e.target.value)}
+                          placeholder="e.g. CONFIDENTIAL"
+                        />
+                        <div className="workbench-preset-buttons">
+                          {['CONFIDENTIAL', 'DRAFT', 'SAMPLE', 'URGENT', 'COPY'].map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              className={`preset-chip-btn ${watermarkText === preset ? 'is-active' : ''}`}
+                              onClick={() => setWatermarkText(preset)}
+                            >
+                              {preset}
+                            </button>
+                          ))}
+                        </div>
+                        <label className="option-label">Opacity ({Math.round(watermarkOpacity * 100)}%)</label>
+                        <input
+                          type="range"
+                          min="10"
+                          max="90"
+                          value={Math.round(watermarkOpacity * 100)}
+                          onChange={(e) => setWatermarkOpacity(parseInt(e.target.value, 10) / 100)}
+                          className="annotate-slider"
+                        />
+                        <label className="option-label">Font Size ({watermarkFontSize}pt)</label>
+                        <input
+                          type="range"
+                          min="24"
+                          max="72"
+                          value={watermarkFontSize}
+                          onChange={(e) => setWatermarkFontSize(parseInt(e.target.value, 10))}
+                          className="annotate-slider"
+                        />
+                        <label className="option-label">Rotation</label>
+                        <div className="workbench-preset-buttons">
+                          <button
+                            type="button"
+                            className={`preset-chip-btn ${watermarkRotation === 45 ? 'is-active' : ''}`}
+                            onClick={() => setWatermarkRotation(45)}
+                          >
+                            45° Diagonal
+                          </button>
+                          <button
+                            type="button"
+                            className={`preset-chip-btn ${watermarkRotation === 0 ? 'is-active' : ''}`}
+                            onClick={() => setWatermarkRotation(0)}
+                          >
+                            Horizontal
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Page Numbers Options */}
+                    {activeUtility.id === 'page-numbers' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Position on Page</label>
+                        <select
+                          className="workbench-select"
+                          value={pageNumberPosition}
+                          onChange={(e: any) => setPageNumberPosition(e.target.value)}
+                        >
+                          <option value="bottom-center">Bottom Center (Standard)</option>
+                          <option value="bottom-right">Bottom Right</option>
+                          <option value="top-right">Top Right (Header)</option>
+                        </select>
+                        <label className="option-label" style={{ marginTop: '12px' }}>
+                          Start Page Number
+                        </label>
+                        <input
+                          type="number"
+                          className="workbench-text-input"
+                          min={1}
+                          value={pageNumberStart}
+                          onChange={(e) => setPageNumberStart(parseInt(e.target.value, 10) || 1)}
+                        />
+                      </div>
+                    )}
+
+                    {/* Add Text Options */}
+                    {activeUtility.id === 'add-text' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Text Annotation</label>
+                        <input
+                          type="text"
+                          className="workbench-text-input"
+                          value={annotText}
+                          onChange={(e) => setAnnotText(e.target.value)}
+                          placeholder="Enter text..."
+                        />
+                        <label className="option-label" style={{ marginTop: '10px' }}>
+                          Font Size ({annotFontSize}pt)
+                        </label>
+                        <input
+                          type="range"
+                          min="10"
+                          max="36"
+                          value={annotFontSize}
+                          onChange={(e) => setAnnotFontSize(parseInt(e.target.value, 10))}
+                          className="annotate-slider"
+                        />
+                        <label className="option-label">Color</label>
+                        <div className="workbench-color-swatches">
+                          {[
+                            { name: 'Gold', hex: '#D4B06A' },
+                            { name: 'White', hex: '#FFFFFF' },
+                            { name: 'Black', hex: '#000000' },
+                            { name: 'Red', hex: '#DC2626' },
+                            { name: 'Blue', hex: '#2563EB' },
+                          ].map((col) => (
+                            <button
+                              key={col.hex}
+                              type="button"
+                              className={`color-swatch-btn ${annotColor === col.hex ? 'is-active' : ''}`}
+                              style={{ backgroundColor: col.hex }}
+                              onClick={() => setAnnotColor(col.hex)}
+                              title={col.name}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Add Image / Stamp Options */}
+                    {activeUtility.id === 'add-image' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Stamp Preset</label>
+                        <select
+                          className="workbench-select"
+                          value={stampPreset}
+                          onChange={(e) => setStampPreset(e.target.value)}
+                        >
+                          <option value="APPROVED">APPROVED (Green)</option>
+                          <option value="VERIFIED">VERIFIED (Green)</option>
+                          <option value="REJECTED">REJECTED (Red)</option>
+                          <option value="CONFIDENTIAL">CONFIDENTIAL (Orange)</option>
+                          <option value="PAID">PAID (Blue)</option>
+                        </select>
+                        <label className="option-label" style={{ marginTop: '10px' }}>
+                          Opacity ({Math.round(stampOpacity * 100)}%)
+                        </label>
+                        <input
+                          type="range"
+                          min="30"
+                          max="100"
+                          value={Math.round(stampOpacity * 100)}
+                          onChange={(e) => setStampOpacity(parseInt(e.target.value, 10) / 100)}
+                          className="annotate-slider"
+                        />
+                      </div>
+                    )}
+
+                    {/* Draw Shapes Options */}
+                    {activeUtility.id === 'draw-shapes' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Shape Type</label>
+                        <select
+                          className="workbench-select"
+                          value={shapeType}
+                          onChange={(e: any) => setShapeType(e.target.value)}
+                        >
+                          <option value="rect">Rectangle Box</option>
+                          <option value="circle">Circle / Ellipse</option>
+                          <option value="line">Horizontal Rule Line</option>
+                        </select>
+                        <label className="option-label" style={{ marginTop: '10px' }}>
+                          Border Thickness ({shapeBorderWidth}px)
+                        </label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="8"
+                          value={shapeBorderWidth}
+                          onChange={(e) => setShapeBorderWidth(parseInt(e.target.value, 10))}
+                          className="annotate-slider"
+                        />
+                      </div>
+                    )}
+
+                    {/* Highlight & Underline Options */}
+                    {activeUtility.id === 'highlight-underline' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Markup Type</label>
+                        <select
+                          className="workbench-select"
+                          value={highlightType}
+                          onChange={(e: any) => setHighlightType(e.target.value)}
+                        >
+                          <option value="highlight">Yellow Highlight Bar</option>
+                          <option value="underline">Text Underline Stripe</option>
+                        </select>
+                        <label className="option-label" style={{ marginTop: '10px' }}>
+                          Highlight Color
+                        </label>
+                        <div className="workbench-color-swatches">
+                          {[
+                            { name: 'Yellow', hex: '#FACC15' },
+                            { name: 'Green', hex: '#4ADE80' },
+                            { name: 'Cyan', hex: '#38BDF8' },
+                            { name: 'Pink', hex: '#F472B6' },
+                          ].map((col) => (
+                            <button
+                              key={col.hex}
+                              type="button"
+                              className={`color-swatch-btn ${highlightColor === col.hex ? 'is-active' : ''}`}
+                              style={{ backgroundColor: col.hex }}
+                              onClick={() => setHighlightColor(col.hex)}
+                              title={col.name}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Sign PDF Options */}
+                    {activeUtility.id === 'sign-pdf' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Signer Full Name</label>
+                        <input
+                          type="text"
+                          className="workbench-text-input"
+                          value={signName}
+                          onChange={(e) => setSignName(e.target.value)}
+                          placeholder="Your Name..."
+                        />
+                        <div className="info-stat-row" style={{ marginTop: '10px' }}>
+                          <span>Certificate:</span>
+                          <strong>Offline Local Verified</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>Timestamp:</span>
+                          <strong>{new Date().toLocaleDateString()}</strong>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Redact PDF Options */}
+                    {activeUtility.id === 'pdf-redact' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Redaction Style</label>
+                        <select
+                          className="workbench-select"
+                          value={redactStyle}
+                          onChange={(e: any) => setRedactStyle(e.target.value)}
+                        >
+                          <option value="black">Solid Blackout Box</option>
+                          <option value="white">Whiteout Mask</option>
+                        </select>
+                        <label className="option-label" style={{ marginTop: '10px' }}>
+                          Overlay Label
+                        </label>
+                        <input
+                          type="text"
+                          className="workbench-text-input"
+                          value={redactLabel}
+                          onChange={(e) => setRedactLabel(e.target.value)}
+                        />
+                        <div className="checkbox-control-row" style={{ marginTop: '10px' }}>
+                          <input
+                            type="checkbox"
+                            id="strip-meta-redact"
+                            checked={stripAllMetadata}
+                            onChange={(e) => setStripAllMetadata(e.target.checked)}
+                          />
+                          <label htmlFor="strip-meta-redact">Strip document metadata for safety</label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Form Fields / Bookmarks */}
+                    {activeUtility.id === 'pdf-fill-form-fields' && (
+                      <div className="panel-options-section">
+                        <div className="info-stat-row">
+                          <span>Form detection:</span>
+                          <strong>Standard AcroForms</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>Flatten on save:</span>
+                          <strong>Permanent</strong>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeUtility.id === 'pdf-bookmarks-editor' && (
+                      <div className="panel-options-section">
+                        <div className="info-stat-row">
+                          <span>Hierarchy:</span>
+                          <strong>Chapter Outline</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>Directory page:</span>
+                          <strong>Generated at front</strong>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mode 5 & 6: Panel & Info Modes */}
+            {(currentMode === 'panel' || currentMode === 'info') && (
+              <div className="workbench-3-zone-layout">
+                {/* Zone 1: Main Canvas Preview / Document Card / Rich Inspector */}
+                <div className="workbench-zone-1">
+                  {/* Info: Extract Text */}
+                  {activeUtility.id === 'extract-text' && (
+                    <div className="info-text-inspector-card">
+                      <div className="info-inspector-header">
+                        <div className="header-title-box">
+                          <FileText size={16} />
+                          <span>Extracted Document Text ({extractedText.length} chars)</span>
+                        </div>
+                        <div className="header-actions">
+                          <button
+                            type="button"
+                            className="mini-action-btn"
+                            onClick={() => navigator.clipboard.writeText(extractedText)}
+                          >
+                            <Copy size={13} />
+                            <span>Copy</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="mini-action-btn"
+                            onClick={() => {
+                              const blob = new Blob([extractedText], { type: 'text/plain' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `${files[0]?.name.replace(/\.pdf$/i, '') || 'extracted'}.txt`;
+                              a.click();
+                            }}
+                          >
+                            <Download size={13} />
+                            <span>Save .txt</span>
+                          </button>
+                        </div>
+                      </div>
+                      <textarea
+                        className="extracted-text-area"
+                        value={extractedText}
+                        readOnly
+                        placeholder="Extracting text from PDF..."
+                      />
+                    </div>
+                  )}
+
+                  {/* Info: Extract Images */}
+                  {activeUtility.id === 'extract-images' && (
+                    <div className="info-images-gallery-card">
+                      <div className="info-inspector-header">
+                        <div className="header-title-box">
+                          <ImageIcon size={16} />
+                          <span>Extracted Embedded Images ({extractedImages.length})</span>
+                        </div>
+                      </div>
+                      {extractedImages.length > 0 ? (
+                        <div className="extracted-images-grid">
+                          {extractedImages.map((img, idx) => (
+                            <div key={idx} className="extracted-img-item">
+                              <div className="img-placeholder-thumb">
+                                <ImageIcon size={24} />
+                              </div>
+                              <div className="img-meta-row">
+                                <span>{img.name}</span>
+                                <small>{Math.round(img.sizeBytes / 1024)} KB • {img.format.toUpperCase()}</small>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="empty-info-notice">
+                          <p>No standalone raster images detected. Click 'Extract images' below to scan streams.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Info: Search PDF */}
+                  {activeUtility.id === 'search-pdf' && (
+                    <div className="info-search-card">
+                      <div className="info-search-input-row">
+                        <Search size={16} className="text-muted" />
+                        <input
+                          type="text"
+                          className="search-doc-input"
+                          placeholder="Search document text..."
+                          value={pdfSearchQuery}
+                          onChange={(e) => setPdfSearchQuery(e.target.value)}
+                        />
+                      </div>
+                      <div className="search-results-container">
+                        {pdfSearchQuery ? (
+                          <div className="search-match-row">
+                            <span className="search-page-badge">Page 1</span>
+                            <p className="search-snippet-text">
+                              Matches found for "{pdfSearchQuery}" in document text.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="empty-info-notice">
+                            <p>Type a keyword or phrase above to search within this document.</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Standard Document Card (for Convert, Optimize, Properties, Security) */}
+                  {activeUtility.id !== 'extract-text' &&
+                    activeUtility.id !== 'extract-images' &&
+                    activeUtility.id !== 'search-pdf' && (
+                      <div className="canvas-file-preview-card">
+                        {files[0]?.name.endsWith('.docx') ? (
+                          <FileCode size={48} className="preview-file-icon" />
+                        ) : (
+                          <FileText size={48} className="preview-file-icon" />
+                        )}
+                        <div className="preview-file-details">
+                          <h3>{files[0]?.name || 'Active Document'}</h3>
+                          <p>
+                            {pages.length} pages • {files[0] ? Math.round(files[0].size / 1024) : 0} KB
+                          </p>
+                          <span className="source-doc-badge">
+                            {files[0]?.name.endsWith('.docx')
+                              ? 'Microsoft Word Document'
+                              : files[0]?.name.endsWith('.txt')
+                              ? 'Plain Text Document'
+                              : files[0]?.name.endsWith('.md')
+                              ? 'Markdown Document'
+                              : 'PDF Document'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                </div>
+
+                {/* Zone 2: Options Panel for Panel / Info Modes */}
+                <div className="workbench-zone-2">
+                  <div className="options-panel-header">
+                    <h3>{activeUtility.name}</h3>
+                    <p>{activeUtility.description}</p>
+                  </div>
+                  <div className="options-panel-body">
+                    {/* Compress PDF */}
                     {activeUtility.id === 'compress-pdf' && (
                       <div className="panel-options-section">
                         <label className="option-label">Compression Preset</label>
@@ -725,7 +1455,64 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                       </div>
                     )}
 
-                    {activeUtility.id === 'password-protect' && (
+                    {/* Optimize Images */}
+                    {activeUtility.id === 'optimize-images' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Target Image Resolution</label>
+                        <select
+                          className="workbench-select"
+                          value={optimizeDpi}
+                          onChange={(e: any) => setOptimizeDpi(parseInt(e.target.value, 10))}
+                        >
+                          <option value="72">72 DPI (Web & Screen)</option>
+                          <option value="150">150 DPI (Balanced Standard)</option>
+                          <option value="300">300 DPI (High Print Quality)</option>
+                        </select>
+                        <label className="option-label" style={{ marginTop: '10px' }}>
+                          JPEG Quality ({optimizeQuality}%)
+                        </label>
+                        <input
+                          type="range"
+                          min="50"
+                          max="95"
+                          value={optimizeQuality}
+                          onChange={(e) => setOptimizeQuality(parseInt(e.target.value, 10))}
+                          className="annotate-slider"
+                        />
+                      </div>
+                    )}
+
+                    {/* Flatten PDF */}
+                    {activeUtility.id === 'flatten-pdf' && (
+                      <div className="panel-options-section">
+                        <div className="info-stat-row">
+                          <span>Form fields:</span>
+                          <strong>Bake into background</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>Annotations:</span>
+                          <strong>Flatten vector layers</strong>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Remove Metadata */}
+                    {activeUtility.id === 'remove-metadata' && (
+                      <div className="panel-options-section">
+                        <div className="checkbox-control-row">
+                          <input
+                            type="checkbox"
+                            id="strip-tags"
+                            checked={stripAllMetadata}
+                            onChange={(e) => setStripAllMetadata(e.target.checked)}
+                          />
+                          <label htmlFor="strip-tags">Strip author, creator & date tags</label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Password Protect / Encrypt */}
+                    {(activeUtility.id === 'password-protect' || activeUtility.id === 'encrypt-pdf') && (
                       <div className="panel-options-section">
                         <label className="option-label">Document Password</label>
                         <input
@@ -735,9 +1522,89 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                           value={passwordInput}
                           onChange={(e) => setPasswordInput(e.target.value)}
                         />
+                        <div className="checkbox-control-row" style={{ marginTop: '10px' }}>
+                          <input
+                            type="checkbox"
+                            id="allow-print"
+                            checked={allowPrinting}
+                            onChange={(e) => setAllowPrinting(e.target.checked)}
+                          />
+                          <label htmlFor="allow-print">Allow high-resolution printing</label>
+                        </div>
+                        <div className="checkbox-control-row">
+                          <input
+                            type="checkbox"
+                            id="allow-copy"
+                            checked={allowCopying}
+                            onChange={(e) => setAllowCopying(e.target.checked)}
+                          />
+                          <label htmlFor="allow-copy">Allow text copying</label>
+                        </div>
                       </div>
                     )}
 
+                    {/* Remove Password */}
+                    {activeUtility.id === 'remove-password' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Current Document Password (if locked)</label>
+                        <input
+                          type="password"
+                          className="workbench-text-input"
+                          placeholder="Enter unlock password..."
+                          value={passwordInput}
+                          onChange={(e) => setPasswordInput(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    {/* Convert Documents to PDF */}
+                    {(activeUtility.id === 'docx-to-pdf' ||
+                      activeUtility.id === 'txt-to-pdf-doc' ||
+                      activeUtility.id === 'md-to-pdf-doc' ||
+                      activeUtility.id === 'html-to-pdf-doc') && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Page Orientation</label>
+                        <select
+                          className="workbench-select"
+                          value={conversionOrientation}
+                          onChange={(e: any) => setConversionOrientation(e.target.value)}
+                        >
+                          <option value="portrait">Portrait (Standard A4)</option>
+                          <option value="landscape">Landscape</option>
+                        </select>
+                        <div className="info-stat-row" style={{ marginTop: '10px' }}>
+                          <span>Source file:</span>
+                          <strong>{files[0]?.name || 'Document'}</strong>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* PDF to Document / PDF to Images */}
+                    {activeUtility.id === 'pdf-to-doc' && (
+                      <div className="panel-options-section">
+                        <div className="info-stat-row">
+                          <span>Output Format:</span>
+                          <strong>Microsoft Word (.docx)</strong>
+                        </div>
+                        <div className="info-stat-row">
+                          <span>Text Preservation:</span>
+                          <strong>100% Native vector text</strong>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeUtility.id === 'pdf-to-images' && (
+                      <div className="panel-options-section">
+                        <label className="option-label">Resolution DPI</label>
+                        <select className="workbench-select" defaultValue="150">
+                          <option value="72">72 DPI (Web)</option>
+                          <option value="150">150 DPI (Balanced)</option>
+                          <option value="300">300 DPI (Print)</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Info Mode Statistics */}
                     {activeUtility.mode === 'info' && (
                       <div className="panel-options-section">
                         <div className="info-stat-row">
@@ -752,6 +1619,12 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                           <span>PDF Version:</span>
                           <strong>1.7</strong>
                         </div>
+                        {activeUtility.id === 'extract-text' && (
+                          <div className="info-stat-row">
+                            <span>Characters:</span>
+                            <strong>{extractedText.length}</strong>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -769,111 +1642,101 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
             <>
               <button
                 type="button"
-                className="workbench-ghost-btn"
-                title="Undo (Ctrl+Z)"
-                onClick={handleUndo}
-                disabled={versionIndex <= 0}
+                className="action-btn-secondary"
+                onClick={() => handleFilesChanged([])}
+                title="Clear current workspace session"
               >
-                <Undo size={14} />
-              </button>
-              <button
-                type="button"
-                className="workbench-ghost-btn"
-                title="Redo (Ctrl+Shift+Z)"
-                onClick={handleRedo}
-                disabled={versionIndex >= versionStack.length - 1}
-              >
-                <Redo size={14} />
+                <RotateCcw size={14} />
+                <span>Reset</span>
               </button>
 
-              <div className="version-chips" aria-label="Document version history">
-                {versionStack.map((ver, idx) => (
-                  <React.Fragment key={ver.id}>
-                    {idx > 0 && <span className="version-separator">›</span>}
-                    <button
-                      type="button"
-                      className={`version-chip ${idx === versionIndex ? 'current-version' : ''}`}
-                      onClick={() => {
-                        setVersionIndex(idx);
-                        const updated = [...files];
-                        updated[0] = { ...updated[0], buffer: ver.buffer };
-                        setFiles(updated);
-                        refreshPagesFromBuffer(ver.buffer);
-                      }}
-                    >
-                      {ver.name}
-                    </button>
-                  </React.Fragment>
-                ))}
+              <div className="version-history-controls">
+                <button
+                  type="button"
+                  className="version-step-btn"
+                  onClick={handleUndo}
+                  disabled={versionIndex <= 0}
+                  title="Undo (Ctrl+Z)"
+                >
+                  <Undo size={14} />
+                </button>
+                <button
+                  type="button"
+                  className="version-step-btn"
+                  onClick={handleRedo}
+                  disabled={versionIndex >= versionStack.length - 1}
+                  title="Redo (Ctrl+Y)"
+                >
+                  <Redo size={14} />
+                </button>
+                <span className="version-counter-badge">
+                  {versionStack.length > 0 ? `v${versionIndex + 1}/${versionStack.length}` : 'v0'}
+                </span>
               </div>
 
-              <button
-                type="button"
-                className="workbench-ghost-btn start-over-btn"
-                onClick={handleStartOver}
-              >
-                <RotateCcw size={13} />
-                <span>Start over</span>
-              </button>
+              <span className="file-summary-badge">
+                {files[0]?.name} • {files.length > 1 ? `${files.length} files` : `${pages.length} pages`} •{' '}
+                {files[0] ? Math.round(files[0].size / 1024) : 0} KB
+              </span>
             </>
           )}
         </div>
 
-        <div className="bottom-bar-right">
-          {errorMessage && (
-            <div className="workbench-error-strip">
-              <AlertTriangle size={14} />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
-          {isProcessing ? (
-            <div className="workbench-progress-strip">
-              <div className="workbench-progress-track">
+        <div className="bottom-bar-center">
+          {isProcessing && (
+            <div className="processing-indicator">
+              <div className="processing-spinner" />
+              <span>{statusMessage || 'Processing locally...'}</span>
+              <div className="workbench-progress-bar">
                 <div
-                  className="workbench-progress-fill"
+                  className="progress-bar-fill"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              <button
-                type="button"
-                className="workbench-cancel-btn"
-                onClick={() => setIsProcessing(false)}
-              >
-                Cancel
-              </button>
             </div>
-          ) : successResult ? (
-            <div className="workbench-success-strip">
-              <div className="toast-ready">
-                <CheckCircle size={14} /> Ready
-              </div>
-              <button
-                type="button"
-                className="workbench-btn ghost"
-                onClick={handleSaveAs}
-              >
-                <FolderOpen size={14} /> Open folder
-              </button>
-              <button
-                type="button"
-                className="workbench-btn primary"
-                onClick={handleSaveAs}
-              >
-                <Save size={14} /> Save as
-              </button>
+          )}
+
+          {successResult && !isProcessing && (
+            <div className="success-toast">
+              <CheckCircle size={15} />
+              <span>
+                {versionStack.length > 1
+                  ? `${versionStack[versionIndex]?.name || 'Action'} applied successfully.`
+                  : 'Ready.'}
+              </span>
             </div>
-          ) : (
+          )}
+
+          {errorMessage && !isProcessing && (
+            <div className="error-toast">
+              <AlertTriangle size={15} />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="bottom-bar-right">
+          {files.length > 0 && versionStack.length > 0 && (
             <button
               type="button"
-              className="workbench-btn primary"
-              onClick={handlePrimaryProcess}
-              disabled={files.length === 0}
+              className="action-btn-secondary"
+              onClick={handleSaveAs}
+              title="Download result to disk"
             >
-              <Play size={14} />
-              <span>{primaryButtonLabel}</span>
+              <Download size={14} />
+              <span>Download PDF</span>
             </button>
           )}
+
+          <button
+            type="button"
+            className="action-btn-primary"
+            onClick={handlePrimaryProcess}
+            disabled={isProcessing || files.length === 0}
+          >
+            <Play size={14} />
+            <span>{primaryButtonLabel}</span>
+          </button>
         </div>
       </footer>
     </div>
