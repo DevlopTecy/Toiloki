@@ -6008,6 +6008,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 6. DEVELOPER WORKSPACE
   {
     id: 'developer',
+    workbench: 'editor',
     name: 'Developer',
     description: 'Format code, encode/decode, generate tokens, test regex, and web tools.',
     icon: Code2,
@@ -7213,6 +7214,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 7. CALCULATOR & CONVERTERS WORKSPACE
   {
     id: 'calculator',
+    workbench: 'standalone',
     name: 'Calculator & Converters',
     description: 'Perform arithmetic, scientific, math, engineering, and unit conversions.',
     icon: Calculator,
@@ -9185,6 +9187,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 9. SECURITY & PRIVACY WORKSPACE
   {
     id: 'security',
+    workbench: 'standalone',
     name: 'Security & Privacy',
     description: 'Local encryption, password generators, secure shredding, and zero-knowledge privacy tools.',
     icon: ShieldCheck,
@@ -10167,6 +10170,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 11. NETWORK & WEB WORKSPACE
   {
     id: 'network',
+    workbench: 'standalone',
     name: 'Network & Web',
     description: 'Local networking utilities, URL composition, CIDR calculators, and web metadata generators.',
     icon: Globe,
@@ -10575,6 +10579,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 12. COLOR & DESIGN WORKSPACE
   {
     id: 'design',
+    workbench: 'standalone',
     name: 'Color & Design',
     description: 'Palette generation, WCAG contrast verification, SVG optimization, and design token pipelines.',
     icon: Palette,
@@ -11059,6 +11064,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   // 13. SYSTEM & MAINTENANCE WORKSPACE
   {
     id: 'system',
+    workbench: 'standalone',
     name: 'System & Maintenance',
     description: 'Inspect disk usage trees, find duplicate bloat, clean temporary caches, and review system configuration.',
     icon: Cpu,

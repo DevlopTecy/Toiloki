@@ -228,7 +228,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
     >
       <div className="dev-tool-body">
         {/* Code Formatter & JSON using Template B SplitEditor */}
-        {utilityId === 'dev-formatter' && (
+        {(utilityId === 'dev-formatter' || utilityId.startsWith('format-') || groupId === 'dev-formatter') && (
           <SplitEditor
             toolbarOptions={
               <div className="segmented-chip-row">

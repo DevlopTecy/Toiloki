@@ -50,6 +50,12 @@ import { PdfPagesCanvas, PageCardItem } from './pdf/PdfPagesCanvas';
 import { PdfTrayCanvas } from './pdf/PdfTrayCanvas';
 import { PdfMarkersCanvas } from './pdf/PdfMarkersCanvas';
 import { PdfAnnotateCanvas } from './pdf/PdfAnnotateCanvas';
+import { CalculatorWorkspaceView } from '../../workspaces/calculator/CalculatorWorkspaceView';
+import { DeveloperWorkspaceView } from '../../workspaces/developer/DeveloperWorkspaceView';
+import { SecurityWorkspaceView } from '../../workspaces/security/SecurityWorkspaceView';
+import { NetworkWorkspaceView } from '../../workspaces/network/NetworkWorkspaceView';
+import { DesignWorkspaceView } from '../../workspaces/design/DesignWorkspaceView';
+import { SystemWorkspaceView } from '../../workspaces/system/SystemWorkspaceView';
 import './WorkbenchShell.css';
 
 interface VersionItem {
@@ -780,6 +786,13 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     setActiveMenu(null);
     setSuccessResult(false);
     setErrorMessage(null);
+
+    try {
+      localStorage.setItem(
+        `toiloki_last_utility_${workspace.id}`,
+        JSON.stringify({ groupId: group.id, utilityId: util.id })
+      );
+    } catch {}
 
     // If file already exists, pre-load info data
     if (files[0]?.buffer) {
@@ -1903,7 +1916,8 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const needsFile = activeUtility.needsFile !== false;
+  const isStandaloneWorkspace = workspace.workbench === 'standalone' || workspace.workbench === 'editor';
+  const needsFile = !isStandaloneWorkspace && activeUtility.needsFile !== false;
   const showEmptyState = needsFile && files.length === 0;
   const currentMode = activeUtility.mode || 'panel';
 
@@ -2129,6 +2143,57 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                 }
               />
             </div>
+          </div>
+        ) : isStandaloneWorkspace ? (
+          <div className="workbench-standalone-canvas">
+            {workspace.id === 'calculator' && (
+              <CalculatorWorkspaceView utilityId={activeUtility.id} />
+            )}
+            {workspace.id === 'developer' && (
+              <DeveloperWorkspaceView
+                groupId={activeGroup.id}
+                utilityId={activeUtility.id}
+                toolName={activeUtility.name}
+                toolDescription={activeUtility.description}
+                onBackToUtilities={() => {}}
+              />
+            )}
+            {workspace.id === 'security' && (
+              <SecurityWorkspaceView
+                groupId={activeGroup.id}
+                utilityId={activeUtility.id}
+                toolName={activeUtility.name}
+                toolDescription={activeUtility.description}
+                onBackToUtilities={() => {}}
+              />
+            )}
+            {workspace.id === 'network' && (
+              <NetworkWorkspaceView
+                groupId={activeGroup.id}
+                utilityId={activeUtility.id}
+                toolName={activeUtility.name}
+                toolDescription={activeUtility.description}
+                onBackToUtilities={() => {}}
+              />
+            )}
+            {workspace.id === 'design' && (
+              <DesignWorkspaceView
+                groupId={activeGroup.id}
+                utilityId={activeUtility.id}
+                toolName={activeUtility.name}
+                toolDescription={activeUtility.description}
+                onBackToUtilities={() => {}}
+              />
+            )}
+            {workspace.id === 'system' && (
+              <SystemWorkspaceView
+                groupId={activeGroup.id}
+                utilityId={activeUtility.id}
+                toolName={activeUtility.name}
+                toolDescription={activeUtility.description}
+                onBackToUtilities={() => {}}
+              />
+            )}
           </div>
         ) : (
           <div className="workbench-canvas-wrapper">
@@ -4066,7 +4131,8 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
       </main>
 
       {/* Zone 3: Bottom Action Bar */}
-      <footer className="workbench-bottom-bar">
+      {!isStandaloneWorkspace && (
+        <footer className="workbench-bottom-bar">
         <div className="bottom-bar-left">
           {files.length > 0 && (
             <>
@@ -4188,6 +4254,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           </button>
         </div>
       </footer>
+      )}
     </div>
   );
 };
