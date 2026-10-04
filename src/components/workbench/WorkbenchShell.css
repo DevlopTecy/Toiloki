@@ -404,6 +404,12 @@
   gap: 12px;
 }
 
+.workbench-save-trust-note {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 .workbench-error-strip {
   display: flex;
   align-items: center;

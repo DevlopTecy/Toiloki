@@ -4231,15 +4231,18 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
 
         <div className="bottom-bar-right">
           {files.length > 0 && versionStack.length > 0 && (
-            <button
-              type="button"
-              className="action-btn-secondary"
-              onClick={handleSaveAs}
-              title="Download result to disk"
-            >
-              <Download size={14} />
-              <span>{workspace.id === 'images' ? 'Download Image' : workspace.id === 'documents' ? 'Download Document' : workspace.id === 'data' ? `Download ${dataFormat.toUpperCase()}` : workspace.id === 'text' ? 'Download Text' : workspace.id === 'media' ? `Download ${mediaTargetFormat.toUpperCase()}` : workspace.id === 'files' ? 'Download Archive' : 'Download PDF'}</span>
-            </button>
+            <>
+              <span className="workbench-save-trust-note">Your original file isn't changed</span>
+              <button
+                type="button"
+                className="action-btn-secondary"
+                onClick={handleSaveAs}
+                title="Download result to disk"
+              >
+                <Download size={14} />
+                <span>{workspace.id === 'images' ? 'Download Image' : workspace.id === 'documents' ? 'Download Document' : workspace.id === 'data' ? `Download ${dataFormat.toUpperCase()}` : workspace.id === 'text' ? 'Download Text' : workspace.id === 'media' ? `Download ${mediaTargetFormat.toUpperCase()}` : workspace.id === 'files' ? 'Download Archive' : 'Download PDF'}</span>
+              </button>
+            </>
           )}
 
           <button

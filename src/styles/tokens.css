@@ -123,11 +123,30 @@
   --bg-input:            var(--surface);
   --bg-header:           var(--bg);
 
+  /* ─── Additional surface aliases ─── */
+  --surface-raised:      var(--surface);
+  --surface-card:        var(--surface);
+  --hover-surface:       var(--surface-hover);
+  --bg-card:             var(--surface);
+  --bg-card-hover:       var(--surface-hover);
+  --bg-secondary:        var(--surface);
+  --bg-surface-0:        var(--bg);
+  --bg-surface-1:        var(--surface);
+  --bg-surface-2:        var(--surface-hover);
+  --bg-surface-3:        var(--surface-hover);
+  --bg-panel-header:     var(--surface);
+  --bg-base:             var(--bg);
+
+  /* ─── Border aliases ─── */
   --border-subtle:  var(--border);
   --border-default: var(--border);
   --border-medium:  var(--border);
   --border-strong:  var(--border);
   --border-focused: var(--accent);
+  --border-light:   var(--border);
+  --border-color:   var(--border);
+  --border-hover:   var(--border);
+  --border-color-hover: var(--accent);
 
   --accent-amber:        var(--accent);
   --accent-amber-hover:  var(--accent-hover);
@@ -168,7 +187,15 @@
   --badge-network:  var(--text-2);
   --badge-design:   var(--text-2);
   --badge-system:   var(--text-2);
+
+  /* ─── Additional accent aliases ─── */
+  --color-accent:    var(--accent);
+  --accent-subtle:   var(--accent-soft);
+  --accent-border:   var(--border);
+  --accent-warning:  var(--warning);
+  --scrim-strength-art: 0.20;
 }
+
 
 
 /* ─────────────────────────────────────────────────────────────────
@@ -233,11 +260,30 @@
   --bg-input:            var(--surface);
   --bg-header:           var(--bg);
 
+  /* ─── Additional surface aliases ─── */
+  --surface-raised:      var(--surface);
+  --surface-card:        var(--surface);
+  --hover-surface:       var(--surface-hover);
+  --bg-card:             var(--surface);
+  --bg-card-hover:       var(--surface-hover);
+  --bg-secondary:        var(--surface);
+  --bg-surface-0:        var(--bg);
+  --bg-surface-1:        var(--surface);
+  --bg-surface-2:        var(--surface-hover);
+  --bg-surface-3:        var(--surface-hover);
+  --bg-panel-header:     var(--surface);
+  --bg-base:             var(--bg);
+
+  /* ─── Border aliases ─── */
   --border-subtle:  var(--border);
   --border-default: var(--border);
   --border-medium:  var(--border);
   --border-strong:  var(--border);
   --border-focused: var(--accent);
+  --border-light:   var(--border);
+  --border-color:   var(--border);
+  --border-hover:   var(--border);
+  --border-color-hover: var(--accent);
 
   --accent-amber:        var(--accent);
   --accent-amber-hover:  var(--accent-hover);
@@ -264,6 +310,12 @@
   --color-info:       var(--text-2);
   --color-info-bg:    var(--surface-hover);
 
+  /* ─── Additional accent aliases ─── */
+  --color-accent:    var(--accent);
+  --accent-subtle:   var(--accent-soft);
+  --accent-border:   var(--border);
+  --accent-warning:  var(--warning);
+
   --shadow-sm: var(--card-shadow);
   --shadow-md: var(--card-shadow);
   --shadow-lg: var(--card-shadow);
@@ -281,6 +333,7 @@
   --badge-network:  var(--text-2);
   --badge-design:   var(--text-2);
   --badge-system:   var(--text-2);
+  --scrim-strength-art: 0.20;
 }
 
 
@@ -325,11 +378,28 @@
     --bg-input:            var(--surface);
     --bg-header:           var(--bg);
 
+    --surface-raised:      var(--surface);
+    --surface-card:        var(--surface);
+    --hover-surface:       var(--surface-hover);
+    --bg-card:             var(--surface);
+    --bg-card-hover:       var(--surface-hover);
+    --bg-secondary:        var(--surface);
+    --bg-surface-0:        var(--bg);
+    --bg-surface-1:        var(--surface);
+    --bg-surface-2:        var(--surface-hover);
+    --bg-surface-3:        var(--surface-hover);
+    --bg-panel-header:     var(--surface);
+    --bg-base:             var(--bg);
+
     --border-subtle:  var(--border);
     --border-default: var(--border);
     --border-medium:  var(--border);
     --border-strong:  var(--border);
     --border-focused: var(--accent);
+    --border-light:   var(--border);
+    --border-color:   var(--border);
+    --border-hover:   var(--border);
+    --border-color-hover: var(--accent);
 
     --accent-amber:        var(--accent);
     --accent-amber-hover:  var(--accent-hover);
@@ -356,6 +426,11 @@
     --color-info:       var(--text-2);
     --color-info-bg:    var(--surface-hover);
 
+    --color-accent:    var(--accent);
+    --accent-subtle:   var(--accent-soft);
+    --accent-border:   var(--border);
+    --accent-warning:  var(--warning);
+
     --badge-pdf:      var(--text-2);
     --badge-doc:      var(--text-2);
     --badge-img:      var(--text-2);
@@ -373,6 +448,7 @@
     --shadow-sm: var(--card-shadow);
     --shadow-md: var(--card-shadow);
     --shadow-lg: var(--card-shadow);
+    --scrim-strength-art: 0.20;
   }
 }
 
@@ -413,11 +489,28 @@
     --bg-input:            var(--surface);
     --bg-header:           var(--bg);
 
+    --surface-raised:      var(--surface);
+    --surface-card:        var(--surface);
+    --hover-surface:       var(--surface-hover);
+    --bg-card:             var(--surface);
+    --bg-card-hover:       var(--surface-hover);
+    --bg-secondary:        var(--surface);
+    --bg-surface-0:        var(--bg);
+    --bg-surface-1:        var(--surface);
+    --bg-surface-2:        var(--surface-hover);
+    --bg-surface-3:        var(--surface-hover);
+    --bg-panel-header:     var(--surface);
+    --bg-base:             var(--bg);
+
     --border-subtle:  var(--border);
     --border-default: var(--border);
     --border-medium:  var(--border);
     --border-strong:  var(--border);
     --border-focused: var(--accent);
+    --border-light:   var(--border);
+    --border-color:   var(--border);
+    --border-hover:   var(--border);
+    --border-color-hover: var(--accent);
 
     --accent-amber:        var(--accent);
     --accent-amber-hover:  var(--accent-hover);
@@ -444,6 +537,11 @@
     --color-info:       var(--text-2);
     --color-info-bg:    var(--surface-hover);
 
+    --color-accent:    var(--accent);
+    --accent-subtle:   var(--accent-soft);
+    --accent-border:   var(--border);
+    --accent-warning:  var(--warning);
+
     --badge-pdf:      var(--text-2);
     --badge-doc:      var(--text-2);
     --badge-img:      var(--text-2);
@@ -461,6 +559,7 @@
     --shadow-sm: none;
     --shadow-md: none;
     --shadow-lg: none;
+    --scrim-strength-art: 0.20;
   }
 }
 

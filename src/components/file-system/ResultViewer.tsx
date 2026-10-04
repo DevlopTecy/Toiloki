@@ -442,6 +442,7 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
           <Download size={13} />
           <span>{batchStats ? 'Save Results' : isSaving ? 'Saving...' : 'Save'}</span>
         </button>
+        <span className="result-trust-note">Your original file isn't changed</span>
 
         {/* Preview action */}
         {onPreview && (
