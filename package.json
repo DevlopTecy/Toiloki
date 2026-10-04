@@ -10,7 +10,7 @@
     "dev": "vite",
     "dev:electron": "concurrently -k \"vite\" \"electron .\"",
     "build": "tsc -b && vite build",
-    "test": "node tests/migration.test.cjs && node tests/verify-all-engines.cjs && node tests/verify-new-engines.cjs && node tests/phase9-capabilities.test.cjs",
+    "test": "node tests/migration.test.cjs && node tests/verify-all-engines.cjs && node tests/verify-new-engines.cjs && node tests/phase9-capabilities.test.cjs && node tests/settings-persistence.test.cjs",
     "preview": "vite preview",
     "electron:start": "cross-env SERVE_DIST=1 electron .",
     "electron:pack": "npm run build && electron-builder --dir",

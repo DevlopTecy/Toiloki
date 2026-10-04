@@ -27,6 +27,7 @@ export interface AppSettings {
   threads: string;
   memoryLimit: string;
   hardwareAccel: boolean;
+  performanceMode?: 'auto' | 'fast' | 'low-memory' | 'custom';
 
   // Files & Storage
   outputDir: string;
@@ -90,6 +91,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   threads: '4',
   memoryLimit: '1024',
   hardwareAccel: true,
+  performanceMode: 'auto',
 
   outputDir: 'C:\\Users\\User\\Downloads\\Toiloki Output',
   namingTemplate: '{name}_{tool}_{date}',
