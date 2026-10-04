@@ -39,12 +39,12 @@
 }
 
 .editor-tag {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: normal;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  font-family: var(--font-mono);
+  text-transform: none;
+  font-family: var(--font-sans);
 }
 
 .editor-line-count {
@@ -144,12 +144,12 @@
 }
 
 .result-label-tag {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: normal;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  font-family: var(--font-mono);
+  text-transform: none;
+  font-family: var(--font-sans);
 }
 
 .toggle-pill-group {
@@ -179,7 +179,7 @@
 
 .pill-btn.active {
   background: var(--accent-amber-subtle);
-  color: var(--accent-amber);
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -227,12 +227,12 @@
 }
 
 .jwt-card-badge {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: normal;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  font-family: var(--font-mono);
+  text-transform: none;
+  font-family: var(--font-sans);
 }
 
 .copy-mini-btn {
@@ -342,12 +342,12 @@
   justify-content: space-between;
   padding: 6px 12px;
   background: var(--bg-raised);
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-family: var(--font-mono);
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--font-sans);
 }
 
 .uuid-rows-wrapper {
@@ -381,7 +381,7 @@
 }
 
 .regex-inputs-strip:focus-within {
-  border-color: var(--accent-amber);
+  border-color: var(--text-primary);
 }
 
 .regex-slash {
@@ -456,7 +456,7 @@
 .chip-match-text {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--accent-amber);
+  color: var(--text-primary);
 }
 
 .chip-match-index {
@@ -510,7 +510,7 @@
 
 .code-4xx {
   background: var(--accent-amber-subtle);
-  color: var(--accent-amber);
+  color: var(--text-primary);
 }
 
 .code-5xx {

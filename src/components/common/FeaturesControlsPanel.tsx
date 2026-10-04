@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { FeatureDefinition } from '../../core/types/workspace';
-import { Sliders, ToggleLeft, ToggleRight, Layers, ArrowRight, Download, Sparkles } from 'lucide-react';
+import { Sliders, Layers, ArrowRight, Download, Zap } from 'lucide-react';
 import './FeaturesControlsPanel.css';
 
 interface FeaturesControlsPanelProps {
@@ -123,11 +123,9 @@ export const FeaturesControlsPanel: React.FC<FeaturesControlsPanelProps> = ({
                           aria-checked={isChecked}
                           tabIndex={-1}
                         >
-                          {isChecked ? (
-                            <ToggleRight size={20} className="toggle-icon on" />
-                          ) : (
-                            <ToggleLeft size={20} className="toggle-icon off" />
-                          )}
+                          <span className={`toiloki-switch-track ${isChecked ? 'is-checked' : ''}`}>
+                            <span className="toiloki-switch-thumb" />
+                          </span>
                         </button>
                       )}
                     </div>
@@ -189,7 +187,7 @@ export const FeaturesControlsPanel: React.FC<FeaturesControlsPanelProps> = ({
                     }}
                     title={act.description}
                   >
-                    <Sparkles size={13} className="act-icon" />
+                    <Zap size={13} className="act-icon" />
                     <span className="act-name">{act.name}</span>
                     {isSoon ? (
                       <span className="feat-mini-badge feat-soon">Soon</span>

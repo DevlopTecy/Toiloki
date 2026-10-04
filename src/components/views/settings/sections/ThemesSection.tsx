@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import {
-  Plus, Upload, Download, Copy, Trash2, Edit2, Check, Sparkles, AlertCircle
+  Plus, Upload, Download, Copy, Trash2, Edit2, Check, AlertCircle
 } from 'lucide-react';
 import { useTheme } from '../../../../core/theme/ThemeContext';
 import { AppTheme } from '../../../../core/theme/theme.types';
@@ -89,7 +89,7 @@ export const ThemesSection: React.FC = () => {
       {/* ─── 3-COLUMN GALLERY OF THEME CARDS ─── */}
       <div style={{ marginTop: '8px' }}>
         <h3 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '14px' }}>
-          BUILT-IN PRESETS
+          Built-in Presets
         </h3>
 
         <div

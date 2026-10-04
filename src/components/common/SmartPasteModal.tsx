@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ArrowRight, Sparkles, Clipboard, Check } from 'lucide-react';
+import { X, ArrowRight, Clipboard, Check } from 'lucide-react';
 import { SmartPasteService, SmartPasteDetection, MatchingUtilitySuggestion } from '../../core/services/smart-paste.service';
 import { PipeService } from '../../core/services/pipe.service';
 import { WorkspaceId } from '../../core/types/workspace';
@@ -82,7 +82,7 @@ export const SmartPasteModal: React.FC<SmartPasteModalProps> = ({
         {/* Header */}
         <div className="smart-paste-header">
           <div className="smart-paste-title-area">
-            <Sparkles size={16} style={{ color: 'var(--color-accent)' }} />
+            <Clipboard size={16} style={{ color: 'var(--color-accent)' }} />
             <h3 className="smart-paste-title">Smart Paste</h3>
             {detection && detection.formatId !== 'unknown' && (
               <span className="smart-paste-format-badge">{detection.badgeText}</span>

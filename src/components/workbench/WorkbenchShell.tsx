@@ -17,7 +17,6 @@ import {
   FileText,
   AlertTriangle,
   RotateCcw,
-  Sparkles,
   Lock,
   Unlock,
   FileCode,

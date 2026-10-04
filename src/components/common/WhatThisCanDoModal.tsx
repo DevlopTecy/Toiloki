@@ -1,6 +1,6 @@
 import React from 'react';
 import { UtilityDefinition, FeatureDefinition } from '../../core/types/workspace';
-import { X, Sparkles, CheckCircle2, Clock, ArrowRight, Layers, Sliders, SlidersHorizontal, Download } from 'lucide-react';
+import { X, Zap, CheckCircle2, Clock, ArrowRight, Layers, Sliders, SlidersHorizontal, Download } from 'lucide-react';
 import './WhatThisCanDoModal.css';
 
 interface WhatThisCanDoModalProps {
@@ -27,7 +27,7 @@ export const WhatThisCanDoModal: React.FC<WhatThisCanDoModalProps> = ({
       case 'mode':
         return <SlidersHorizontal size={13} />;
       case 'action':
-        return <Sparkles size={13} />;
+        return <Zap size={13} />;
       case 'output':
         return <Download size={13} />;
       case 'batch':

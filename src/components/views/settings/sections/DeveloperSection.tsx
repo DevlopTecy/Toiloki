@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Code, Eye, Copy, Download, RefreshCw, AlertTriangle, ShieldCheck,
-  Check, FileJson, Activity, Terminal, Grid, Sparkles, Layers, Shield
+  Check, FileJson, Activity, Terminal, Grid, Layers, Sliders, Shield
 } from 'lucide-react';
 import { useTheme } from '../../../../core/theme/ThemeContext';
 import { AppSettings, SettingsService } from '../../../../core/services/settings.service';
@@ -179,7 +179,7 @@ export const DeveloperSection: React.FC<DeveloperSectionProps> = ({
           className={`segmented-item ${activeSubTab === 'flags' ? 'is-active' : ''}`}
           onClick={() => setActiveSubTab('flags')}
         >
-          <Sparkles size={13} /> Experimental Flags
+          <Sliders size={13} /> Experimental Flags
         </button>
       </div>
 

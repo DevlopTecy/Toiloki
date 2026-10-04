@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Minus, Square, Copy, X, Search, Sparkles, Link } from 'lucide-react';
+import { Minus, Square, Copy, X, Search, Clipboard, Link } from 'lucide-react';
 import { ToilokiLogo } from '../common/ToilokiLogo';
 import './TitleBar.css';
 
@@ -32,8 +32,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
     <header className="title-bar drag-region">
       <div className="title-bar-left no-drag">
         <ToilokiLogo variant="symbol" size={18} />
-        <span className="app-wordmark">TOILOKI</span>
-        <span className="app-suite-caption">LOCAL UTILITY SUITE</span>
+        <span className="app-wordmark">Toiloki</span>
+        <span className="app-suite-caption">Local Utility Suite</span>
       </div>
 
       <div className="title-bar-center no-drag" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -51,7 +51,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             title="Smart Paste (Ctrl+Shift+V)"
             style={{ padding: '4px 8px' }}
           >
-            <Sparkles size={12} style={{ color: 'var(--color-accent)' }} />
+            <Clipboard size={12} style={{ color: 'var(--color-accent)' }} />
             <span className="titlebar-search-text" style={{ fontSize: '11px' }}>Smart Paste</span>
             <kbd className="titlebar-kbd">Ctrl+Shift+V</kbd>
           </button>

@@ -15,7 +15,6 @@ import {
   Highlighter,
   CheckSquare,
   Bookmark,
-  Sparkles
 } from 'lucide-react';
 import { SelectedFile } from '../../file-system/FileDropzone';
 import { renderPageThumbnail } from './pdfThumbnailService';

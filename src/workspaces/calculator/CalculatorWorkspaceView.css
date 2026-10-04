@@ -286,11 +286,11 @@
 }
 
 .calc-card-title {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--text-tertiary);
   margin: 0;
 }
@@ -317,7 +317,7 @@
 
 .pct-val {
   font-weight: 600;
-  color: var(--accent-amber);
+  color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 13px;
 }
@@ -360,11 +360,11 @@
 }
 
 .stat-pill-label {
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-family: var(--font-mono);
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--font-sans);
 }
 
 .stat-pill-val {
@@ -375,7 +375,7 @@
 }
 
 .stat-pill-val.highlight {
-  color: var(--accent-amber);
+  color: var(--text-primary);
 }
 
 .stat-pill-val.green {
@@ -407,7 +407,7 @@
 .ratio-result-badge {
   background-color: var(--bg-input);
   border: 1px solid var(--border-subtle);
-  color: var(--accent-amber);
+  color: var(--text-primary);
   font-family: var(--font-mono);
   font-weight: 600;
   padding: 5px 12px;
@@ -448,7 +448,7 @@
 .const-sym {
   font-size: 14px;
   font-weight: 700;
-  color: var(--accent-amber);
+  color: var(--text-primary);
   font-family: var(--font-mono);
   width: 24px;
   text-align: center;
@@ -521,7 +521,7 @@
 .frac-val-main {
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent-amber);
+  color: var(--text-primary);
   font-family: var(--font-mono);
 }
 
@@ -549,10 +549,10 @@
 }
 
 .stat-title {
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  font-family: var(--font-mono);
+  text-transform: none;
+  font-family: var(--font-sans);
 }
 
 .stat-num {
@@ -590,7 +590,7 @@
 
 .unit-cat-btn.active {
   background-color: var(--accent-amber-subtle);
-  color: var(--accent-amber);
+  color: var(--text-primary);
   border-color: var(--accent-amber-border);
   font-weight: 600;
 }
@@ -665,6 +665,6 @@
 .converted-num {
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent-amber);
+  color: var(--text-primary);
   font-family: var(--font-mono);
 }

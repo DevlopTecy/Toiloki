@@ -1,7 +1,7 @@
 import React from 'react';
 import { evaluateContrast, autoFixContrast } from '../../../../core/theme/wcag-contrast';
 import { ContrastResult } from '../../../../core/theme/theme.types';
-import { ShieldAlert, ShieldCheck, Sparkles } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, Zap } from 'lucide-react';
 
 interface ContrastBadgeProps {
   textColor: string;
@@ -63,7 +63,7 @@ export const ContrastBadge: React.FC<ContrastBadgeProps> = ({
           }}
           title="Auto-nudge lightness to pass WCAG AA"
         >
-          <Sparkles size={10} /> Auto-fix
+          <Zap size={10} /> Auto-fix
         </button>
       )}
     </div>

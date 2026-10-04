@@ -269,17 +269,17 @@ function PasswordStrengthView() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '10px 14px' }}>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>ENTROPY</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Entropy</div>
               <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{result.entropy} bits</div>
             </div>
             <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '10px 14px' }}>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>CRACK TIME</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Crack Time</div>
               <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-mono)', color: strengthColors[result.score] }}>{result.crackTime}</div>
             </div>
           </div>
           {result.suggestions.length > 0 && (
             <div style={{ background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.2)', borderRadius: 6, padding: '12px 16px' }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#f87171', marginBottom: 8 }}>SUGGESTIONS</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#f87171', marginBottom: 8 }}>Suggestions</div>
               {result.suggestions.map(s => (
                 <div key={s} style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>• {s}</div>
               ))}

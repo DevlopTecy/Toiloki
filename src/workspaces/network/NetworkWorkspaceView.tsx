@@ -128,17 +128,17 @@ function MimeLookupView() {
       {res && (
         <div className="net-grid-2" style={{ marginTop: 16 }}>
           <div className="net-stat-card">
-            <span className="net-stat-label">MIME TYPE</span>
+            <span className="net-stat-label">MIME Type</span>
             <code className="net-stat-val">{res.mime}</code>
             <CopyBtn text={res.mime} />
           </div>
           <div className="net-stat-card">
-            <span className="net-stat-label">EXTENSION</span>
+            <span className="net-stat-label">Extension</span>
             <code className="net-stat-val">.{res.ext}</code>
             <CopyBtn text={`.${res.ext}`} />
           </div>
           <div className="net-stat-card">
-            <span className="net-stat-label">CATEGORY</span>
+            <span className="net-stat-label">Category</span>
             <span className="net-stat-val" style={{ color: 'var(--text-primary)' }}>{res.category}</span>
           </div>
         </div>
@@ -424,11 +424,11 @@ function MacVendorView() {
       </div>
       <div className="net-grid-2" style={{ marginTop: 16 }}>
         <div className="net-stat-card">
-          <span className="net-stat-label">OUI PREFIX</span>
+          <span className="net-stat-label">OUI Prefix</span>
           <code className="net-stat-val">{mac.slice(0, 8)}</code>
         </div>
         <div className="net-stat-card">
-          <span className="net-stat-label">TRANSMISSION TYPE</span>
+          <span className="net-stat-label">Transmission Type</span>
           <span className="net-stat-val" style={{ color: 'var(--text-primary)' }}>Unicast (Standard)</span>
         </div>
       </div>

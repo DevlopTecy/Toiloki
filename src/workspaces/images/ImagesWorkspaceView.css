@@ -179,11 +179,11 @@
 }
 
 .controls-panel-title {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--text-tertiary);
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border-subtle);
@@ -197,12 +197,12 @@
 }
 
 .group-heading {
-  font-size: 10px;
-  text-transform: uppercase;
+  font-size: 11px;
+  text-transform: none;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: normal;
   color: var(--text-tertiary);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
 }
 
 .preset-buttons-row {

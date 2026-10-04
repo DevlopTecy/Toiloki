@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Plus, Home, Sparkles, Folder, Wrench } from 'lucide-react';
+import { X, Plus, Home, Folder, Wrench } from 'lucide-react';
 import { WorkspaceId } from '../../core/types/workspace';
 import './TabBar.css';
 

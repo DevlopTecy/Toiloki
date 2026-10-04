@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import {
-  Sparkles, RotateCcw, Upload, Check, FolderOpen, Layers, Code, Copy,
+  RotateCcw, Upload, Check, FolderOpen, Layers, Code, Copy,
   Trash2, Download, RefreshCw, Image, ShieldCheck, AlertTriangle, Eye, Sliders
 } from 'lucide-react';
 import { useTheme } from '../../../../core/theme/ThemeContext';
@@ -336,12 +336,12 @@ export const ButtonsSection: React.FC = () => {
         </div>
       </div>
 
-      {/* ─── 5. CARD & BUTTON PICTURES MANAGER ─── */}
+      {/* ─── 5. Card & Button Pictures MANAGER ─── */}
       <div style={{ marginTop: '24px' }}>
         <div className="section-header-row" style={{ marginBottom: '12px' }}>
           <div>
             <h3 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
-              CARD & BUTTON PICTURES
+              Card & Button Pictures
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-2)', margin: '4px 0 0 0' }}>
               Replace default artwork with local images, adjust positioning, scale, opacity, and contrast scrims.

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, ArrowLeft, ShieldAlert, Sparkles } from 'lucide-react';
+import { Clock, ArrowLeft, ShieldAlert } from 'lucide-react';
 import { UtilityDefinition } from '../../core/types/workspace';
 import './SoonState.css';
 
@@ -22,7 +22,7 @@ export const SoonState: React.FC<SoonStateProps> = ({ utility, onBack }) => {
         </div>
 
         <div className="soon-badge-row">
-          <span className="soon-pill-badge">SOON</span>
+          <span className="soon-pill-badge">Soon</span>
           <span className="soon-status-text">In Active Development</span>
         </div>
 

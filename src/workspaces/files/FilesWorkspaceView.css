@@ -75,11 +75,11 @@
 }
 
 .rename-preview-title {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-family: var(--font-sans);
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--text-tertiary);
   margin: 0;
 }
@@ -100,12 +100,12 @@
   height: 32px;
   padding: 0 12px;
   background-color: var(--bg-input);
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-family: var(--font-mono);
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--font-sans);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -390,7 +390,7 @@
 .keeper-badge {
   font-size: 9.5px;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: none;
   background-color: rgba(74, 222, 128, 0.10);
   color: var(--color-success);
   padding: 1px 5px;
@@ -401,7 +401,7 @@
 .dup-badge {
   font-size: 9.5px;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: none;
   background-color: rgba(248, 113, 113, 0.10);
   color: var(--color-danger);
   padding: 1px 5px;
@@ -570,12 +570,12 @@
   height: 32px;
   padding: 0 12px;
   background-color: var(--bg-input);
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-family: var(--font-mono);
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--font-sans);
   border-bottom: 1px solid var(--border-subtle);
 }
 

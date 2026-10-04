@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Scissors, FileStack, Sparkles, AlertCircle } from 'lucide-react';
+import { Scissors, FileStack, AlertCircle } from 'lucide-react';
 import { SelectedFile } from '../../file-system/FileDropzone';
 import { renderPageThumbnail } from './pdfThumbnailService';
 import './PdfMarkersCanvas.css';

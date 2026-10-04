@@ -134,15 +134,15 @@
 }
 
 .fav-workspace-pill {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
   color: var(--text-tertiary);
   background-color: var(--bg-raised);
   padding: 1px 6px;
   border-radius: var(--radius-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: normal;
   border: 1px solid var(--border-subtle);
 }
 

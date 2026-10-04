@@ -367,8 +367,8 @@ export const ImageCanvas: React.FC<ImageCanvasProps> = ({
             {/* Split Comparison Mode */}
             {compareMode === 'split' && originalUrl ? (
               <div className="split-compare-container">
-                <span className="split-badge before">BEFORE</span>
-                <span className="split-badge after">AFTER</span>
+                <span className="split-badge before">Before</span>
+                <span className="split-badge after">After</span>
 
                 {/* Left side: Original Image */}
                 <div

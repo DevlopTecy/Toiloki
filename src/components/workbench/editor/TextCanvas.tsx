@@ -9,7 +9,6 @@ import {
   Copy,
   Check,
   RotateCcw,
-  Sparkles,
   ArrowRight,
   AtSign,
   Globe,
@@ -329,7 +328,7 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
 
           {onLoadSample && (!text || text.trim().length === 0) && (
             <button className="data-pill-btn is-gold" onClick={onLoadSample}>
-              <Sparkles size={13} />
+              <FileText size={13} />
               <span>Load Sample Text</span>
             </button>
           )}

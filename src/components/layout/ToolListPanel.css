@@ -243,8 +243,8 @@
   border-radius: 4px;
   margin-left: auto;
   line-height: 1.35;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
   flex-shrink: 0;
 }
 

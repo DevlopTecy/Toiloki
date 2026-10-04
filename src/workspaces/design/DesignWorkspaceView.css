@@ -52,7 +52,7 @@
 .design-copy-btn:hover {
   background: var(--bg-raised, #242933);
   border-color: var(--border-strong, rgba(255, 255, 255, 0.2));
-  color: var(--accent, #d4b06a);
+  color: var(--text-primary);
 }
 
 .design-grid-outputs {
@@ -83,7 +83,7 @@
 .design-code-val {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   font-size: 13px;
-  color: var(--accent, #d4b06a);
+  color: var(--text-primary);
   flex: 1;
 }
 
@@ -133,7 +133,7 @@
   font-size: 32px;
   font-weight: 800;
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  color: var(--accent, #d4b06a);
+  color: var(--text-primary);
   min-width: 120px;
 }
 
@@ -141,8 +141,8 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--text-tertiary, #6b7280);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .contrast-badges {

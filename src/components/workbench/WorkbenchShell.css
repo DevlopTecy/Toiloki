@@ -647,11 +647,11 @@
 
 .modal-body h4 {
   margin: 16px 0 8px 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .modal-features-list {

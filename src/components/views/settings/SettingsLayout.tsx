@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 
 import {
-  Palette, Sparkles, MousePointer, Image, FolderOpen, Cpu,
+  Palette, SlidersHorizontal, MousePointer, Image, FolderOpen, Cpu,
   Clock, ShieldCheck, Wrench, Code, Search
 } from 'lucide-react';
 import './SettingsLayout.css';
@@ -90,7 +90,7 @@ export const SettingsLayout: React.FC = () => {
   // Sections navigation definitions
   const NAV_ITEMS = [
     { id: 'appearance', label: 'Appearance', icon: Palette, keywords: ['theme', 'dark', 'light', 'mode', 'density', 'accent', 'font', 'corner', 'radius', 'motion'] },
-    { id: 'themes', label: 'Themes & Presets', icon: Sparkles, keywords: ['preset', 'custom theme', 'export', 'import', 'storeframe', 'translucent', 'dense', 'blue', 'contrast'] },
+    { id: 'themes', label: 'Themes & Presets', icon: SlidersHorizontal, keywords: ['preset', 'custom theme', 'export', 'import', 'storeframe', 'translucent', 'dense', 'blue', 'contrast'] },
     { id: 'buttons', label: 'Buttons & Artwork', icon: MousePointer, keywords: ['button', 'icon', 'skin', 'artwork', 'action', 'playground', 'shape'] },
     { id: 'background', label: 'Background', icon: Image, keywords: ['wallpaper', 'pattern', 'blur', 'dim', 'scrim', 'dots', 'grid'] },
     { id: 'files', label: 'Files & Storage', icon: FolderOpen, keywords: ['output', 'export directory', 'collision', 'timestamps'] },

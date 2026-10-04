@@ -281,7 +281,7 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
           {/* Primary Button "Choose files" */}
           <button
             type="button"
-            className="toiloki-btn toiloki-btn-primary"
+            className="toiloki-btn toiloki-btn-secondary"
             onClick={(e) => {
               e.stopPropagation();
               handleNativeBrowse();

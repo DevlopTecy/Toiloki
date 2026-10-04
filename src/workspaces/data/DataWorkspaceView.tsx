@@ -805,7 +805,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
               /* Single Main Input Editor */
               <div className="code-editor-box">
                 <div className="editor-top-label-bar">
-                  <span className="editor-lang-badge">INPUT DATA PAYLOAD</span>
+                  <span className="editor-lang-badge">Input Data Payload</span>
                   <span className="editor-lines-badge">
                     {dataInput.split('\n').length} lines • {parsedTable.rows.length ? `${parsedTable.rows.length} rows` : ''}
                   </span>

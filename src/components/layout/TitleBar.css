@@ -38,7 +38,7 @@
   font-family: var(--font-sans);
   font-weight: 500;
   color: var(--text-muted);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   padding: 1px 4px;
   line-height: 1;
 }

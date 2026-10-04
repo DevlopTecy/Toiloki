@@ -120,12 +120,12 @@
 }
 
 .meta-label {
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  text-transform: none;
+  letter-spacing: normal;
   font-weight: 600;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
 }
 
 .filename-text {
@@ -194,12 +194,12 @@
 }
 
 .metric-tag {
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: normal;
   font-weight: 600;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
 }
 
 .metric-number {
@@ -227,10 +227,10 @@
 
 .saved-label {
   font-weight: 600;
-  text-transform: uppercase;
-  font-size: 9.5px;
-  letter-spacing: 0.05em;
-  font-family: var(--font-mono);
+  text-transform: none;
+  font-size: 11px;
+  letter-spacing: normal;
+  font-family: var(--font-sans);
 }
 
 .saved-text {
@@ -263,10 +263,10 @@
 }
 
 .send-to-menu-header {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  text-transform: none;
+  letter-spacing: normal;
   color: var(--text-muted);
   padding: 4px 8px;
 }

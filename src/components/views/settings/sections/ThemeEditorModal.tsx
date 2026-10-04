@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  X, Check, RotateCcw, Sparkles, Eye, Undo2, Redo2, ShieldAlert, AlertTriangle
+  X, Check, RotateCcw, Eye, Undo2, Redo2, ShieldAlert, AlertTriangle
 } from 'lucide-react';
 import { AppTheme, ThemeTokens } from '../../../../core/theme/theme.types';
 import { useTheme } from '../../../../core/theme/ThemeContext';

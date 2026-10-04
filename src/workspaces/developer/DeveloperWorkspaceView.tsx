@@ -14,7 +14,6 @@ import {
   Trash2,
   Code,
   Layers,
-  Sparkles,
 } from 'lucide-react';
 import { HistoryService } from '../../core/services/history.service';
 import { SplitEditor } from '../../components/common/SplitEditor';
@@ -303,7 +302,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
                 {/* Header card */}
                 <div className="jwt-segment-card">
                   <div className="jwt-card-header">
-                    <span className="jwt-card-badge">DECODED HEADER</span>
+                    <span className="jwt-card-badge">Decoded Header</span>
                     <button
                       className="copy-mini-btn"
                       onClick={() => handleCopy(JSON.stringify(jwtData.header, null, 2))}
@@ -318,7 +317,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
                 {/* Payload card */}
                 <div className="jwt-segment-card">
                   <div className="jwt-card-header">
-                    <span className="jwt-card-badge">DECODED PAYLOAD</span>
+                    <span className="jwt-card-badge">Decoded Payload</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {jwtData.isExpired !== undefined && (
                         <span className={`exp-badge ${jwtData.isExpired ? 'expired' : 'valid'}`}>
@@ -384,7 +383,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
             {encodeOutput && (
               <div className="formatted-result-box">
                 <div className="result-header-row">
-                  <span className="result-label-tag">CONVERTED RESULT</span>
+                  <span className="result-label-tag">Converted Result</span>
                   <button className="tool-btn secondary small-btn" onClick={() => handleCopy(encodeOutput)} type="button">
                     {copied ? <Check size={12} /> : <Copy size={12} />}
                     <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -728,7 +727,7 @@ function CronExplainerView() {
         <div style={{ display: 'flex', gap: 24 }}>
           <div style={{ flex: 1 }}>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '16px 20px', marginBottom: 16 }}>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>HUMAN READABLE</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Human Readable</div>
               <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>{result.human}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
@@ -922,7 +921,7 @@ function GitignoreView() {
   return (
     <div style={{ padding: '24px 32px', flex: 1, display: 'flex', gap: 24 }}>
       <div style={{ width: 200 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>SELECT TECHNOLOGIES</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>Select Technologies</div>
         {techs.map(t => (
           <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, cursor: 'pointer', fontSize: 13 }}>
             <input type="checkbox" checked={selected.includes(t.id)} onChange={() => toggle(t.id)} />

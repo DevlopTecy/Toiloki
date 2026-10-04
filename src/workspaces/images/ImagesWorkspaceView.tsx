@@ -21,7 +21,6 @@ import {
   Maximize2,
   Crop,
   Layers,
-  Sparkles,
 } from 'lucide-react';
 import './ImagesWorkspaceView.css';
 

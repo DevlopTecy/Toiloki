@@ -18,7 +18,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
-  Sparkles,
   Repeat,
   Download,
 } from 'lucide-react';
