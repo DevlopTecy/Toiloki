@@ -603,7 +603,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
               </button>
               {mergedDocs.length > 0 && (
                 <span style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: 600 }}>
-                  ✓ Successfully merged {mergedDocs.length} personalized documents
+                  ✓ Merged {mergedDocs.length} personalized documents
                 </span>
               )}
             </div>

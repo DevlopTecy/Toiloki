@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  Palette, FolderOpen, Cpu, ShieldCheck, Wrench, Search
+  Palette, FolderOpen, Cpu, ShieldCheck, Wrench, Search, Info
 } from 'lucide-react';
 import './SettingsLayout.css';
 import { useTheme } from '../../../core/theme/ThemeContext';
@@ -10,6 +10,7 @@ import { FilesSection } from './sections/FilesSection';
 import { ProcessingSection } from './sections/ProcessingSection';
 import { HistoryPrivacySection } from './sections/HistoryPrivacySection';
 import { AdvancedSection } from './sections/AdvancedSection';
+import { AboutSection } from './sections/AboutSection';
 import { StickyFooterBar } from './components/StickyFooterBar';
 import { useToast } from '../../../core/context/ToastContext';
 
@@ -18,7 +19,8 @@ export type NavSectionId =
   | 'files'
   | 'performance'
   | 'privacy'
-  | 'advanced';
+  | 'advanced'
+  | 'about';
 
 export const SettingsLayout: React.FC = () => {
   const { hasUnsavedChanges, applyChanges, revertChanges } = useTheme();
@@ -56,7 +58,7 @@ export const SettingsLayout: React.FC = () => {
     if (hasUnsavedChanges) {
       applyChanges();
     }
-    showToast('Preferences and theme saved successfully', 'success');
+    showToast('Preferences and theme saved', 'success');
   };
 
   const handleRevertAll = () => {
@@ -105,6 +107,12 @@ export const SettingsLayout: React.FC = () => {
       label: 'Advanced',
       icon: Wrench,
       keywords: ['cache', 'reset', 'safe mode', 'diagnostics', 'developer', 'tokens', 'portable', 'upcoming', 'gallery'],
+    },
+    {
+      id: 'about' as NavSectionId,
+      label: 'About & Help',
+      icon: Info,
+      keywords: ['about', 'version', 'licenses', 'diagnostics', 'report', 'problem', 'help', 'offline', 'privacy'],
     },
   ];
 
@@ -198,6 +206,10 @@ export const SettingsLayout: React.FC = () => {
               onUpdateSettings={handleUpdateSettings}
               onResetAllDefaults={handleResetAllDefaults}
             />
+          )}
+
+          {activeSection === 'about' && (
+            <AboutSection />
           )}
         </div>
 

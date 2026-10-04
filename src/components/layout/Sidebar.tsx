@@ -336,8 +336,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Offline trust signal */}
         <div
           className="sidebar-offline-indicator"
-          title="Offline — your files stay on your device"
-          aria-label="Offline — your files stay on your device"
+          title="Everything runs on this device"
+          aria-label="Everything runs on this device"
         >
           <span className="offline-dot" aria-hidden="true" />
           {!isCollapsed && <span className="offline-label">Offline</span>}

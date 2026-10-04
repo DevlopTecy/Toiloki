@@ -477,7 +477,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       saveCustomTheme(imported);
-      showToast(`Imported theme "${imported.name}" successfully`, 'success');
+      showToast(`Imported theme "${imported.name}"`, 'success');
       return true;
     } catch (err: any) {
       showToast(`Import error: ${err.message || 'Could not parse file'}`, 'error');

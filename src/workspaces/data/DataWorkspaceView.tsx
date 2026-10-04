@@ -359,7 +359,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         });
         if (res.success && res.data) {
           setSplitChunksResult(res.data);
-          setOutputData(`Successfully split into ${res.data.length} files:\n\n` + res.data.map(c => `• ${c.name} (${c.rowCount} rows)`).join('\n'));
+          setOutputData(`Split into ${res.data.length} files:\n\n` + res.data.map(c => `• ${c.name} (${c.rowCount} rows)`).join('\n'));
           success = true;
           summary = `Split CSV into ${res.data.length} files`;
         } else {

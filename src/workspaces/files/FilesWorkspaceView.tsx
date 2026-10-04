@@ -203,7 +203,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
 
     setDuplicateGroups(nextGroups);
     setSelectedDuplicates(new Set());
-    setDeleteNotice(`Successfully cleaned ${count} duplicate file(s) from view.`);
+    setDeleteNotice(`Cleaned ${count} duplicate file(s) from view.`);
     setTimeout(() => setDeleteNotice(null), 3000);
   };
 
@@ -892,7 +892,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
                       <div className="zip-success-note">
                         <CheckCircle size={14} color="var(--color-success)" />
                         <span>
-                          Successfully created archive ({(archiveSuccessBytes / 1024).toFixed(1)} KB)!
+                          Created archive ({(archiveSuccessBytes / 1024).toFixed(1)} KB)
                         </span>
                       </div>
                     )}

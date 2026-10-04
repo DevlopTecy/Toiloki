@@ -23,7 +23,7 @@ export const TrashView: React.FC = () => {
   const handleRestore = async (id: string, name: string) => {
     const res = await TrashService.restoreItem(id);
     if (res.success) {
-      showToast(`Restored "${name}" successfully`, 'success');
+      showToast(`Restored "${name}"`, 'success');
       loadItems();
     } else {
       showToast(res.error || `Failed to restore ${name}`, 'error');

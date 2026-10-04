@@ -1,0 +1,69 @@
+{
+  "app": {
+    "name": "Toiloki",
+    "tagline": "Local desktop utility suite",
+    "trustBadge": "Runs locally · 100% offline",
+    "trustSubtitle": "Your original file isn't changed"
+  },
+  "nav": {
+    "home": "Home",
+    "pdf": "PDF suite",
+    "documents": "Documents",
+    "images": "Images and media",
+    "data": "Data tools",
+    "text": "Text tools",
+    "developer": "Developer utilities",
+    "calculator": "Calculator and converters",
+    "files": "Files and archives",
+    "security": "Security and privacy",
+    "design": "Design tools",
+    "system": "System and network",
+    "favorites": "Favorites",
+    "history": "Recent activity",
+    "settings": "Settings"
+  },
+  "actions": {
+    "save": "Save",
+    "saveAs": "Save as",
+    "download": "Download",
+    "copy": "Copy",
+    "copied": "Copied",
+    "reset": "Reset",
+    "undo": "Undo",
+    "redo": "Redo",
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "clear": "Clear",
+    "run": "Run",
+    "adjust": "Adjust",
+    "search": "Search utilities"
+  },
+  "status": {
+    "ready": "Ready",
+    "processing": "Processing locally...",
+    "done": "Done",
+    "saved": "Saved",
+    "applied": "Applied"
+  },
+  "emptyStates": {
+    "dropFiles": "Drop files here or click to browse",
+    "noHistory": "No recent activity on this device",
+    "noFavorites": "No favorite tools yet. Star utilities to pin them here",
+    "noResults": "No matching tools found"
+  },
+  "errors": {
+    "generic": "Couldn't complete this action. Try again.",
+    "pdfPassword": "Couldn't open this PDF. It's password protected. Enter the password to continue.",
+    "fileTooLarge": "This file is larger than the local memory limit. Select a smaller file.",
+    "invalidFormat": "This file format isn't supported for this utility."
+  },
+  "settings": {
+    "general": "General",
+    "appearance": "Appearance",
+    "workspaces": "Workspaces",
+    "performance": "Performance",
+    "historyAndPrivacy": "History and privacy",
+    "about": "About"
+  }
+}

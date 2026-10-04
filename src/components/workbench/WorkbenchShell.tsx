@@ -4215,7 +4215,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               <CheckCircle size={15} />
               <span>
                 {versionStack.length > 1
-                  ? `${versionStack[versionIndex]?.name || 'Action'} applied successfully.`
+                  ? `${versionStack[versionIndex]?.name || 'Action'} applied.`
                   : 'Ready.'}
               </span>
             </div>
