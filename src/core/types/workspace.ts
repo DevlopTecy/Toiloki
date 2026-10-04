@@ -61,7 +61,7 @@ export interface UtilityDefinition {
   primaryGroupId?: string;
   isSecondaryListing?: boolean;
   features?: FeatureDefinition[];
-  mode?: 'pages' | 'tray' | 'markers' | 'panel' | 'annotate' | 'info' | 'editor' | 'standalone';
+  mode?: 'pages' | 'tray' | 'markers' | 'panel' | 'annotate' | 'info' | 'editor' | 'standalone' | 'trim' | 'table' | 'inspect' | 'analyzer';
   accepts?: 'one' | 'many';
   inputTypes?: string[];
   needsFile?: boolean;

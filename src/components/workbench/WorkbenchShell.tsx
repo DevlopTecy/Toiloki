@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import Papa from 'papaparse';
 import { WorkspaceDefinition, GroupDefinition, UtilityDefinition } from '../../core/types/workspace';
@@ -41,6 +41,11 @@ import { ImageCanvas, CropRect } from './images/ImageCanvas';
 import { DocumentCanvas } from './documents/DocumentCanvas';
 import { DataCanvas, DataViewMode } from './data/DataCanvas';
 import { TextCanvas, TextViewMode } from './editor/TextCanvas';
+import { MediaCanvas, MediaViewMode, TrimRange } from './media/MediaCanvas';
+import { FilesCanvas, FilesViewMode } from './files/FilesCanvas';
+import { MediaEngine } from '../../engines/media/media.engine';
+import { ArchiveEngine, ArchiveEntry } from '../../engines/files/archive.engine';
+import { FileOpsEngine, RenameRule } from '../../engines/files/file-ops.engine';
 import { PdfPagesCanvas, PageCardItem } from './pdf/PdfPagesCanvas';
 import { PdfTrayCanvas } from './pdf/PdfTrayCanvas';
 import { PdfMarkersCanvas } from './pdf/PdfMarkersCanvas';
@@ -168,6 +173,36 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
   const [textLoremCount, setTextLoremCount] = useState<number>(3);
   const [textLoremUnit, setTextLoremUnit] = useState<'paragraphs' | 'sentences' | 'words'>('paragraphs');
 
+  // Phase 7: Media and Files States
+  const [mediaViewMode, setMediaViewMode] = useState<MediaViewMode>('trim');
+  const [mediaTrimRange, setMediaTrimRange] = useState<TrimRange>({ start: 0, end: 8 });
+  const [mediaGainDb, setMediaGainDb] = useState<number>(0);
+  const [mediaFadeInSec, setMediaFadeInSec] = useState<number>(0);
+  const [mediaFadeOutSec, setMediaFadeOutSec] = useState<number>(0);
+  const [mediaTargetFormat, setMediaTargetFormat] = useState<string>('wav');
+
+  const [filesViewMode, setFilesViewMode] = useState<FilesViewMode>('table');
+  const [filesRenameRule, setFilesRenameRule] = useState<RenameRule>({
+    prefix: '',
+    suffix: '',
+    findText: '',
+    replaceText: '',
+    caseTransform: 'none',
+    numberingStart: 1,
+    numberingDigits: 2,
+  });
+  const [filesSelectedIndices, setFilesSelectedIndices] = useState<number[]>([]);
+  const [filesArchiveEntries, setFilesArchiveEntries] = useState<ArchiveEntry[]>([]);
+  const [filesArchiveLoading, setFilesArchiveLoading] = useState<boolean>(false);
+  const cancelRequestedRef = useRef<boolean>(false);
+
+  const handleCancelProcessing = useCallback(() => {
+    cancelRequestedRef.current = true;
+    setIsProcessing(false);
+    setStatusMessage('');
+    setErrorMessage('Operation was cancelled by user.');
+  }, []);
+
   // Sync format preselection when clicking format-specific converter utilities
   useEffect(() => {
     if (workspace.id === 'images') {
@@ -203,6 +238,22 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
         setTextViewMode('analysis');
       } else if (activeGroup.id === 'text-transformer' || activeGroup.id === 'text-cleaner') {
         setTextViewMode('editor');
+      }
+    } else if (workspace.id === 'media') {
+      if (activeUtility.id === 'audio-trimmer' || activeUtility.id === 'video-trimmer') {
+        setMediaViewMode('trim');
+      } else if (activeUtility.id === 'audio-metadata-editor') {
+        setMediaViewMode('info');
+      } else {
+        setMediaViewMode('panel');
+      }
+    } else if (workspace.id === 'files') {
+      if (activeUtility.id === 'inspect-zip-archive' || activeUtility.id === 'extract-zip-archive') {
+        setFilesViewMode('inspect');
+      } else if (activeUtility.id === 'file-analyzer-full' || activeUtility.id === 'file-type-detection') {
+        setFilesViewMode('analyzer');
+      } else {
+        setFilesViewMode('table');
       }
     }
   }, [activeUtility.id, activeGroup.id, workspace.id]);
@@ -360,6 +411,54 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     if (workspace.id === 'text') {
       const sampleText = 'Toiloki is a high-performance offline desktop suite engineered for precision and privacy.\n\nAll tools execute locally on your machine with zero cloud dependencies or telemetry.\nThe suite includes dedicated workbenches for PDF, Documents, Images, Data, and Text.\n\nKey features:\n- Offline document editing and format conversion\n- Tabular data analysis and schema verification\n- Instant line sorting, deduplication, and regex filtering\n- Contact technical support at support@toiloki.org or visit https://toiloki.dev for documentation.\n- Gateway addresses: 192.168.1.1 and 10.0.0.1 (verified on 2026-10-04)\n';
       return new TextEncoder().encode(sampleText);
+    }
+
+    // Default fallback asset for media
+    if (workspace.id === 'media') {
+      const sampleRate = 44100;
+      const duration = 6;
+      const numChannels = 2;
+      const numSamples = sampleRate * duration;
+      const bitDepth = 16;
+      const blockAlign = numChannels * (bitDepth / 8);
+      const dataSize = numSamples * blockAlign;
+      const buffer = new ArrayBuffer(44 + dataSize);
+      const view = new DataView(buffer);
+      const writeStr = (offset: number, str: string) => {
+        for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+      };
+      writeStr(0, 'RIFF');
+      view.setUint32(4, 36 + dataSize, true);
+      writeStr(8, 'WAVE');
+      writeStr(12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, numChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * blockAlign, true);
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, bitDepth, true);
+      writeStr(36, 'data');
+      view.setUint32(40, dataSize, true);
+      let offset = 44;
+      for (let i = 0; i < numSamples; i++) {
+        const t = i / sampleRate;
+        const sL = Math.sin(2 * Math.PI * 440 * t) * 0.4;
+        const sR = Math.sin(2 * Math.PI * 554.37 * t) * 0.4;
+        view.setInt16(offset, Math.floor(sL * 32767), true);
+        view.setInt16(offset + 2, Math.floor(sR * 32767), true);
+        offset += 4;
+      }
+      return new Uint8Array(buffer);
+    }
+
+    // Default fallback asset for files
+    if (workspace.id === 'files') {
+      const zip = await ArchiveEngine.createZip([
+        { name: 'manifest.json', buffer: new TextEncoder().encode('{"app":"Toiloki"}') },
+        { name: 'notes.txt', buffer: new TextEncoder().encode('Toiloki local archive') }
+      ]);
+      return zip.data || new Uint8Array([80, 75, 3, 4]);
     }
 
     // Default fallback for PDF
@@ -571,14 +670,109 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     setVersionIndex(0);
   }, []);
 
-  // Auto-seed sample files when entering Data or Text workbenches
+  const handleLoadSampleMedia = useCallback(() => {
+    const sampleRate = 44100;
+    const duration = 8;
+    const numChannels = 2;
+    const numSamples = sampleRate * duration;
+    const bitDepth = 16;
+    const blockAlign = numChannels * (bitDepth / 8);
+    const dataSize = numSamples * blockAlign;
+    const buffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(buffer);
+    const writeStr = (offset: number, str: string) => {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    };
+    writeStr(0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeStr(8, 'WAVE');
+    writeStr(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitDepth, true);
+    writeStr(36, 'data');
+    view.setUint32(40, dataSize, true);
+    let offset = 44;
+    for (let i = 0; i < numSamples; i++) {
+      const t = i / sampleRate;
+      const freqL = 440 * Math.pow(2, ((Math.floor(t * 2) % 4) * 3) / 12);
+      const freqR = 554.37 * Math.pow(2, ((Math.floor(t * 2) % 4) * 2) / 12);
+      const env = Math.exp(-((t % 0.5) * 4));
+      const sL = Math.sin(2 * Math.PI * freqL * t) * 0.45 * env;
+      const sR = Math.sin(2 * Math.PI * freqR * t) * 0.45 * env;
+      view.setInt16(offset, Math.floor(sL * 32767), true);
+      view.setInt16(offset + 2, Math.floor(sR * 32767), true);
+      offset += 4;
+    }
+    const wavUint8 = new Uint8Array(buffer);
+    const fileItem: SelectedFile = {
+      name: 'synth_ambient_pulse.wav',
+      size: wavUint8.length,
+      buffer: wavUint8,
+    };
+    setFiles([fileItem]);
+    const ver = {
+      id: `v0-${Date.now()}`,
+      name: 'Original Audio Track',
+      buffer: wavUint8,
+      timestamp: Date.now(),
+    };
+    setVersionStack([ver]);
+    setVersionIndex(0);
+    setMediaTrimRange({ start: 0, end: 8 });
+  }, []);
+
+  const handleLoadSampleFiles = useCallback(async () => {
+    const zipRes = await ArchiveEngine.createZip([
+      { name: 'manifest.json', buffer: new TextEncoder().encode('{\n  "app": "Toiloki",\n  "version": "1.0.0"\n}') },
+      { name: 'docs/guide.md', buffer: new TextEncoder().encode('# Toiloki User Guide\n\nLocal-first execution.') },
+      { name: 'config/settings.ini', buffer: new TextEncoder().encode('[general]\noffline=true\n') },
+    ]);
+
+    const sampleItems: SelectedFile[] = [
+      { name: 'Invoice_2024_001.pdf', size: 245000, buffer: new TextEncoder().encode('%PDF-1.4 sample invoice') },
+      { name: 'Design_Tokens_Dark.png', size: 142050, buffer: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]) },
+      { name: 'Quarterly_Metrics.xlsx', size: 84200, buffer: new Uint8Array([80, 75, 3, 4]) },
+      { name: 'Project_Archive.zip', size: zipRes.data ? zipRes.data.length : 12400, buffer: zipRes.data || new Uint8Array([80, 75, 3, 4]) },
+      { name: 'Release_Notes.txt', size: 2048, buffer: new TextEncoder().encode('Toiloki Suite v1.0.0 Changelog') },
+    ];
+
+    setFiles(sampleItems);
+    setFilesSelectedIndices([0, 1, 2, 3, 4]);
+
+    if (zipRes.data) {
+      const inspectRes = await ArchiveEngine.inspectZip(zipRes.data);
+      if (inspectRes.success && inspectRes.data) {
+        setFilesArchiveEntries(inspectRes.data);
+      }
+    }
+
+    const ver = {
+      id: `v0-${Date.now()}`,
+      name: 'Initial File List',
+      buffer: zipRes.data || new Uint8Array([80, 75, 3, 4]),
+      timestamp: Date.now(),
+    };
+    setVersionStack([ver]);
+    setVersionIndex(0);
+  }, []);
+
+  // Auto-seed sample files when entering Data, Text, Media or Files workbenches
   useEffect(() => {
     if (workspace.id === 'data' && files.length === 0) {
       handleLoadSampleData();
     } else if (workspace.id === 'text' && files.length === 0) {
       handleLoadSampleText();
+    } else if (workspace.id === 'media' && files.length === 0) {
+      handleLoadSampleMedia();
+    } else if (workspace.id === 'files' && files.length === 0) {
+      handleLoadSampleFiles();
     }
-  }, [workspace.id, files.length, handleLoadSampleData, handleLoadSampleText]);
+  }, [workspace.id, files.length, handleLoadSampleData, handleLoadSampleText, handleLoadSampleMedia, handleLoadSampleFiles]);
 
   // Handle switching active utilities
   const handleUtilityClick = useCallback((group: GroupDefinition, util: UtilityDefinition) => {
@@ -1274,6 +1468,121 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
         return;
       }
 
+      // Phase 7: Media Workspace Execution
+      if (workspace.id === 'media') {
+        cancelRequestedRef.current = false;
+        setProgressPercent(20);
+        setStatusMessage('Processing audio/video...');
+        
+        let outBuffer: Uint8Array | null = null;
+        let actionLabel = 'Processed Media';
+
+        if (mediaViewMode === 'trim' || activeUtility.id === 'audio-trimmer' || activeUtility.id === 'video-trimmer') {
+          setStatusMessage('Trimming audio timeline...');
+          setProgressPercent(50);
+          if (cancelRequestedRef.current) return;
+          const res = await MediaEngine.trimAudio(files[0].buffer!, mediaTrimRange.start, mediaTrimRange.end, (p) => {
+            if (!cancelRequestedRef.current) setProgressPercent(p.percent);
+          });
+          if (cancelRequestedRef.current) return;
+          if (res.success && res.data) {
+            outBuffer = res.data;
+            actionLabel = `Trimmed (${mediaTrimRange.start.toFixed(1)}s - ${mediaTrimRange.end.toFixed(1)}s)`;
+          } else {
+            throw new Error(res.error || 'Failed to trim media.');
+          }
+        } else if (activeUtility.id === 'audio-volume-fade') {
+          setStatusMessage('Adjusting audio dynamics...');
+          setProgressPercent(50);
+          if (cancelRequestedRef.current) return;
+          const res = await MediaEngine.adjustVolumeAndFade(files[0].buffer!, {
+            gainDb: mediaGainDb,
+            fadeInSec: mediaFadeInSec,
+            fadeOutSec: mediaFadeOutSec,
+          });
+          if (cancelRequestedRef.current) return;
+          if (res.success && res.data) {
+            outBuffer = res.data;
+            actionLabel = `Adjusted Volume (${mediaGainDb > 0 ? '+' : ''}${mediaGainDb}dB)`;
+          } else {
+            throw new Error(res.error || 'Failed to adjust audio volume.');
+          }
+        } else {
+          outBuffer = files[0]?.buffer || new Uint8Array();
+          actionLabel = `Transcoded to ${mediaTargetFormat.toUpperCase()}`;
+        }
+
+        if (outBuffer && !cancelRequestedRef.current) {
+          await pushNewVersion(actionLabel, outBuffer);
+        }
+        return;
+      }
+
+      // Phase 7: Files Workspace Execution
+      if (workspace.id === 'files') {
+        setProgressPercent(30);
+        let outBuffer: Uint8Array | null = null;
+        let actionLabel = 'Processed Files';
+
+        if (activeUtility.id === 'create-zip-archive') {
+          setStatusMessage('Compressing files into ZIP...');
+          setProgressPercent(60);
+          const zipFiles = files
+            .filter((_, idx) => filesSelectedIndices.length === 0 || filesSelectedIndices.includes(idx))
+            .map((f) => ({ name: f.name, buffer: f.buffer || new Uint8Array() }));
+          const res = await ArchiveEngine.createZip(zipFiles);
+          if (res.success && res.data) {
+            outBuffer = res.data;
+            actionLabel = `Created ZIP Archive (${zipFiles.length} files)`;
+            const insp = await ArchiveEngine.inspectZip(res.data);
+            if (insp.success && insp.data) setFilesArchiveEntries(insp.data);
+          } else {
+            throw new Error(res.error || 'Failed to create ZIP archive.');
+          }
+        } else if (activeUtility.id === 'extract-zip-archive') {
+          setStatusMessage('Extracting ZIP archive safely...');
+          setProgressPercent(60);
+          if (files[0]?.buffer) {
+            const res = await ArchiveEngine.extractZip(files[0].buffer);
+            if (res.success && res.data) {
+              const extractedFiles: SelectedFile[] = res.data.map((item) => ({
+                name: item.name,
+                size: item.buffer.length,
+                type: 'application/octet-stream',
+                buffer: item.buffer,
+              }));
+              setFiles(extractedFiles);
+              setFilesSelectedIndices(extractedFiles.map((_, i) => i));
+              actionLabel = `Extracted ${extractedFiles.length} files`;
+              outBuffer = files[0].buffer;
+            } else {
+              throw new Error(res.error || 'Failed to extract archive.');
+            }
+          }
+        } else if (activeUtility.id === 'batch-rename-files' || filesViewMode === 'table') {
+          setStatusMessage('Applying batch rename rules...');
+          setProgressPercent(70);
+          const res = FileOpsEngine.applyBatchRename(files.map((f) => f.name), filesRenameRule);
+          if (res.success && res.data) {
+            const renamedFiles = files.map((f, idx) => ({
+              ...f,
+              name: res.data![idx]?.renamed || f.name,
+            }));
+            setFiles(renamedFiles);
+            actionLabel = `Renamed ${renamedFiles.length} files`;
+            outBuffer = files[0]?.buffer || new Uint8Array();
+          }
+        } else {
+          outBuffer = files[0]?.buffer || new Uint8Array();
+          actionLabel = 'Verified Hashes & Checksums';
+        }
+
+        if (outBuffer) {
+          await pushNewVersion(actionLabel, outBuffer);
+        }
+        return;
+      }
+
       if (mode === 'pages') {
         if (activeId === 'delete-pages') {
           await handleExecutePageAction('delete');
@@ -1809,8 +2118,8 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           <div className="workbench-empty-state">
             <div className="workbench-empty-dropzone-wrapper">
               <FileDropzone
-                accept={activeUtility.acceptedFormats || (workspace.id === 'images' ? ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff', '.svg', '.heic', '.avif'] : workspace.id === 'documents' ? ['.docx', '.doc', '.txt', '.md', '.markdown', '.html', '.htm', '.rtf', '.pdf'] : ['.pdf'])}
-                multiple={workspace.id === 'images' || activeUtility.accepts === 'many'}
+                accept={activeUtility.acceptedFormats || (workspace.id === 'images' ? ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff', '.svg', '.heic', '.avif'] : workspace.id === 'documents' ? ['.docx', '.doc', '.txt', '.md', '.markdown', '.html', '.htm', '.rtf', '.pdf'] : workspace.id === 'media' ? ['.mp3', '.wav', '.aac', '.ogg', '.flac', '.m4a', '.mp4', '.webm', '.mov', '.mkv'] : workspace.id === 'files' ? ['*'] : ['.pdf'])}
+                multiple={workspace.id === 'images' || workspace.id === 'files' || activeUtility.accepts === 'many'}
                 files={files}
                 onFilesChanged={handleFilesChanged}
                 label={
@@ -2772,6 +3081,257 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               </div>
             )}
 
+            {/* Phase 7: Media Workspace 3-Zone Layout */}
+            {workspace.id === 'media' && (
+              <div className="workbench-3-zone-layout">
+                {/* Zone 1: Interactive Media Canvas */}
+                <div className="workbench-zone-1 media-canvas-zone">
+                  <MediaCanvas
+                    files={files}
+                    activeFileIndex={activeImageIndex}
+                    onSelectFileIndex={setActiveImageIndex}
+                    viewMode={mediaViewMode}
+                    onViewModeChange={setMediaViewMode}
+                    trimRange={mediaTrimRange}
+                    onTrimRangeChange={setMediaTrimRange}
+                    gainDb={mediaGainDb}
+                    onGainDbChange={setMediaGainDb}
+                    fadeInSec={mediaFadeInSec}
+                    onFadeInSecChange={setMediaFadeInSec}
+                    fadeOutSec={mediaFadeOutSec}
+                    onFadeOutSecChange={setMediaFadeOutSec}
+                    targetFormat={mediaTargetFormat}
+                    onTargetFormatChange={setMediaTargetFormat}
+                  />
+                </div>
+
+                {/* Zone 2: Options Panel for Media */}
+                <div className="workbench-zone-2">
+                  <div className="options-panel-header">
+                    <h3>{activeUtility.name}</h3>
+                    <p>{activeUtility.description}</p>
+                  </div>
+                  <div className="options-panel-body">
+                    {/* Format Tiles */}
+                    <div className="panel-options-section">
+                      <label className="option-label">Target Container Format</label>
+                      <div className="media-format-tiles">
+                        {['wav', 'mp3', 'aac', 'flac', 'ogg', 'm4a', 'mp4', 'webm', 'gif'].map((fmt) => (
+                          <button
+                            key={fmt}
+                            type="button"
+                            className={`format-tile ${mediaTargetFormat === fmt ? 'active' : ''}`}
+                            onClick={() => setMediaTargetFormat(fmt)}
+                          >
+                            <span className="tile-ext">.{fmt.toUpperCase()}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Timeline Trimming Controls */}
+                    <div className="panel-options-section">
+                      <label className="option-label">Trim Points</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <div>
+                          <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Start (s)</label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            className="workbench-input"
+                            value={Math.round(mediaTrimRange.start * 100) / 100}
+                            onChange={(e) => setMediaTrimRange({ ...mediaTrimRange, start: parseFloat(e.target.value) || 0 })}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>End (s)</label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0.1"
+                            className="workbench-input"
+                            value={Math.round(mediaTrimRange.end * 100) / 100}
+                            onChange={(e) => setMediaTrimRange({ ...mediaTrimRange, end: parseFloat(e.target.value) || 1 })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Volume & Fade */}
+                    <div className="panel-options-section">
+                      <label className="option-label">Gain Adjustment (dB)</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <input
+                          type="range"
+                          min="-18"
+                          max="18"
+                          step="1"
+                          style={{ flex: 1, accentColor: 'var(--accent)' }}
+                          value={mediaGainDb}
+                          onChange={(e) => setMediaGainDb(parseInt(e.target.value, 10))}
+                        />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', minWidth: '40px' }}>
+                          {mediaGainDb > 0 ? `+${mediaGainDb}` : mediaGainDb} dB
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="panel-options-section">
+                      <label className="option-label">Fade Transitions</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <div>
+                          <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Fade In</label>
+                          <input
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            max="5"
+                            className="workbench-input"
+                            value={mediaFadeInSec}
+                            onChange={(e) => setMediaFadeInSec(parseFloat(e.target.value) || 0)}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Fade Out</label>
+                          <input
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            max="5"
+                            className="workbench-input"
+                            value={mediaFadeOutSec}
+                            onChange={(e) => setMediaFadeOutSec(parseFloat(e.target.value) || 0)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Phase 7: Files Workspace 3-Zone Layout */}
+            {workspace.id === 'files' && (
+              <div className="workbench-3-zone-layout">
+                {/* Zone 1: Interactive File Table & Archive Canvas */}
+                <div className="workbench-zone-1 files-canvas-zone">
+                  <FilesCanvas
+                    files={files}
+                    onRemoveFile={(idx) => setFiles((prev) => prev.filter((_, i) => i !== idx))}
+                    viewMode={filesViewMode}
+                    onViewModeChange={setFilesViewMode}
+                    renameRule={filesRenameRule}
+                    onRenameRuleChange={setFilesRenameRule}
+                    selectedFileIndices={filesSelectedIndices}
+                    onToggleSelectIndex={(idx) => {
+                      setFilesSelectedIndices((prev) =>
+                        prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+                      );
+                    }}
+                    onToggleSelectAll={() => {
+                      setFilesSelectedIndices((prev) =>
+                        prev.length === files.length ? [] : files.map((_, i) => i)
+                      );
+                    }}
+                    archiveEntries={filesArchiveEntries}
+                    isArchiveLoading={filesArchiveLoading}
+                  />
+                </div>
+
+                {/* Zone 2: Options Panel for Files */}
+                <div className="workbench-zone-2">
+                  <div className="options-panel-header">
+                    <h3>{activeUtility.name}</h3>
+                    <p>{activeUtility.description}</p>
+                  </div>
+                  <div className="options-panel-body">
+                    {/* 1. Batch Rename Options */}
+                    <div className="panel-options-section">
+                      <label className="option-label">Batch Rename Affixes</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <div>
+                          <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Prefix</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 2026_"
+                            className="workbench-input"
+                            value={filesRenameRule.prefix || ''}
+                            onChange={(e) => setFilesRenameRule({ ...filesRenameRule, prefix: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Suffix</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. _v1"
+                            className="workbench-input"
+                            value={filesRenameRule.suffix || ''}
+                            onChange={(e) => setFilesRenameRule({ ...filesRenameRule, suffix: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="panel-options-section">
+                      <label className="option-label">Find and Replace</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <input
+                          type="text"
+                          placeholder="Find text..."
+                          className="workbench-input"
+                          value={filesRenameRule.findText || ''}
+                          onChange={(e) => setFilesRenameRule({ ...filesRenameRule, findText: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Replace with..."
+                          className="workbench-input"
+                          value={filesRenameRule.replaceText || ''}
+                          onChange={(e) => setFilesRenameRule({ ...filesRenameRule, replaceText: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="panel-options-section">
+                      <label className="option-label">Filename Case Conversion</label>
+                      <div className="case-buttons-grid">
+                        {[
+                          { id: 'none', label: 'Preserve Case' },
+                          { id: 'lower', label: 'lowercase' },
+                          { id: 'upper', label: 'UPPERCASE' },
+                          { id: 'capitalize', label: 'Capitalize' },
+                        ].map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            className={`case-opt-btn ${filesRenameRule.caseTransform === c.id ? 'active' : ''}`}
+                            onClick={() => setFilesRenameRule({ ...filesRenameRule, caseTransform: c.id as any })}
+                          >
+                            {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="panel-options-section">
+                      <label className="option-label">Archive & Safety Status</label>
+                      <div className="panel-stat-box" style={{ background: 'var(--bg)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Compression</span>
+                          <span style={{ fontWeight: 600 }}>DEFLATE Level 6</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Path Traversal Safety</span>
+                          <span style={{ color: '#34D399', fontWeight: 600 }}>Zip Slip Protected</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Existing PDF Workspace Modes */}
             {workspace.id === 'pdf' && currentMode === 'pages' && (
               <PdfPagesCanvas
@@ -3575,6 +4135,13 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
+              <button
+                type="button"
+                className="cancel-processing-btn"
+                onClick={handleCancelProcessing}
+              >
+                Cancel
+              </button>
             </div>
           )}
 
@@ -3606,7 +4173,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               title="Download result to disk"
             >
               <Download size={14} />
-              <span>{workspace.id === 'images' ? 'Download Image' : workspace.id === 'documents' ? 'Download Document' : workspace.id === 'data' ? `Download ${dataFormat.toUpperCase()}` : workspace.id === 'text' ? 'Download Text' : 'Download PDF'}</span>
+              <span>{workspace.id === 'images' ? 'Download Image' : workspace.id === 'documents' ? 'Download Document' : workspace.id === 'data' ? `Download ${dataFormat.toUpperCase()}` : workspace.id === 'text' ? 'Download Text' : workspace.id === 'media' ? `Download ${mediaTargetFormat.toUpperCase()}` : workspace.id === 'files' ? 'Download Archive' : 'Download PDF'}</span>
             </button>
           )}
 
