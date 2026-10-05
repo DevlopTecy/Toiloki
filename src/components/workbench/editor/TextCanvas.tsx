@@ -1,29 +1,29 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import {
   FileText,
+  Columns,
   GitCompare,
   BarChart2,
   Search,
   WrapText,
-  Type,
   Copy,
   Check,
-  RotateCcw,
+  ArrowLeft,
   ArrowRight,
   AtSign,
   Globe,
   Phone,
   Calendar,
   Hash,
-  Filter,
   CheckCircle2,
   X,
+  SlidersHorizontal,
 } from 'lucide-react';
-import { DiffEngine, DiffChange } from '../../../engines/diff/diff.engine';
-import { TextEngine } from '../../../engines/text/text.engine';
+import { DiffEngine } from '../../../engines/diff/diff.engine';
+import { TextEngine, CaseType } from '../../../engines/text/text.engine';
 import './TextCanvas.css';
 
-export type TextViewMode = 'editor' | 'diff' | 'analysis';
+export type TextViewMode = 'editor' | 'split' | 'diff' | 'analysis';
 
 export interface TextCanvasProps {
   text: string;
@@ -52,6 +52,18 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const gutterRef = useRef<HTMLDivElement>(null);
+  const splitInputTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const splitInputGutterRef = useRef<HTMLDivElement>(null);
+  const splitOutputTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const splitOutputGutterRef = useRef<HTMLDivElement>(null);
+
+  // Split View Output buffer & sync
+  const [outputText, setOutputText] = useState<string>(originalText || text);
+  useEffect(() => {
+    if (originalText && originalText !== text) {
+      setOutputText(originalText);
+    }
+  }, [originalText]);
 
   // Find & Replace state
   const [showFindReplace, setShowFindReplace] = useState<boolean>(false);
@@ -68,38 +80,71 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
     selectedChars: 0,
   });
 
-  // Copy notice
-  const [copied, setCopied] = useState<boolean>(false);
+  // Copy feedback states
+  const [copiedMain, setCopiedMain] = useState<boolean>(false);
+  const [copiedSplitInput, setCopiedSplitInput] = useState<boolean>(false);
+  const [copiedSplitOutput, setCopiedSplitOutput] = useState<boolean>(false);
+  const [toastNotice, setToastNotice] = useState<string | null>(null);
 
-  // Calculate lines
+  // Split view case bar overflow menu
+  const [splitOverflowOpen, setSplitOverflowOpen] = useState<boolean>(false);
+
+  // Scroll tracking for virtualized line gutters (5 MB responsiveness)
+  const [mainScrollTop, setMainScrollTop] = useState<number>(0);
+  const [splitInputScrollTop, setSplitInputScrollTop] = useState<number>(0);
+  const [splitOutputScrollTop, setSplitOutputScrollTop] = useState<number>(0);
+
+  const LINE_HEIGHT = Math.round(fontSize * 1.6); // ~21px
+
+  // Input lines
   const lines = useMemo(() => {
     return text.split('\n');
   }, [text]);
 
-  const lineCount = lines.length;
+  const outputLines = useMemo(() => {
+    return outputText.split('\n');
+  }, [outputText]);
 
-  // Real-time Text Metrics
+  // Helper for virtualized line numbers gutter
+  const getVisibleRange = (totalLines: number, scrollTop: number, clientHeight: number) => {
+    if (totalLines <= 350) {
+      return { start: 0, end: totalLines, topPad: 0, bottomPad: 0 };
+    }
+    const startIdx = Math.max(0, Math.floor(scrollTop / LINE_HEIGHT) - 15);
+    const endIdx = Math.min(totalLines, startIdx + Math.ceil(clientHeight / LINE_HEIGHT) + 30);
+    const topPad = startIdx * LINE_HEIGHT;
+    const bottomPad = (totalLines - endIdx) * LINE_HEIGHT;
+    return { start: startIdx, end: endIdx, topPad, bottomPad };
+  };
+
+  // Real-time Text Metrics with Unicode Grapheme Accuracy (emojis & combining marks)
   const metrics = useMemo(() => {
+    const analysis = TextEngine.analyzeText(text);
+    if (analysis.success && analysis.data) {
+      return {
+        chars: analysis.data.characters, // Grapheme clusters (Intl.Segmenter)
+        charsNoSpaces: analysis.data.charactersNoSpaces,
+        words: analysis.data.words,
+        codeUnits: analysis.data.codeUnits,
+        lines: analysis.data.lines,
+        paragraphs: analysis.data.paragraphs,
+        readingTimeMin: analysis.data.readingTimeMin,
+        speakingTimeMin: analysis.data.speakingTimeMin,
+      };
+    }
     const chars = text.length;
-    const charsNoSpaces = text.replace(/\s+/g, '').length;
     const words = text.trim() ? (text.trim().match(/\S+/g) || []).length : 0;
-    const readingTimeMin = Math.max(1, Math.ceil(words / 200));
-    const speakingTimeMin = Math.max(1, Math.ceil(words / 130));
-    const paragraphs = text
-      .split(/\n\s*\n/)
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0).length;
-
     return {
       chars,
-      charsNoSpaces,
+      charsNoSpaces: text.replace(/\s+/g, '').length,
       words,
-      lines: lineCount,
-      paragraphs,
-      readingTimeMin,
-      speakingTimeMin,
+      codeUnits: chars,
+      lines: lines.length,
+      paragraphs: 1,
+      readingTimeMin: 1,
+      speakingTimeMin: 1,
     };
-  }, [text, lineCount]);
+  }, [text, lines.length]);
 
   // Diff calculation
   const diffData = useMemo(() => {
@@ -175,13 +220,31 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
   };
 
   // Synchronize gutter scroll with textarea scroll
-  const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+  const handleMainScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    const st = e.currentTarget.scrollTop;
+    setMainScrollTop(st);
     if (gutterRef.current) {
-      gutterRef.current.scrollTop = e.currentTarget.scrollTop;
+      gutterRef.current.scrollTop = st;
     }
   };
 
-  // Cursor and Selection tracking
+  const handleSplitInputScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    const st = e.currentTarget.scrollTop;
+    setSplitInputScrollTop(st);
+    if (splitInputGutterRef.current) {
+      splitInputGutterRef.current.scrollTop = st;
+    }
+  };
+
+  const handleSplitOutputScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    const st = e.currentTarget.scrollTop;
+    setSplitOutputScrollTop(st);
+    if (splitOutputGutterRef.current) {
+      splitOutputGutterRef.current.scrollTop = st;
+    }
+  };
+
+  // Cursor tracking
   const updateCursorPos = () => {
     if (!textareaRef.current) return;
     const start = textareaRef.current.selectionStart;
@@ -197,7 +260,7 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
     });
   };
 
-  // Handle Tab key for indentation
+  // Handle Tab key
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -206,7 +269,6 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
       const start = ta.selectionStart;
       const end = ta.selectionEnd;
       if (e.shiftKey) {
-        // Dedent 2 spaces if possible
         const before = text.substring(0, start);
         const selected = text.substring(start, end);
         const after = text.substring(end);
@@ -215,7 +277,6 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
           onTextChange(before + unindented + after);
         }
       } else {
-        // Indent 2 spaces
         const before = text.substring(0, start);
         const after = text.substring(end);
         onTextChange(before + '  ' + after);
@@ -231,11 +292,40 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  // Clipboard copies with visual feedback
+  const copyToClipboard = (content: string, type: 'main' | 'splitInput' | 'splitOutput') => {
+    navigator.clipboard.writeText(content);
+    if (type === 'main') {
+      setCopiedMain(true);
+      setTimeout(() => setCopiedMain(false), 1500);
+    } else if (type === 'splitInput') {
+      setCopiedSplitInput(true);
+      setTimeout(() => setCopiedSplitInput(false), 1500);
+    } else if (type === 'splitOutput') {
+      setCopiedSplitOutput(true);
+      setTimeout(() => setCopiedSplitOutput(false), 1500);
+    }
   };
+
+  // "Use output as input" action
+  const handleUseOutputAsInput = () => {
+    onTextChange(outputText);
+    setToastNotice('Output loaded into Input!');
+    setTimeout(() => setToastNotice(null), 1600);
+  };
+
+  // Case transform helper within split view
+  const handleApplySplitCase = (caseType: CaseType) => {
+    const res = TextEngine.transformCase(text, caseType);
+    if (res.success && res.data) {
+      setOutputText(res.data);
+    }
+  };
+
+  // Visible ranges for virtualized gutters
+  const mainRange = getVisibleRange(lines.length, mainScrollTop, textareaRef.current?.clientHeight || 600);
+  const splitInputRange = getVisibleRange(lines.length, splitInputScrollTop, splitInputTextareaRef.current?.clientHeight || 600);
+  const splitOutputRange = getVisibleRange(outputLines.length, splitOutputScrollTop, splitOutputTextareaRef.current?.clientHeight || 600);
 
   return (
     <div className="text-canvas-root">
@@ -253,6 +343,15 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
               <span>Editor</span>
             </button>
             <button
+              className={`view-mode-tab ${viewMode === 'split' ? 'is-active' : ''}`}
+              onClick={() => onViewModeChange('split')}
+              role="tab"
+              aria-selected={viewMode === 'split'}
+            >
+              <Columns size={14} />
+              <span>Split (Input | Output)</span>
+            </button>
+            <button
               className={`view-mode-tab ${viewMode === 'diff' ? 'is-active' : ''}`}
               onClick={() => onViewModeChange('diff')}
               role="tab"
@@ -268,7 +367,7 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
               aria-selected={viewMode === 'analysis'}
             >
               <BarChart2 size={14} />
-              <span>Analysis & Entities</span>
+              <span>Analysis & Stats</span>
             </button>
           </div>
 
@@ -277,10 +376,28 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
               {metrics.lines} lines • {metrics.words} words • {metrics.chars} chars
             </span>
           </div>
+
+          {toastNotice && (
+            <span className="replace-notice-pill" style={{ marginLeft: '8px' }}>
+              {toastNotice}
+            </span>
+          )}
         </div>
 
         <div className="canvas-header-right">
-          {viewMode === 'editor' && (
+          {viewMode === 'split' && (
+            <button
+              type="button"
+              className="canvas-action-btn is-gold"
+              onClick={handleUseOutputAsInput}
+              title="Replace input text with current output buffer"
+            >
+              <ArrowLeft size={13} />
+              <span>Use Output as Input</span>
+            </button>
+          )}
+
+          {(viewMode === 'editor' || viewMode === 'split') && (
             <>
               {/* Find & Replace Toggle Button */}
               <button
@@ -300,7 +417,7 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
                   onClick={() => onWordWrapChange(!wordWrap)}
                 >
                   <WrapText size={13} />
-                  <span>Wrap</span>
+                  <span>{wordWrap ? 'Wrap: On' : 'Wrap: Off'}</span>
                 </button>
               )}
 
@@ -321,10 +438,12 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
             </>
           )}
 
-          <button className="canvas-tool-btn" onClick={copyToClipboard} title="Copy all text">
-            {copied ? <Check size={13} style={{ color: 'var(--success)' }} /> : <Copy size={13} />}
-            <span>{copied ? 'Copied' : 'Copy'}</span>
-          </button>
+          {viewMode === 'editor' && (
+            <button className="canvas-tool-btn" onClick={() => copyToClipboard(text, 'main')} title="Copy all text">
+              {copiedMain ? <Check size={13} style={{ color: 'var(--success)' }} /> : <Copy size={13} />}
+              <span>{copiedMain ? 'Copied' : 'Copy'}</span>
+            </button>
+          )}
 
           {onLoadSample && (!text || text.trim().length === 0) && (
             <button className="data-pill-btn is-gold" onClick={onLoadSample}>
@@ -336,7 +455,7 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
       </div>
 
       {/* Floating Find & Replace Bar */}
-      {showFindReplace && viewMode === 'editor' && (
+      {showFindReplace && (viewMode === 'editor' || viewMode === 'split') && (
         <div className="find-replace-bar">
           <div className="find-replace-inputs">
             <div className="find-input-group">
@@ -409,21 +528,26 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
         {/* 1. EDITOR VIEW */}
         {viewMode === 'editor' && (
           <div className="editor-zone">
-            {/* Gutter with line numbers */}
+            {/* Gutter with virtualized line numbers for 5 MB text */}
             <div
               ref={gutterRef}
               className="editor-gutter"
               style={{ fontSize: `${fontSize}px` }}
               aria-hidden="true"
             >
-              {lines.map((_, i) => (
-                <div
-                  key={i}
-                  className={`gutter-line-num ${cursorPos.line === i + 1 ? 'is-active' : ''}`}
-                >
-                  {i + 1}
-                </div>
-              ))}
+              <div style={{ height: `${mainRange.topPad}px` }} />
+              {lines.slice(mainRange.start, mainRange.end).map((_, idx) => {
+                const lineNum = mainRange.start + idx + 1;
+                return (
+                  <div
+                    key={lineNum}
+                    className={`gutter-line-num ${cursorPos.line === lineNum ? 'is-active' : ''}`}
+                  >
+                    {lineNum}
+                  </div>
+                );
+              })}
+              <div style={{ height: `${mainRange.bottomPad}px` }} />
             </div>
 
             {/* Monospace Text Area */}
@@ -436,7 +560,7 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
                 onTextChange(e.target.value);
                 updateCursorPos();
               }}
-              onScroll={handleScroll}
+              onScroll={handleMainScroll}
               onKeyUp={updateCursorPos}
               onClick={updateCursorPos}
               onSelect={updateCursorPos}
@@ -450,7 +574,167 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
           </div>
         )}
 
-        {/* 2. DIFF COMPARE VIEW */}
+        {/* 2. SPLIT VIEW: Input | Output equal width filling height */}
+        {viewMode === 'split' && (
+          <div className="split-zone">
+            {/* Left Pane: Input Text */}
+            <div className="split-pane split-input-pane">
+              <div className="split-pane-header">
+                <span className="split-pane-title">Input Buffer</span>
+                <div className="split-pane-actions">
+                  <span className="split-pane-meta">{lines.length} lines</span>
+                  <button
+                    type="button"
+                    className="canvas-tool-btn"
+                    onClick={() => copyToClipboard(text, 'splitInput')}
+                    title="Copy input text"
+                  >
+                    {copiedSplitInput ? <Check size={12} style={{ color: 'var(--success)' }} /> : <Copy size={12} />}
+                    <span>{copiedSplitInput ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="split-editor-wrap">
+                <div
+                  ref={splitInputGutterRef}
+                  className="editor-gutter"
+                  style={{ fontSize: `${fontSize}px` }}
+                  aria-hidden="true"
+                >
+                  <div style={{ height: `${splitInputRange.topPad}px` }} />
+                  {lines.slice(splitInputRange.start, splitInputRange.end).map((_, idx) => {
+                    const lineNum = splitInputRange.start + idx + 1;
+                    return (
+                      <div key={lineNum} className="gutter-line-num">
+                        {lineNum}
+                      </div>
+                    );
+                  })}
+                  <div style={{ height: `${splitInputRange.bottomPad}px` }} />
+                </div>
+
+                <textarea
+                  ref={splitInputTextareaRef}
+                  className={`editor-textarea ${wordWrap ? 'is-wrapped' : 'is-nowrap'}`}
+                  style={{ fontSize: `${fontSize}px` }}
+                  value={text}
+                  onChange={(e) => onTextChange(e.target.value)}
+                  onScroll={handleSplitInputScroll}
+                  placeholder="Input text here..."
+                  spellCheck={false}
+                />
+              </div>
+            </div>
+
+            {/* Right Pane: Transformed Output */}
+            <div className="split-pane split-output-pane">
+              <div className="split-pane-header">
+                <span className="split-pane-title">Transformed Output</span>
+                <div className="split-pane-actions">
+                  <span className="split-pane-meta">{outputLines.length} lines</span>
+                  <button
+                    type="button"
+                    className="canvas-tool-btn"
+                    onClick={() => copyToClipboard(outputText, 'splitOutput')}
+                    title="Copy output text"
+                  >
+                    {copiedSplitOutput ? <Check size={12} style={{ color: 'var(--success)' }} /> : <Copy size={12} />}
+                    <span>{copiedSplitOutput ? 'Copied' : 'Copy Output'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Single row of Case conversion chips directly above output */}
+              <div className="split-case-bar">
+                <span className="split-case-label">Case:</span>
+                {[
+                  { id: 'upper', label: 'UPPER' },
+                  { id: 'lower', label: 'lower' },
+                  { id: 'title', label: 'Title' },
+                  { id: 'sentence', label: 'Sentence' },
+                  { id: 'camel', label: 'camel' },
+                  { id: 'kebab', label: 'kebab' },
+                  { id: 'snake', label: 'snake' },
+                ].map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className="action-btn-chip"
+                    onClick={() => handleApplySplitCase(c.id as CaseType)}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+                <div className="case-overflow-container" style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    className={`action-btn-chip ${splitOverflowOpen ? 'is-active' : ''}`}
+                    onClick={() => setSplitOverflowOpen((prev) => !prev)}
+                  >
+                    More ▾
+                  </button>
+                  {splitOverflowOpen && (
+                    <div className="case-overflow-dropdown">
+                      {[
+                        { id: 'pascal', label: 'PascalCase' },
+                        { id: 'constant', label: 'CONSTANT_CASE' },
+                        { id: 'dot', label: 'dot.case' },
+                        { id: 'train', label: 'Train-Case' },
+                        { id: 'alternating', label: 'aLtErNaTiNg' },
+                      ].map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className="case-overflow-item"
+                          onClick={() => {
+                            handleApplySplitCase(c.id as CaseType);
+                            setSplitOverflowOpen(false);
+                          }}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="split-editor-wrap">
+                <div
+                  ref={splitOutputGutterRef}
+                  className="editor-gutter"
+                  style={{ fontSize: `${fontSize}px` }}
+                  aria-hidden="true"
+                >
+                  <div style={{ height: `${splitOutputRange.topPad}px` }} />
+                  {outputLines.slice(splitOutputRange.start, splitOutputRange.end).map((_, idx) => {
+                    const lineNum = splitOutputRange.start + idx + 1;
+                    return (
+                      <div key={lineNum} className="gutter-line-num">
+                        {lineNum}
+                      </div>
+                    );
+                  })}
+                  <div style={{ height: `${splitOutputRange.bottomPad}px` }} />
+                </div>
+
+                <textarea
+                  ref={splitOutputTextareaRef}
+                  className={`editor-textarea ${wordWrap ? 'is-wrapped' : 'is-nowrap'}`}
+                  style={{ fontSize: `${fontSize}px` }}
+                  value={outputText}
+                  onChange={(e) => setOutputText(e.target.value)}
+                  onScroll={handleSplitOutputScroll}
+                  placeholder="Transformed output appears here..."
+                  spellCheck={false}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. DIFF COMPARE VIEW */}
         {viewMode === 'diff' && (
           <div className="diff-zone">
             <div className="diff-header-bar">
@@ -497,7 +781,7 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
           </div>
         )}
 
-        {/* 3. ANALYSIS & ENTITIES VIEW */}
+        {/* 4. ANALYSIS & STATS VIEW */}
         {viewMode === 'analysis' && (
           <div className="analysis-zone">
             {/* Real-time Summary Cards */}
@@ -518,9 +802,9 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
                 <span className="card-sub">Separated blocks</span>
               </div>
               <div className="analysis-card">
-                <span className="card-label">Chars (No Spaces)</span>
-                <strong className="card-val">{metrics.charsNoSpaces}</strong>
-                <span className="card-sub">{metrics.chars} total chars</span>
+                <span className="card-label">Chars (Graphemes)</span>
+                <strong className="card-val">{metrics.chars}</strong>
+                <span className="card-sub">{metrics.charsNoSpaces} no spaces ({metrics.codeUnits} UTF-16)</span>
               </div>
             </div>
 
@@ -639,7 +923,7 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
       </div>
 
       {/* Editor Bottom Status Bar */}
-      {viewMode === 'editor' && (
+      {(viewMode === 'editor' || viewMode === 'split') && (
         <div className="editor-status-bar">
           <div className="status-left">
             <span>

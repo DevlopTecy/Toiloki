@@ -179,6 +179,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
   const [textFontSize, setTextFontSize] = useState<number>(13);
   const [textWordWrap, setTextWordWrap] = useState<boolean>(true);
   const [textCaseType, setTextCaseType] = useState<CaseType>('upper');
+  const [textCaseOverflowOpen, setTextCaseOverflowOpen] = useState<boolean>(false);
   const [textSlugSep, setTextSlugSep] = useState<'-' | '_' | '.'>('-');
   const [textSlugMax, setTextSlugMax] = useState<number>(60);
   const [textSortDir, setTextSortDir] = useState<'asc' | 'desc'>('asc');
@@ -877,10 +878,18 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
       const updated = [...files];
       updated[0] = { ...updated[0], buffer: prevVersion.buffer };
       setFiles(updated);
-      await refreshPagesFromBuffer(prevVersion.buffer);
+      if (workspace.id === 'text') {
+        const decoded = new TextDecoder().decode(prevVersion.buffer);
+        setTextContent(decoded);
+      } else if (workspace.id === 'data') {
+        const decoded = new TextDecoder().decode(prevVersion.buffer);
+        setDataContent(decoded);
+      } else {
+        await refreshPagesFromBuffer(prevVersion.buffer);
+      }
     }
     setSuccessResult(false);
-  }, [versionIndex, versionStack, files, refreshPagesFromBuffer]);
+  }, [versionIndex, versionStack, files, refreshPagesFromBuffer, workspace.id]);
 
   const handleRedo = useCallback(async () => {
     if (versionIndex >= versionStack.length - 1) return;
@@ -892,10 +901,18 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
       const updated = [...files];
       updated[0] = { ...updated[0], buffer: nextVersion.buffer };
       setFiles(updated);
-      await refreshPagesFromBuffer(nextVersion.buffer);
+      if (workspace.id === 'text') {
+        const decoded = new TextDecoder().decode(nextVersion.buffer);
+        setTextContent(decoded);
+      } else if (workspace.id === 'data') {
+        const decoded = new TextDecoder().decode(nextVersion.buffer);
+        setDataContent(decoded);
+      } else {
+        await refreshPagesFromBuffer(nextVersion.buffer);
+      }
     }
     setSuccessResult(false);
-  }, [versionIndex, versionStack, files, refreshPagesFromBuffer]);
+  }, [versionIndex, versionStack, files, refreshPagesFromBuffer, workspace.id]);
 
   // Keyboard shortcuts for Undo (Ctrl+Z) and Redo (Ctrl+Shift+Z / Ctrl+Y)
   useEffect(() => {
@@ -3182,27 +3199,57 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                     {/* 1. Case Conversions */}
                     <div className="panel-options-section">
                       <label className="option-label">Case Conversions</label>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+                      <div className="case-chips-single-row">
                         {[
-                          { id: 'upper', label: 'UPPERCASE' },
-                          { id: 'lower', label: 'lowercase' },
-                          { id: 'title', label: 'Title Case' },
-                          { id: 'camel', label: 'camelCase' },
-                          { id: 'snake', label: 'snake_case' },
-                          { id: 'kebab', label: 'kebab-case' },
-                          { id: 'pascal', label: 'PascalCase' },
-                          { id: 'constant', label: 'CONSTANT_CASE' },
+                          { id: 'upper', label: 'UPPER' },
+                          { id: 'lower', label: 'lower' },
+                          { id: 'title', label: 'Title' },
+                          { id: 'sentence', label: 'Sentence' },
+                          { id: 'camel', label: 'camel' },
+                          { id: 'kebab', label: 'kebab' },
+                          { id: 'snake', label: 'snake' },
                         ].map((c) => (
                           <button
                             key={c.id}
                             type="button"
-                            className="action-btn-secondary"
-                            style={{ fontSize: '11px', padding: '6px' }}
+                            className="action-btn-chip"
                             onClick={() => handleApplyCase(c.id as CaseType)}
                           >
                             {c.label}
                           </button>
                         ))}
+                        <div className="case-overflow-container" style={{ position: 'relative' }}>
+                          <button
+                            type="button"
+                            className={`action-btn-chip ${textCaseOverflowOpen ? 'is-active' : ''}`}
+                            onClick={() => setTextCaseOverflowOpen((prev) => !prev)}
+                          >
+                            More ▾
+                          </button>
+                          {textCaseOverflowOpen && (
+                            <div className="case-overflow-dropdown">
+                              {[
+                                { id: 'pascal', label: 'PascalCase' },
+                                { id: 'constant', label: 'CONSTANT_CASE' },
+                                { id: 'dot', label: 'dot.case' },
+                                { id: 'train', label: 'Train-Case' },
+                                { id: 'alternating', label: 'aLtErNaTiNg' },
+                              ].map((c) => (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  className="case-overflow-item"
+                                  onClick={() => {
+                                    handleApplyCase(c.id as CaseType);
+                                    setTextCaseOverflowOpen(false);
+                                  }}
+                                >
+                                  {c.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 

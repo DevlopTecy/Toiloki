@@ -1333,3 +1333,83 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   outline: 1px solid var(--border-strong);
 }
+
+/* Phase 5B Text: Single-Row Case Chips & Overflow */
+.case-chips-single-row {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 6px;
+  padding: 2px 0 6px 0;
+  scrollbar-width: thin;
+}
+
+.case-chips-single-row::-webkit-scrollbar {
+  height: 4px;
+}
+
+.case-chips-single-row::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+
+.action-btn-chip {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast, 0.15s ease);
+}
+
+.action-btn-chip:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.action-btn-chip.is-active {
+  background: var(--surface-hover);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.case-overflow-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm, 6px);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 100;
+  min-width: 140px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.case-overflow-item {
+  padding: 6px 10px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition: background 0.1s ease;
+}
+
+.case-overflow-item:hover {
+  background: var(--surface-hover);
+  color: var(--accent);
+}

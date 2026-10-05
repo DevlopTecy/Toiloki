@@ -6,8 +6,29 @@ export type CaseType =
   | 'title'
   | 'sentence'
   | 'camel'
+  | 'pascal'
   | 'kebab'
-  | 'snake';
+  | 'snake'
+  | 'constant'
+  | 'dot'
+  | 'train'
+  | 'alternating';
+
+/**
+ * Split text into semantic words preserving numbers and letters
+ */
+function extractWords(text: string): string[] {
+  // Matches words, handling camelCase, snake_case, kebab-case, and spaces
+  return (
+    text
+      .replace(/([a-z\d])([A-Z])/g, '$1 $2')
+      .replace(/([A-Z]+)([A-Z][a-z\d]+)/g, '$1 $2')
+      .replace(/[^a-zA-Z0-9]+/g, ' ')
+      .trim()
+      .split(/\s+/)
+      .filter((w) => w.length > 0)
+  );
+}
 
 export class TextEngine {
   /**
@@ -26,31 +47,76 @@ export class TextEngine {
         break;
       case 'title':
         result = text.replace(
-          /\w\S*/g,
-          (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
+          /\b\w/g,
+          (txt) => txt.toUpperCase()
         );
         break;
       case 'sentence':
-        result = text.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, (c) => c.toUpperCase());
+        result = text.toLowerCase().replace(/(^\s*[\p{L}]|[.!?]\s+[\p{L}])/gu, (c) => c.toUpperCase());
         break;
-      case 'camel':
-        result = text
-          .toLowerCase()
-          .replace(/[^a-zA-Z0-9]+(.)/g, (_m, chr) => chr.toUpperCase())
-          .replace(/^[A-Z]/, (c) => c.toLowerCase());
+      case 'camel': {
+        const words = extractWords(text);
+        if (words.length === 0) {
+          result = '';
+        } else {
+          result =
+            words[0].toLowerCase() +
+            words
+              .slice(1)
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+              .join('');
+        }
         break;
-      case 'kebab':
-        result = text
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-zA-Z0-9]+/g, '-');
+      }
+      case 'pascal': {
+        const words = extractWords(text);
+        result = words
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+          .join('');
         break;
-      case 'snake':
-        result = text
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-zA-Z0-9]+/g, '_');
+      }
+      case 'kebab': {
+        const words = extractWords(text);
+        result = words.map((w) => w.toLowerCase()).join('-');
         break;
+      }
+      case 'snake': {
+        const words = extractWords(text);
+        result = words.map((w) => w.toLowerCase()).join('_');
+        break;
+      }
+      case 'constant': {
+        const words = extractWords(text);
+        result = words.map((w) => w.toUpperCase()).join('_');
+        break;
+      }
+      case 'dot': {
+        const words = extractWords(text);
+        result = words.map((w) => w.toLowerCase()).join('.');
+        break;
+      }
+      case 'train': {
+        const words = extractWords(text);
+        result = words
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+          .join('-');
+        break;
+      }
+      case 'alternating': {
+        let isUpper = false;
+        result = Array.from(text)
+          .map((char) => {
+            if (/\p{L}/u.test(char)) {
+              isUpper = !isUpper;
+              return isUpper ? char.toUpperCase() : char.toLowerCase();
+            }
+            return char;
+          })
+          .join('');
+        break;
+      }
+      default:
+        result = text;
     }
 
     return {
@@ -110,7 +176,7 @@ export class TextEngine {
    */
   static sortAndDeduplicate(
     text: string,
-    sortDirection: 'asc' | 'desc',
+    sortDirection: 'asc' | 'desc' | 'natural',
     deduplicate = false
   ): EngineResult<string> {
     const start = performance.now();
@@ -120,10 +186,15 @@ export class TextEngine {
       lines = Array.from(new Set(lines));
     }
 
-    lines.sort((a, b) => {
-      const cmp = a.localeCompare(b);
-      return sortDirection === 'asc' ? cmp : -cmp;
-    });
+    if (sortDirection === 'natural') {
+      const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+      lines.sort((a, b) => collator.compare(a, b));
+    } else {
+      lines.sort((a, b) => {
+        const cmp = a.localeCompare(b);
+        return sortDirection === 'asc' ? cmp : -cmp;
+      });
+    }
 
     return {
       success: true,
@@ -134,26 +205,58 @@ export class TextEngine {
   }
 
   /**
-   * Calculate text statistics
+   * Calculate text statistics with emoji and combining mark grapheme accuracy
    */
   static analyzeText(text: string): EngineResult<{
     words: number;
     characters: number;
     charactersNoSpaces: number;
+    codeUnits: number;
+    bytes: number;
     lines: number;
     sentences: number;
     paragraphs: number;
     readingTimeMin: number;
+    speakingTimeMin: number;
   }> {
     const start = performance.now();
     const trimmed = text.trim();
-    const words = trimmed ? (trimmed.match(/\S+/g) || []).length : 0;
-    const characters = text.length;
-    const charactersNoSpaces = text.replace(/\s/g, '').length;
+    const codeUnits = text.length;
+    const bytes = new TextEncoder().encode(text).length;
+
+    // Accurate grapheme cluster counting (respects emojis and combining marks like e + acute)
+    let characters = 0;
+    let charactersNoSpaces = 0;
+    let words = 0;
+
+    if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
+      const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+      for (const seg of graphemeSegmenter.segment(text)) {
+        characters++;
+        if (!/\s/u.test(seg.segment)) {
+          charactersNoSpaces++;
+        }
+      }
+
+      const wordSegmenter = new Intl.Segmenter(undefined, { granularity: 'word' });
+      for (const seg of wordSegmenter.segment(text)) {
+        if (seg.isWordLike) {
+          words++;
+        }
+      }
+    } else {
+      // Fallback for environments without Intl.Segmenter
+      const graphemes = Array.from(text);
+      characters = graphemes.length;
+      charactersNoSpaces = text.replace(/\s+/gu, '').length;
+      words = trimmed ? (trimmed.match(/\S+/g) || []).length : 0;
+    }
+
     const lines = text ? text.split(/\r?\n/).length : 0;
-    const sentences = trimmed ? (trimmed.match(/[^.!?]+[.!?]+/g) || [trimmed]).length : 0;
+    const sentences = trimmed ? (trimmed.match(/[^.!?]+[.!?]+/gu) || [trimmed]).length : 0;
     const paragraphs = trimmed ? text.split(/\n\s*\n/).filter((p) => p.trim().length > 0).length : 0;
     const readingTimeMin = parseFloat((words / 200).toFixed(1));
+    const speakingTimeMin = parseFloat((words / 130).toFixed(1));
 
     return {
       success: true,
@@ -161,10 +264,13 @@ export class TextEngine {
         words,
         characters,
         charactersNoSpaces,
+        codeUnits,
+        bytes,
         lines,
         sentences,
         paragraphs,
         readingTimeMin,
+        speakingTimeMin,
       },
       elapsedMs: Math.round(performance.now() - start),
     };
@@ -317,16 +423,22 @@ export class TextEngine {
   }
 
   /**
-   * Regex find and replace across text
+   * Regex find and replace across text (supports $1, $2 group substitutions)
    */
-  static regexReplace(text: string, pattern: string, replacement: string, flags: string = 'gm'): EngineResult<{ result:string; matchCount:number }> {
+  static regexReplace(text: string, pattern: string, replacement: string, flags: string = 'gm'): EngineResult<{ result: string; matchCount: number }> {
     const start = performance.now();
     try {
       if (!pattern) throw new Error('Pattern is required');
-      const regex = new RegExp(pattern, flags);
-      let matchCount = 0;
-      const result = text.replace(regex, m => { matchCount++; return replacement; });
-      return { success: true, data: { result, matchCount }, elapsedMs: Math.round(performance.now()-start) };
-    } catch (err) { return { success: false, error: err instanceof Error ? err.message : String(err), elapsedMs: 0 }; }
+      const countFlags = flags.includes('g') ? flags : flags + 'g';
+      const countRegex = new RegExp(pattern, countFlags);
+      const matches = text.match(countRegex);
+      const matchCount = matches ? matches.length : 0;
+
+      const replaceRegex = new RegExp(pattern, flags);
+      const result = text.replace(replaceRegex, replacement);
+      return { success: true, data: { result, matchCount }, elapsedMs: Math.round(performance.now() - start) };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err), elapsedMs: 0 };
+    }
   }
 }
