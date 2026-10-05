@@ -3,6 +3,7 @@ import {
   Table,
   FolderTree,
   Sliders,
+  SlidersHorizontal,
   FileCode,
   Search,
   ArrowUpDown,
@@ -12,12 +13,9 @@ import {
   ChevronDown,
   Copy,
   Check,
-  RefreshCw,
   Code,
   AlertCircle,
-  CheckCircle2,
   FileSpreadsheet,
-  Download,
 } from 'lucide-react';
 import Papa from 'papaparse';
 import * as yaml from 'yaml';
@@ -65,6 +63,11 @@ const TreeNode: React.FC<TreeNodeProps> = ({
 }) => {
   const [expanded, setExpanded] = useState<boolean>(depth < 2 || isExpandedInitial);
   const [copied, setCopied] = useState<boolean>(false);
+
+  // Sync initial expansion on change
+  React.useEffect(() => {
+    setExpanded(isExpandedInitial);
+  }, [isExpandedInitial]);
 
   const isObject = value !== null && typeof value === 'object';
   const isArray = Array.isArray(value);
@@ -174,8 +177,13 @@ export const DataCanvas: React.FC<DataCanvasProps> = ({
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
   const [copiedCell, setCopiedCell] = useState<boolean>(false);
 
+  // Column Visibility Menu State
+  const [hiddenCols, setHiddenCols] = useState<Set<number>>(new Set());
+  const [showColumnsMenu, setShowColumnsMenu] = useState<boolean>(false);
+
   // Tree State
   const [treeSearch, setTreeSearch] = useState<string>('');
+  const [treeExpandedInitial, setTreeExpandedInitial] = useState<boolean>(true);
   const [expandAllKey, setExpandAllKey] = useState<number>(0);
 
   // Parse raw text into structured table data
@@ -283,6 +291,21 @@ export const DataCanvas: React.FC<DataCanvasProps> = ({
     }
   }, [dataContent, format, delimiter, hasHeader]);
 
+  // Numeric column recognition for right-aligned numbers
+  const numericColumns = useMemo(() => {
+    const set = new Set<number>();
+    parsedData.headers.forEach((_, colIdx) => {
+      const sample = parsedData.rows
+        .slice(0, 50)
+        .map((r) => r[colIdx])
+        .filter((v) => v !== null && v !== undefined && v !== '');
+      if (sample.length > 0 && sample.every((v) => !isNaN(Number(v)))) {
+        set.add(colIdx);
+      }
+    });
+    return set;
+  }, [parsedData.headers, parsedData.rows]);
+
   // Filtered & Sorted Rows
   const filteredRows = useMemo(() => {
     let rows = parsedData.rows;
@@ -297,12 +320,15 @@ export const DataCanvas: React.FC<DataCanvasProps> = ({
         const valA = a[sortCol];
         const valB = b[sortCol];
         if (valA === valB) return 0;
-        if (valA === null || valA === undefined) return 1;
-        if (valB === null || valB === undefined) return -1;
+        if (valA === null || valA === undefined || valA === '') return 1;
+        if (valB === null || valB === undefined || valB === '') return -1;
 
-        if (typeof valA === 'number' && typeof valB === 'number') {
-          return sortDir === 'asc' ? valA - valB : valB - valA;
+        const numA = Number(valA);
+        const numB = Number(valB);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return sortDir === 'asc' ? numA - numB : numB - numA;
         }
+
         const strA = String(valA).toLowerCase();
         const strB = String(valB).toLowerCase();
         return sortDir === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
@@ -310,6 +336,11 @@ export const DataCanvas: React.FC<DataCanvasProps> = ({
     }
     return rows;
   }, [parsedData.rows, parsedData.headers.length, searchQuery, sortCol, sortDir]);
+
+  // Visible Columns
+  const visibleColIndices = useMemo(() => {
+    return parsedData.headers.map((_, i) => i).filter((i) => !hiddenCols.has(i));
+  }, [parsedData.headers, hiddenCols]);
 
   // Paginated Rows
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
@@ -426,6 +457,20 @@ export const DataCanvas: React.FC<DataCanvasProps> = ({
     }
   };
 
+  const toggleColumnVisibility = (idx: number) => {
+    setHiddenCols((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        if (next.size < parsedData.headers.length - 1) {
+          next.add(idx);
+        }
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="data-canvas-root">
       {/* Canvas Top Bar */}
@@ -473,31 +518,76 @@ export const DataCanvas: React.FC<DataCanvasProps> = ({
           <div className="data-meta-badge">
             <span className="format-tag">{format.toUpperCase()}</span>
             <span className="dimensions-tag">
-              {parsedData.rows.length} rows × {parsedData.headers.length} cols
+              {parsedData.rows.length} rows × {visibleColIndices.length} cols
             </span>
           </div>
         </div>
 
         <div className="canvas-header-right">
           {viewMode === 'grid' && (
-            <div className="data-table-search">
-              <Search size={13} className="search-icon" />
-              <input
-                type="text"
-                placeholder="Filter table rows..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="search-input"
-              />
-              {searchQuery && (
-                <button className="clear-search-btn" onClick={() => setSearchQuery('')}>
-                  ×
-                </button>
+            <>
+              <div className="data-table-search">
+                <Search size={13} className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Filter table rows..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="search-input"
+                />
+                {searchQuery && (
+                  <button className="clear-search-btn" onClick={() => setSearchQuery('')}>
+                    ×
+                  </button>
+                )}
+              </div>
+
+              {parsedData.headers.length > 0 && (
+                <div className="columns-menu-anchor" style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    className={`data-pill-btn ${showColumnsMenu ? 'is-active' : ''}`}
+                    onClick={() => setShowColumnsMenu(!showColumnsMenu)}
+                    title="Toggle visible columns"
+                  >
+                    <SlidersHorizontal size={12} />
+                    <span>Columns ({visibleColIndices.length}/{parsedData.headers.length})</span>
+                  </button>
+
+                  {showColumnsMenu && (
+                    <div className="columns-dropdown-card">
+                      <div className="columns-dropdown-header">
+                        <span>Columns</span>
+                        <div className="columns-header-actions">
+                          <button
+                            type="button"
+                            className="columns-action-link"
+                            onClick={() => setHiddenCols(new Set())}
+                          >
+                            Show all
+                          </button>
+                        </div>
+                      </div>
+                      <div className="columns-list-body">
+                        {parsedData.headers.map((hdr, idx) => (
+                          <label key={idx} className="column-checkbox-row">
+                            <input
+                              type="checkbox"
+                              checked={!hiddenCols.has(idx)}
+                              onChange={() => toggleColumnVisibility(idx)}
+                            />
+                            <span className="column-checkbox-label">{hdr}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
 
           {viewMode === 'tree' && (
@@ -514,11 +604,23 @@ export const DataCanvas: React.FC<DataCanvasProps> = ({
               </div>
               <button
                 className="data-pill-btn"
-                onClick={() => setExpandAllKey((prev) => prev + 1)}
-                title="Reset expansion state"
+                onClick={() => {
+                  setTreeExpandedInitial(true);
+                  setExpandAllKey((k) => k + 1);
+                }}
+                title="Expand all tree nodes"
               >
-                <RefreshCw size={12} />
-                <span>Toggle Tree</span>
+                <span>Expand all</span>
+              </button>
+              <button
+                className="data-pill-btn"
+                onClick={() => {
+                  setTreeExpandedInitial(false);
+                  setExpandAllKey((k) => k + 1);
+                }}
+                title="Collapse all tree nodes"
+              >
+                <span>Collapse all</span>
               </button>
             </div>
           )}
@@ -561,29 +663,33 @@ export const DataCanvas: React.FC<DataCanvasProps> = ({
                   <thead>
                     <tr>
                       <th className="th-row-idx">#</th>
-                      {parsedData.headers.map((hdr, idx) => (
-                        <th
-                          key={idx}
-                          className={`th-data-col ${sortCol === idx ? 'is-sorted' : ''}`}
-                          onClick={() => handleSort(idx)}
-                          title="Click to sort column"
-                        >
-                          <div className="th-content">
-                            <span>{hdr}</span>
-                            <span className="th-sort-icon">
-                              {sortCol === idx ? (
-                                sortDir === 'asc' ? (
-                                  <ArrowUp size={12} />
+                      {visibleColIndices.map((idx) => {
+                        const hdr = parsedData.headers[idx];
+                        const isNum = numericColumns.has(idx);
+                        return (
+                          <th
+                            key={idx}
+                            className={`th-data-col ${sortCol === idx ? 'is-sorted' : ''} ${isNum ? 'is-number' : ''}`}
+                            onClick={() => handleSort(idx)}
+                            title="Click to sort column"
+                          >
+                            <div className="th-content">
+                              <span>{hdr}</span>
+                              <span className="th-sort-icon">
+                                {sortCol === idx ? (
+                                  sortDir === 'asc' ? (
+                                    <ArrowUp size={12} />
+                                  ) : (
+                                    <ArrowDown size={12} />
+                                  )
                                 ) : (
-                                  <ArrowDown size={12} />
-                                )
-                              ) : (
-                                <ArrowUpDown size={12} className="is-dim" />
-                              )}
-                            </span>
-                          </div>
-                        </th>
-                      ))}
+                                  <ArrowUpDown size={12} className="is-dim" />
+                                )}
+                              </span>
+                            </div>
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
                   <tbody>
@@ -592,14 +698,15 @@ export const DataCanvas: React.FC<DataCanvasProps> = ({
                       return (
                         <tr key={rIdx} className="data-tr">
                           <td className="td-row-idx">{actualRowIdx + 1}</td>
-                          {parsedData.headers.map((_, cIdx) => {
+                          {visibleColIndices.map((cIdx) => {
                             const val = row[cIdx];
                             const isCellSelected =
                               selectedCell?.row === actualRowIdx && selectedCell?.col === cIdx;
+                            const isNum = numericColumns.has(cIdx);
                             return (
                               <td
                                 key={cIdx}
-                                className={`td-data-cell ${isCellSelected ? 'is-selected' : ''}`}
+                                className={`td-data-cell ${isCellSelected ? 'is-selected' : ''} ${isNum ? 'is-number' : ''}`}
                                 onClick={() => handleCellClick(actualRowIdx, cIdx, val)}
                                 title="Click to copy cell value"
                               >
@@ -685,7 +792,7 @@ export const DataCanvas: React.FC<DataCanvasProps> = ({
                   value={treeObject}
                   path="$"
                   filterText={treeSearch}
-                  isExpandedInitial={true}
+                  isExpandedInitial={treeExpandedInitial}
                 />
               </div>
             ) : (

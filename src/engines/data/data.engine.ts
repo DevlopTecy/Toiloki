@@ -6,14 +6,61 @@ import { EngineResult } from '../../core/types/engine';
 
 export class DataEngine {
   /**
+   * Strip UTF-8 Byte Order Mark (BOM) if present
+   */
+  static stripBom(text: string): string {
+    if (!text) return '';
+    if (text.charCodeAt(0) === 0xFEFF) {
+      return text.slice(1);
+    }
+    return text;
+  }
+
+  /**
+   * Auto-detect CSV delimiter from first 5 lines (comma, semicolon, tab, pipe)
+   */
+  static detectCsvDelimiter(text: string): string {
+    if (!text) return ',';
+    const clean = this.stripBom(text);
+    const sampleLines = clean.split(/\r?\n/).filter((l) => l.trim().length > 0).slice(0, 5);
+    if (sampleLines.length === 0) return ',';
+
+    const candidates = [',', ';', '\t', '|'];
+    const scores: Record<string, number> = { ',': 0, ';': 0, '\t': 0, '|': 0 };
+
+    for (const line of sampleLines) {
+      for (const delim of candidates) {
+        scores[delim] += line.split(delim).length - 1;
+      }
+    }
+
+    let best = ',';
+    let max = -1;
+    for (const delim of candidates) {
+      if (scores[delim] > max) {
+        max = scores[delim];
+        best = delim;
+      }
+    }
+    return max > 0 ? best : ',';
+  }
+
+  /**
    * Convert CSV string to JSON formatted string or object array
    */
-  static csvToJson(csvText: string): EngineResult<string> {
+  static csvToJson(
+    csvText: string,
+    options: { delimiter?: string; preserveLeadingZeros?: boolean } = {}
+  ): EngineResult<string> {
     const start = performance.now();
     try {
-      const parsed = Papa.parse(csvText, {
+      const clean = this.stripBom(csvText);
+      const delim = options.delimiter || this.detectCsvDelimiter(clean);
+
+      const parsed = Papa.parse(clean, {
         header: true,
-        dynamicTyping: true,
+        delimiter: delim,
+        dynamicTyping: options.preserveLeadingZeros ? false : true,
         skipEmptyLines: true,
       });
 
@@ -29,7 +76,7 @@ export class DataEngine {
       return {
         success: true,
         data: jsonStr,
-        metadata: { rowCount: parsed.data.length, fields: parsed.meta.fields },
+        metadata: { rowCount: parsed.data.length, fields: parsed.meta.fields, detectedDelimiter: delim },
         elapsedMs: Math.round(performance.now() - start),
       };
     } catch (err) {
@@ -242,12 +289,23 @@ export class DataEngine {
   /**
    * Convert Excel (.xlsx) buffer to CSV string
    */
-  static async xlsxToCsv(xlsxBuffer: Uint8Array): Promise<EngineResult<string>> {
+  static async xlsxToCsv(
+    xlsxBuffer: Uint8Array,
+    options: { sheetNameOrIndex?: string | number } = {}
+  ): Promise<EngineResult<string>> {
     const start = performance.now();
     try {
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(xlsxBuffer);
-      const sheet = workbook.getWorksheet(1);
+      const sheetNames = workbook.worksheets.map((w) => w.name);
+
+      let sheet = workbook.worksheets[0];
+      if (options.sheetNameOrIndex !== undefined) {
+        sheet =
+          typeof options.sheetNameOrIndex === 'number'
+            ? workbook.getWorksheet(options.sheetNameOrIndex) || sheet
+            : workbook.getWorksheet(options.sheetNameOrIndex) || sheet;
+      }
 
       if (!sheet) {
         return {
@@ -270,7 +328,7 @@ export class DataEngine {
       return {
         success: true,
         data: csv,
-        metadata: { rowCount: rows.length },
+        metadata: { rowCount: rows.length, sheetNames, activeSheet: sheet.name },
         elapsedMs: Math.round(performance.now() - start),
       };
     } catch (err) {
@@ -285,12 +343,23 @@ export class DataEngine {
   /**
    * Convert Excel (.xlsx) buffer to JSON string
    */
-  static async xlsxToJson(xlsxBuffer: Uint8Array): Promise<EngineResult<string>> {
+  static async xlsxToJson(
+    xlsxBuffer: Uint8Array,
+    options: { sheetNameOrIndex?: string | number } = {}
+  ): Promise<EngineResult<string>> {
     const start = performance.now();
     try {
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(xlsxBuffer);
-      const sheet = workbook.getWorksheet(1);
+      const sheetNames = workbook.worksheets.map((w) => w.name);
+
+      let sheet = workbook.worksheets[0];
+      if (options.sheetNameOrIndex !== undefined) {
+        sheet =
+          typeof options.sheetNameOrIndex === 'number'
+            ? workbook.getWorksheet(options.sheetNameOrIndex) || sheet
+            : workbook.getWorksheet(options.sheetNameOrIndex) || sheet;
+      }
 
       if (!sheet) {
         return {
@@ -926,6 +995,14 @@ export class DataEngine {
 
       // Match SELECT ... FROM ... [WHERE ...] [ORDER BY ...] [LIMIT ...]
       const q = sqlQuery.trim();
+      if (!/^SELECT\s+/i.test(q)) {
+        return {
+          success: false,
+          error: 'SQL syntax error: Query must begin with SELECT (line 1, column 1).',
+          elapsedMs: Math.round(performance.now() - start),
+        };
+      }
+
       const whereMatch = q.match(/WHERE\s+(.*?)(?:\s+ORDER\s+BY|\s+LIMIT|$)/i);
       const orderMatch = q.match(/ORDER\s+BY\s+([a-zA-Z0-9_]+)(?:\s+(ASC|DESC))?/i);
       const limitMatch = q.match(/LIMIT\s+(\d+)/i);
