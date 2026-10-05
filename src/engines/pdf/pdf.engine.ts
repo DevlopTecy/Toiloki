@@ -18,7 +18,7 @@ export class PdfEngine {
    * Merge multiple PDF buffers into a single PDF
    */
   static async merge(
-    pdfBuffers: Uint8Array[],
+    pdfBuffers: (Uint8Array | { buffer: Uint8Array; pageIndices?: number[] })[],
     onProgress?: (progress: EngineProgress) => void,
     signal?: AbortSignal
   ): Promise<EngineResult<Uint8Array>> {
@@ -42,8 +42,16 @@ export class PdfEngine {
           stage: `Merging document ${i + 1} of ${pdfBuffers.length}...`,
         });
 
-        const donorDoc = await PDFDocument.load(pdfBuffers[i]);
-        const copiedPages = await mergedDoc.copyPages(donorDoc, donorDoc.getPageIndices());
+        const item = pdfBuffers[i];
+        const buf = item instanceof Uint8Array ? item : item.buffer;
+        const customIndices = !(item instanceof Uint8Array) ? item.pageIndices : undefined;
+
+        const donorDoc = await PDFDocument.load(buf);
+        const indicesToCopy = customIndices && customIndices.length > 0
+          ? customIndices
+          : donorDoc.getPageIndices();
+
+        const copiedPages = await mergedDoc.copyPages(donorDoc, indicesToCopy);
         copiedPages.forEach((page) => mergedDoc.addPage(page));
       }
 

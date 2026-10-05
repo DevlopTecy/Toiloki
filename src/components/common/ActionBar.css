@@ -1,0 +1,218 @@
+/* ═══════════════════════════════════════════════════
+   TOILOKI — Shared ActionBar Component
+   Phase 3 Design Charter:
+   - Hidden when 0 files
+   - Left: Undo/Redo (32px), Reset (ghost), Muted summary
+   - Right: Download (36px secondary), Primary action (40px)
+   ═══════════════════════════════════════════════════ */
+
+.shared-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  min-height: 56px;
+  padding: 0 16px;
+  background-color: var(--surface);
+  border-top: 1px solid var(--border);
+  gap: 16px;
+  z-index: 20;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* ─── Left Controls ─── */
+.action-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.action-bar-history-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-bar-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-controls, 8px);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.action-bar-icon-btn:hover:not(:disabled) {
+  background-color: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.action-bar-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.action-bar-reset-btn {
+  color: var(--text-2) !important;
+}
+
+.action-bar-reset-btn:hover {
+  color: var(--text) !important;
+}
+
+.action-bar-summary-text {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.action-bar-version-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 500;
+  background-color: var(--surface-hover);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* ─── Center Status & Feedback ─── */
+.action-bar-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.action-bar-processing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.action-bar-spinner {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--accent);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spinLoop 700ms linear infinite;
+  flex-shrink: 0;
+}
+
+.action-bar-status-msg {
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.action-bar-progress-track {
+  width: 90px;
+  height: 4px;
+  background-color: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.action-bar-progress-fill {
+  height: 100%;
+  background-color: var(--accent);
+  border-radius: 2px;
+  transition: width 200ms ease;
+}
+
+.action-bar-cancel-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-2);
+  font-size: 11.5px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.action-bar-cancel-btn:hover {
+  background-color: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.action-bar-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  max-width: 380px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-bar-toast-success {
+  background-color: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.action-bar-toast-error {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.action-bar-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  color: inherit;
+  font-size: 11px;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+
+/* ─── Right Actions ─── */
+.action-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.action-bar-download-btn {
+  height: 36px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+}
+
+.action-bar-primary-btn {
+  height: 40px !important;
+  padding: 0 18px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+}

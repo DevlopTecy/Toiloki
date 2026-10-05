@@ -12,6 +12,7 @@ import {
   Trash2,
   AlertTriangle,
 } from 'lucide-react';
+import { plural } from '../../core/utils/plural';
 import './FileDropzone.css';
 
 export interface SelectedFile {
@@ -149,12 +150,18 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
         warningMessage,
       });
 
-      if (!multiple) break;
+      if (!multiple) {
+        if (fileList.length > 1) {
+          setUnsupportedWarning('This utility accepts 1 file at a time. The first file was loaded.');
+          setTimeout(() => setUnsupportedWarning(null), 4000);
+        }
+        break;
+      }
     }
 
     if (rejectedCount > 0) {
-      setUnsupportedWarning(`${rejectedCount} file(s) ignored: Unsupported file type.`);
-      setTimeout(() => setUnsupportedWarning(null), 3000);
+      setUnsupportedWarning(`${plural(rejectedCount, 'file')} could not be opened. Unsupported format.`);
+      setTimeout(() => setUnsupportedWarning(null), 4000);
     }
 
     return items;
@@ -298,7 +305,7 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
         <div className="file-list-view">
           <div className="file-list-header">
             <span className="file-list-count">
-              {files.length} {files.length === 1 ? 'file' : 'files'} selected
+              {plural(files.length, 'file')} selected
             </span>
             <div className="file-list-actions">
               {multiple && (

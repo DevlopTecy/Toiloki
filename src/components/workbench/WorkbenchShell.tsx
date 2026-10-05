@@ -34,6 +34,8 @@ import {
   Minimize2,
 } from 'lucide-react';
 import { WhatThisCanDoModal } from '../common/WhatThisCanDoModal';
+import { ActionBar } from '../common/ActionBar';
+import { parsePageRange } from '../../engines/pdf/page-range.parser';
 import { PdfEngine } from '../../engines/pdf/pdf.engine';
 import { PdfSecurityEngine } from '../../engines/pdf/pdf-security.engine';
 import { DocumentEngine } from '../../engines/documents/document.engine';
@@ -1681,9 +1683,24 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           if (files.length < 2) {
             throw new Error('Please add at least 2 PDF files in the tray to merge.');
           }
-          const buffers = await Promise.all(files.map((f) => ensureBuffer(f)));
+          const mergeItems = await Promise.all(
+            files.map(async (f) => {
+              const buf = await ensureBuffer(f);
+              const doc = await PDFDocument.load(buf);
+              const numPages = doc.getPageCount();
+              const rangeStr = fileRanges[f.name] || '';
+              const parsed = parsePageRange(rangeStr, numPages);
+              if (!parsed.valid) {
+                throw new Error(`Invalid range for "${f.name}": ${parsed.error}`);
+              }
+              return {
+                buffer: buf,
+                pageIndices: parsed.pageIndices0Based,
+              };
+            })
+          );
           setProgressPercent(60);
-          const res = await PdfEngine.merge(buffers);
+          const res = await PdfEngine.merge(mergeItems);
           if (!res.success || !res.outputBuffer) throw new Error(res.error || 'Failed to merge files.');
           await pushNewVersion(`Merged ${files.length} documents`, res.outputBuffer);
         } else if (activeId === 'pdf-compare-pdfs') {
@@ -3472,12 +3489,15 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                 files={files}
                 activeUtilityId={activeUtility.id}
                 onFilesChange={setFiles}
-                onAddMoreFiles={(newFilesList) => {
-                  const arr = Array.from(newFilesList).map((f) => ({
-                    name: f.name,
-                    size: f.size,
-                    file: f,
-                  }));
+                onAddMoreFiles={async (newFilesList) => {
+                  const arr = await Promise.all(
+                    Array.from(newFilesList).map(async (f) => ({
+                      name: f.name,
+                      size: f.size,
+                      file: f,
+                      buffer: new Uint8Array(await f.arrayBuffer()),
+                    }))
+                  );
                   setFiles((prev) => [...prev, ...arr]);
                 }}
                 fileRanges={fileRanges}
@@ -4250,53 +4270,52 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
 
       {/* Zone 3: Bottom Action Bar */}
       {!isStandaloneWorkspace && (
-        <footer className="workbench-bottom-bar">
-        <div className="bottom-bar-left">
-          {files.length > 0 && (
-            <>
-              <button
-                type="button"
-                className="action-btn-secondary"
-                onClick={() => handleFilesChanged([])}
-                title="Clear current workspace session"
-              >
-                <RotateCcw size={14} />
-                <span>Reset</span>
-              </button>
-
-              <div className="version-history-controls">
-                <button
-                  type="button"
-                  className="version-step-btn"
-                  onClick={handleUndo}
-                  disabled={versionIndex <= 0}
-                  title="Undo (Ctrl+Z)"
-                >
-                  <Undo size={14} />
-                </button>
-                <button
-                  type="button"
-                  className="version-step-btn"
-                  onClick={handleRedo}
-                  disabled={versionIndex >= versionStack.length - 1}
-                  title="Redo (Ctrl+Y)"
-                >
-                  <Redo size={14} />
-                </button>
-                <span className="version-counter-badge">
-                  {versionStack.length > 0 ? `v${versionIndex + 1}/${versionStack.length}` : 'v0'}
-                </span>
-              </div>
-
-              <span className="file-summary-badge">
-                {files[0]?.name} • {workspace.id === 'images' ? (files.length > 1 ? `${files.length} images` : 'Image Asset') : workspace.id === 'documents' ? 'Document' : workspace.id === 'data' ? `${dataFormat.toUpperCase()} Dataset` : workspace.id === 'text' ? 'Text Document' : files.length > 1 ? `${files.length} files` : `${pages.length} pages`} •{' '}
-                {files[0] ? Math.round(files[0].size / 1024) : 0} KB
-              </span>
-            </>
-          )}
-        </div>
-
-        <div className="bottom-bar-center">
+        <ActionBar
+          files={files}
+          versionStack={versionStack}
+          versionIndex={versionIndex}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          onReset={() => handleFilesChanged([])}
+          summaryText={
+            files.length > 1
+              ? `${files[0].name} +${files.length - 1} · ${Math.round(files.reduce((a, b) => a + (b.size || 0), 0) / 1024)} KB`
+              : `${files[0]?.name} · ${workspace.id === 'images' ? 'Image' : workspace.id === 'documents' ? 'Document' : workspace.id === 'data' ? `${dataFormat.toUpperCase()}` : workspace.id === 'text' ? 'Text' : `${pages.length} pages`} · ${Math.round((files[0]?.size || 0) / 1024)} KB`
+          }
+          summaryTooltip={
+            files.map((f) => `${f.name} (${Math.round((f.size || 0) / 1024)} KB)`).join('\n')
+          }
+          isProcessing={isProcessing}
+          statusMessage={statusMessage}
+          progressPercent={progressPercent}
+          onCancelProcessing={handleCancelProcessing}
+          successResult={successResult}
+          successMessage={
+            versionStack.length > 1
+              ? `${versionStack[versionIndex]?.name || 'Action'} applied. Your original file isn't changed.`
+              : "Ready. Your original file isn't changed."
+          }
+          errorMessage={errorMessage}
+          onDownload={versionStack.length > 0 ? handleSaveAs : undefined}
+          downloadLabel={
+            workspace.id === 'images' ? 'Download Image' :
+            workspace.id === 'documents' ? 'Download Document' :
+            workspace.id === 'data' ? `Download ${dataFormat.toUpperCase()}` :
+            workspace.id === 'text' ? 'Download Text' :
+            workspace.id === 'media' ? `Download ${mediaTargetFormat.toUpperCase()}` :
+            workspace.id === 'files' ? 'Download Archive' :
+            'Download PDF'
+          }
+          onPrimaryAction={handlePrimaryProcess}
+          primaryActionLabel={primaryButtonLabel}
+          isPrimaryDisabled={
+            isProcessing ||
+            (activeUtility.id === 'merge-pdf' && files.length < 2)
+          }
+          isPrimaryHidden={
+            activeUtility.id === 'merge-pdf' && files.length < 2
+          }
+        >
           {autoProcessedInfo && !isProcessing && (
             <div className="auto-processed-banner">
               <span className="auto-processed-text">{autoProcessedInfo.utilityName} ran with defaults.</span>
@@ -4309,72 +4328,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
               </button>
             </div>
           )}
-          {isProcessing && (
-            <div className="processing-indicator">
-              <div className="processing-spinner" />
-              <span>{statusMessage || 'Processing locally...'}</span>
-              <div className="workbench-progress-bar">
-                <div
-                  className="progress-bar-fill"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-              <button
-                type="button"
-                className="cancel-processing-btn"
-                onClick={handleCancelProcessing}
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-
-          {successResult && !isProcessing && (
-            <div className="success-toast">
-              <CheckCircle size={15} />
-              <span>
-                {versionStack.length > 1
-                  ? `${versionStack[versionIndex]?.name || 'Action'} applied.`
-                  : 'Ready.'}
-              </span>
-            </div>
-          )}
-
-          {errorMessage && !isProcessing && (
-            <div className="error-toast">
-              <AlertTriangle size={15} />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="bottom-bar-right">
-          {files.length > 0 && versionStack.length > 0 && (
-            <>
-              <span className="workbench-save-trust-note">Your original file isn't changed</span>
-              <button
-                type="button"
-                className="action-btn-secondary"
-                onClick={handleSaveAs}
-                title="Download result to disk"
-              >
-                <Download size={14} />
-                <span>{workspace.id === 'images' ? 'Download Image' : workspace.id === 'documents' ? 'Download Document' : workspace.id === 'data' ? `Download ${dataFormat.toUpperCase()}` : workspace.id === 'text' ? 'Download Text' : workspace.id === 'media' ? `Download ${mediaTargetFormat.toUpperCase()}` : workspace.id === 'files' ? 'Download Archive' : 'Download PDF'}</span>
-              </button>
-            </>
-          )}
-
-          <button
-            type="button"
-            className="action-btn-primary"
-            onClick={handlePrimaryProcess}
-            disabled={isProcessing || files.length === 0}
-          >
-            <Play size={14} />
-            <span>{primaryButtonLabel}</span>
-          </button>
-        </div>
-      </footer>
+        </ActionBar>
       )}
 
       {showWhatModal && (
