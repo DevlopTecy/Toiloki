@@ -42,10 +42,12 @@ export async function renderPageThumbnail(
   }
 
   try {
+    const localBase = typeof window !== 'undefined' && window.location ? window.location.href : '';
     const loadingTask = pdfjsLib.getDocument({
       data: buffer.slice(0),
-      cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist/cmaps/',
+      cMapUrl: localBase ? new URL('cmaps/', localBase).href : './cmaps/',
       cMapPacked: true,
+      standardFontDataUrl: localBase ? new URL('standard_fonts/', localBase).href : './standard_fonts/',
     });
     const pdfDoc = await loadingTask.promise;
     if (pageNumber < 1 || pageNumber > pdfDoc.numPages) {

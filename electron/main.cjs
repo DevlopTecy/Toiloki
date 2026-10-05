@@ -10,6 +10,7 @@ const {
   globalShortcut,
   Notification,
   protocol,
+  session,
 } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -131,6 +132,22 @@ function createWindow() {
       nodeIntegration: false,
       sandbox: false,
     },
+  });
+
+  // Block new window creation and remote popups
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    console.warn(`[Offline Security] Blocked window.open to: ${url}`);
+    return { action: 'deny' };
+  });
+
+  // Block external/remote navigation
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+    if (isDev && (url.startsWith('http://localhost:') || url.startsWith('http://127.0.0.1:') || url.startsWith('http://[::1]:'))) {
+      return;
+    }
+    event.preventDefault();
+    console.warn(`[Offline Security] Blocked external navigation to: ${url}`);
   });
 
   const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5174';
@@ -564,6 +581,23 @@ app.whenReady().then(() => {
   }
   ensureDirectoryExists(sessionTempDir);
   pruneOldTempDirectories();
+
+  // Cancel every HTTP/HTTPS request in session except dev server
+  session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
+    const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+    const url = details.url;
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      if (isDev && (url.startsWith('http://localhost:') || url.startsWith('http://127.0.0.1:') || url.startsWith('http://[::1]:'))) {
+        callback({ cancel: false });
+        return;
+      }
+      console.warn(`[Offline Security] Blocked remote network request: ${url}`);
+      callback({ cancel: true });
+      return;
+    }
+    callback({ cancel: false });
+  });
+
   createWindow();
   createTray();
   registerGlobalShortcuts();
