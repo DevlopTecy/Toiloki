@@ -75,4 +75,25 @@ export class ExifEngine {
       };
     }
   }
+
+  /**
+   * Extract EXIF orientation rotation degrees (0, 90, 180, 270)
+   */
+  static getExifOrientationDegrees(buffer: Uint8Array): 0 | 90 | 180 | 270 {
+    try {
+      const tags = ExifReader.load(buffer.buffer);
+      const orientationTag = tags['Orientation'];
+      if (!orientationTag) return 0;
+      const val = typeof orientationTag.value === 'number' ? orientationTag.value : parseInt(String(orientationTag.value), 10);
+      switch (val) {
+        case 3: return 180;
+        case 6: return 90;
+        case 8: return 270;
+        default: return 0;
+      }
+    } catch {
+      return 0;
+    }
+  }
 }
+

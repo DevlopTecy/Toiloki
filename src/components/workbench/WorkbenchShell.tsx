@@ -1413,13 +1413,16 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
             actionLabel = `Resized (${resizeWidth}x${resizeHeight})`;
           }
         } else if (activeGroup.id === 'img-optimizer') {
-          const res = await ImageEngine.transformImage(activeBuf, {
-            quality: optQuality / 100,
-            format: 'image/webp',
-          });
-          if (!res.success || !res.data) throw new Error(res.error || 'Optimization failed.');
-          outBuffer = res.data;
-          actionLabel = `Compressed (${optQuality}% quality)`;
+          const res = await ImageEngine.compressImage(activeBuf, optQuality, 'image/webp');
+          if (!res.success || !res.outputBuffer || !res.data) throw new Error(res.error || 'Optimization failed.');
+          outBuffer = res.outputBuffer;
+          const origKb = Math.round(res.data.originalSize / 1024);
+          const newKb = Math.round(res.data.newSize / 1024);
+          if (res.data.isLarger) {
+            actionLabel = `Original preserved (${origKb} KB) · Result was larger`;
+          } else {
+            actionLabel = `${origKb} KB to ${newKb} KB, ${res.data.ratioPercent}% smaller`;
+          }
         } else if (activeGroup.id === 'img-adjustments') {
           const res = await ImageEngine.transformImage(activeBuf, {
             brightness: imgBrightness,
@@ -2358,11 +2361,25 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                     activeFileIndex={activeImageIndex}
                     onSelectFileIndex={setActiveImageIndex}
                     onAddMoreFiles={(newFilesList) => {
-                      const arr = Array.from(newFilesList).map((f) => ({
-                        name: f.name,
-                        size: f.size,
-                        file: f,
-                      }));
+                      const existingNames = new Set(files.map((f) => f.name));
+                      const arr = Array.from(newFilesList).map((f) => {
+                        let name = f.name;
+                        if (existingNames.has(name)) {
+                          const ext = name.includes('.') ? `.${name.split('.').pop()}` : '';
+                          const base = name.replace(/\.[^.]+$/, '');
+                          let counter = 1;
+                          while (existingNames.has(`${base} (${counter})${ext}`)) {
+                            counter++;
+                          }
+                          name = `${base} (${counter})${ext}`;
+                        }
+                        existingNames.add(name);
+                        return {
+                          name,
+                          size: f.size,
+                          file: f,
+                        };
+                      });
                       setFiles((prev) => [...prev, ...arr]);
                     }}
                     onRemoveFile={(idx) => {
@@ -2457,14 +2474,28 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                               type="number"
                               className="workbench-text-input"
                               value={resizeWidth}
-                              onChange={(e) => setResizeWidth(parseInt(e.target.value, 10) || 100)}
+                              onChange={(e) => {
+                                const w = parseInt(e.target.value, 10) || 100;
+                                setResizeWidth(w);
+                                if (lockAspect && resizeWidth > 0 && resizeHeight > 0) {
+                                  const ratio = resizeHeight / resizeWidth;
+                                  setResizeHeight(Math.round(w * ratio));
+                                }
+                              }}
                             />
                             <label className="option-label" style={{ marginTop: '10px' }}>Height (px)</label>
                             <input
                               type="number"
                               className="workbench-text-input"
                               value={resizeHeight}
-                              onChange={(e) => setResizeHeight(parseInt(e.target.value, 10) || 100)}
+                              onChange={(e) => {
+                                const h = parseInt(e.target.value, 10) || 100;
+                                setResizeHeight(h);
+                                if (lockAspect && resizeWidth > 0 && resizeHeight > 0) {
+                                  const ratio = resizeWidth / resizeHeight;
+                                  setResizeWidth(Math.round(h * ratio));
+                                }
+                              }}
                             />
                             <div style={{ marginTop: '10px' }}>
                               <label className="workbench-checkbox-label">
@@ -2609,7 +2640,9 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                           </label>
                         </div>
                         <div className="savings-preview-badge">
-                          <span>Estimated savings: ~{Math.round(100 - optQuality * 0.8)}%</span>
+                          <span>
+                            Est. size: ~{files[activeImageIndex] ? Math.max(1, Math.round((files[activeImageIndex].size * (optQuality / 100) * (optLossless ? 0.85 : 0.45)) / 1024)) : 0} KB (~{Math.round(100 - optQuality * (optLossless ? 0.35 : 0.75))}% reduction)
+                          </span>
                         </div>
                       </div>
                     )}

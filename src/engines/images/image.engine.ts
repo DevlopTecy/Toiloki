@@ -1,4 +1,5 @@
 import { EngineResult, EngineProgress } from '../../core/types/engine';
+import { ExifEngine } from './exif.engine';
 
 export interface ImageTransformOptions {
   width?: number;
@@ -59,6 +60,14 @@ export class ImageEngine {
       let targetWidth = options.width || img.width;
       let targetHeight = options.height || img.height;
 
+      // Safety limit: clamp extreme image dimensions to avoid canvas memory exhaustion (> 8192px)
+      const MAX_CANVAS_DIM = 8192;
+      if (targetWidth > MAX_CANVAS_DIM || targetHeight > MAX_CANVAS_DIM) {
+        const scale = Math.min(MAX_CANVAS_DIM / targetWidth, MAX_CANVAS_DIM / targetHeight);
+        targetWidth = Math.round(targetWidth * scale);
+        targetHeight = Math.round(targetHeight * scale);
+      }
+
       if (options.maintainAspectRatio) {
         const ratio = img.width / img.height;
         if (options.width && !options.height) {
@@ -70,8 +79,13 @@ export class ImageEngine {
 
       onProgress?.({ percent: 50, stage: 'Applying transformations...' });
 
-      // Determine canvas dimensions based on rotation
-      const rot = options.rotationDegrees || 0;
+      // Determine canvas dimensions based on rotation (respecting EXIF orientation if not explicitly overridden)
+      let rot = options.rotationDegrees;
+      if (rot === undefined) {
+        rot = ExifEngine.getExifOrientationDegrees(inputBuffer);
+      }
+      rot = rot || 0;
+
       const isPerpendicular = rot === 90 || rot === 270;
       const canvasWidth = isPerpendicular ? targetHeight : targetWidth;
       const canvasHeight = isPerpendicular ? targetWidth : targetHeight;
@@ -83,6 +97,15 @@ export class ImageEngine {
 
       if (!ctx) {
         return { success: false, error: 'Could not acquire 2D rendering context.', elapsedMs: 0 };
+      }
+
+      const format = options.format || 'image/png';
+      const quality = options.quality !== undefined ? options.quality : 0.9;
+
+      // If output is JPEG, fill with pure white background so alpha channels never render black
+      if (format === 'image/jpeg') {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
       }
 
       ctx.imageSmoothingEnabled = true;
@@ -127,9 +150,6 @@ export class ImageEngine {
       }
 
       onProgress?.({ percent: 80, stage: 'Encoding output format...' });
-
-      const format = options.format || 'image/png';
-      const quality = options.quality !== undefined ? options.quality : 0.9;
 
       const blob = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob(resolve, format, quality)
@@ -819,6 +839,88 @@ export class ImageEngine {
       };
     }
   }
+
+  /**
+   * Check if an image buffer is an animated GIF
+   */
+  static isAnimatedGif(buffer: Uint8Array): boolean {
+    if (buffer.length < 14) return false;
+    const isGif = buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 &&
+                  buffer[3] === 0x38 && (buffer[4] === 0x37 || buffer[4] === 0x39) && buffer[5] === 0x61;
+    if (!isGif) return false;
+
+    let frames = 0;
+    for (let i = 0; i < buffer.length - 2; i++) {
+      if (buffer[i] === 0x21 && buffer[i + 1] === 0xF9) {
+        frames++;
+        if (frames > 1) return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Compress image with numeric size feedback, quality control, and isLarger preservation
+   */
+  static async compressImage(
+    inputBuffer: Uint8Array,
+    qualityPercent = 80,
+    format: 'image/jpeg' | 'image/webp' | 'image/png' = 'image/webp',
+    onProgress?: (progress: EngineProgress) => void
+  ): Promise<EngineResult<{
+    originalSize: number;
+    newSize: number;
+    ratioPercent: number;
+    savedBytes: number;
+    isLarger: boolean;
+  }>> {
+    const start = performance.now();
+    const originalSize = inputBuffer.length;
+    try {
+      const res = await this.transformImage(inputBuffer, {
+        quality: qualityPercent / 100,
+        format,
+      }, onProgress);
+
+      if (!res.success || !res.outputBuffer) {
+        throw new Error(res.error || 'Image compression failed.');
+      }
+
+      const compressedBytes = res.outputBuffer;
+      const newSize = compressedBytes.length;
+      const isLarger = newSize >= originalSize;
+      const savedBytes = isLarger ? 0 : originalSize - newSize;
+      const ratioPercent = isLarger ? 0 : Math.round((savedBytes / originalSize) * 100);
+      const finalBytes = isLarger ? inputBuffer : compressedBytes;
+
+      return {
+        success: true,
+        outputBuffer: finalBytes,
+        data: {
+          originalSize,
+          newSize: isLarger ? originalSize : newSize,
+          ratioPercent,
+          savedBytes,
+          isLarger,
+        },
+        metadata: {
+          originalSize,
+          newSize,
+          ratioPercent,
+          isLarger,
+          format,
+        },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
 }
+
 
 

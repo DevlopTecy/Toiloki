@@ -78,6 +78,28 @@ export const ImageCanvas: React.FC<ImageCanvasProps> = ({
 
   const stageRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbCacheRef = useRef<Map<string, string>>(new Map());
+
+  // Revoke cached thumbnail URLs on unmount
+  useEffect(() => {
+    return () => {
+      thumbCacheRef.current.forEach((url) => URL.revokeObjectURL(url));
+      thumbCacheRef.current.clear();
+    };
+  }, []);
+
+  const getThumbUrl = useCallback((file: SelectedFile, idx: number) => {
+    const key = `${file.name}_${file.size || 0}_${idx}`;
+    if (!thumbCacheRef.current.has(key)) {
+      const url = file.buffer
+        ? URL.createObjectURL(new Blob([file.buffer]))
+        : file.file
+        ? URL.createObjectURL(file.file)
+        : '';
+      thumbCacheRef.current.set(key, url);
+    }
+    return thumbCacheRef.current.get(key) || '';
+  }, []);
 
   // Create & revoke object URLs for current and original buffers
   useEffect(() => {
@@ -258,11 +280,7 @@ export const ImageCanvas: React.FC<ImageCanvasProps> = ({
   // Thumbnail generator helper
   const renderThumbnail = (file: SelectedFile, idx: number) => {
     const isSelected = idx === activeFileIndex;
-    const blobUrl = file.buffer
-      ? URL.createObjectURL(new Blob([file.buffer]))
-      : file.file
-      ? URL.createObjectURL(file.file)
-      : '';
+    const blobUrl = getThumbUrl(file, idx);
 
     const sizeStr = file.size
       ? file.size > 1024 * 1024
