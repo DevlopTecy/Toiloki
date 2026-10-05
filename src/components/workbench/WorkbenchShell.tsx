@@ -2286,8 +2286,8 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           <div className="workbench-empty-state">
             <div className="workbench-empty-dropzone-wrapper">
               <FileDropzone
-                accept={activeUtility.acceptedFormats || (workspace.id === 'images' ? ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff', '.svg', '.heic', '.avif'] : workspace.id === 'documents' ? ['.docx', '.doc', '.txt', '.md', '.markdown', '.html', '.htm', '.rtf', '.pdf'] : workspace.id === 'media' ? ['.mp3', '.wav', '.aac', '.ogg', '.flac', '.m4a', '.mp4', '.webm', '.mov', '.mkv'] : workspace.id === 'files' ? ['*'] : ['.pdf'])}
-                multiple={workspace.id === 'images' || workspace.id === 'files' || activeUtility.accepts === 'many'}
+                accept={activeUtility.acceptedFormats || (workspace.id === 'images' ? ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff', '.svg', '.heic', '.avif'] : workspace.id === 'documents' ? ['.docx', '.doc', '.txt', '.md', '.markdown', '.html', '.htm', '.rtf', '.pdf', '.csv', '.tsv', '.xlsx', '.pptx', '.odt', '.ods'] : workspace.id === 'media' ? ['.mp3', '.wav', '.aac', '.ogg', '.flac', '.m4a', '.mp4', '.webm', '.mov', '.mkv'] : workspace.id === 'files' ? ['*'] : ['.pdf'])}
+                multiple={workspace.id === 'images' || workspace.id === 'files' || workspace.id === 'documents' || activeUtility.accepts === 'many'}
                 files={files}
                 onFilesChanged={handleFilesChanged}
                 label={
@@ -2815,6 +2815,17 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                     fontTheme={docFontTheme}
                     pageSize={docPageSize}
                     onTextContentChange={setDocRawText}
+                    onAddMoreFiles={async (newFilesList) => {
+                      const arr = await Promise.all(
+                        Array.from(newFilesList).map(async (f) => ({
+                          name: f.name,
+                          size: f.size,
+                          file: f,
+                          buffer: new Uint8Array(await f.arrayBuffer()),
+                        }))
+                      );
+                      setFiles((prev) => [...prev, ...arr]);
+                    }}
                   />
                 </div>
 

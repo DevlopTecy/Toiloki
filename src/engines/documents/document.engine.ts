@@ -378,11 +378,37 @@ export class DocumentEngine {
   }
 
   /**
+   * Extract unique template placeholders (e.g. {{name}}, ${email}, [title])
+   */
+  static extractPlaceholders(template: string): string[] {
+    const matches = new Set<string>();
+    // Match {{var}}
+    const doubleBrace = /\{\{\s*([a-zA-Z0-9_\-\.]+)\s*\}\}/g;
+    let m: RegExpExecArray | null;
+    while ((m = doubleBrace.exec(template)) !== null) {
+      matches.add(m[1].trim());
+    }
+    // Match ${var}
+    const dollarBrace = /\$\{\s*([a-zA-Z0-9_\-\.]+)\s*\}/g;
+    while ((m = dollarBrace.exec(template)) !== null) {
+      matches.add(m[1].trim());
+    }
+    // Match [var]
+    const bracket = /\[\s*([a-zA-Z0-9_\-\.]+)\s*\]/g;
+    while ((m = bracket.exec(template)) !== null) {
+      matches.add(m[1].trim());
+    }
+    return Array.from(matches);
+  }
+
+  /**
    * Mail merge template with records (array of key-value maps)
+   * Supports {{key}}, ${key}, and [key] delimiters
    */
   static mailMerge(
     template: string,
-    records: Array<Record<string, string>>
+    records: Array<Record<string, string>>,
+    options: { delimiter?: 'double-mustache' | 'dollar-brace' | 'brackets' | 'auto' } = {}
   ): EngineResult<{ mergedDocs: string[]; count: number }> {
     const start = performance.now();
     try {
@@ -390,11 +416,23 @@ export class DocumentEngine {
         throw new Error('At least one data record is required for mail merge');
       }
 
+      const delimiter = options.delimiter || 'auto';
+
       const mergedDocs = records.map((record) => {
         let doc = template;
-        for (const [key, value] of Object.entries(record)) {
-          const regex = new RegExp(`{{\\s*${key.trim()}\\s*}}`, 'gi');
-          doc = doc.replace(regex, value ?? '');
+        for (const [key, val] of Object.entries(record)) {
+          const cleanKey = key.trim();
+          const cleanVal = val !== undefined && val !== null ? String(val) : '';
+
+          if (delimiter === 'auto' || delimiter === 'double-mustache') {
+            doc = doc.replace(new RegExp(`\\{\\{\\s*${cleanKey}\\s*\\}\\}`, 'gi'), cleanVal);
+          }
+          if (delimiter === 'auto' || delimiter === 'dollar-brace') {
+            doc = doc.replace(new RegExp(`\\$\\{\\s*${cleanKey}\\s*\\}`, 'gi'), cleanVal);
+          }
+          if (delimiter === 'auto' || delimiter === 'brackets') {
+            doc = doc.replace(new RegExp(`\\[\\s*${cleanKey}\\s*\\]`, 'gi'), cleanVal);
+          }
         }
         return doc;
       });
@@ -590,6 +628,112 @@ export class DocumentEngine {
       return {
         success: false,
         error: `Failed to scrub Office file metadata: ${err instanceof Error ? err.message : String(err)}`,
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
+
+  /**
+   * Decode binary buffer to text with automatic UTF-8 BOM, UTF-16LE, and UTF-16BE detection
+   */
+  static decodeTextBuffer(buffer: Uint8Array): string {
+    if (!buffer || buffer.length === 0) return '';
+
+    // UTF-8 BOM: EF BB BF
+    if (buffer.length >= 3 && buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
+      return new TextDecoder('utf-8').decode(buffer.subarray(3));
+    }
+    // UTF-16 LE: FF FE
+    if (buffer.length >= 2 && buffer[0] === 0xFF && buffer[1] === 0xFE) {
+      return new TextDecoder('utf-16le').decode(buffer.subarray(2));
+    }
+    // UTF-16 BE: FE FF
+    if (buffer.length >= 2 && buffer[0] === 0xFE && buffer[1] === 0xFF) {
+      return new TextDecoder('utf-16be').decode(buffer.subarray(2));
+    }
+
+    // Standard UTF-8 decoding
+    return new TextDecoder('utf-8').decode(buffer);
+  }
+
+  /**
+   * Compute line-by-line diff comparison between two text documents
+   */
+  static computeDiff(
+    textA: string,
+    textB: string,
+    options: { ignoreWhitespace?: boolean } = {}
+  ): EngineResult<{
+    lines: Array<{
+      lineA?: number;
+      lineB?: number;
+      textA?: string;
+      textB?: string;
+      type: 'equal' | 'added' | 'removed' | 'modified';
+    }>;
+    additions: number;
+    deletions: number;
+    modifications: number;
+    identical: boolean;
+  }> {
+    const start = performance.now();
+    try {
+      const rawLinesA = textA.split(/\r?\n/);
+      const rawLinesB = textB.split(/\r?\n/);
+
+      const norm = (str: string | undefined): string => {
+        if (str === undefined) return '';
+        return options.ignoreWhitespace ? str.trim().replace(/\s+/g, ' ') : str;
+      };
+
+      const max = Math.max(rawLinesA.length, rawLinesB.length);
+      const diffLines: Array<{
+        lineA?: number;
+        lineB?: number;
+        textA?: string;
+        textB?: string;
+        type: 'equal' | 'added' | 'removed' | 'modified';
+      }> = [];
+
+      let additions = 0;
+      let deletions = 0;
+      let modifications = 0;
+
+      for (let i = 0; i < max; i++) {
+        const lineA = rawLinesA[i];
+        const lineB = rawLinesB[i];
+
+        if (lineA === undefined) {
+          additions++;
+          diffLines.push({ lineB: i + 1, textB: lineB, type: 'added' });
+        } else if (lineB === undefined) {
+          deletions++;
+          diffLines.push({ lineA: i + 1, textA: lineA, type: 'removed' });
+        } else if (norm(lineA) === norm(lineB)) {
+          diffLines.push({ lineA: i + 1, lineB: i + 1, textA: lineA, textB: lineB, type: 'equal' });
+        } else {
+          modifications++;
+          diffLines.push({ lineA: i + 1, lineB: i + 1, textA: lineA, textB: lineB, type: 'modified' });
+        }
+      }
+
+      const identical = additions === 0 && deletions === 0 && modifications === 0;
+
+      return {
+        success: true,
+        data: {
+          lines: diffLines,
+          additions,
+          deletions,
+          modifications,
+          identical,
+        },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
         elapsedMs: Math.round(performance.now() - start),
       };
     }
