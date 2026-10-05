@@ -15,12 +15,23 @@ export interface CronExplanation {
 
 export class DeveloperEngine {
   /**
-   * Explain a cron expression and list next N scheduled runs
+   * Explain a cron expression and list next N scheduled runs (supports standard aliases)
    */
   static explainCron(expr: string, nextN: number = 10): EngineResult<CronExplanation> {
     const start = performance.now();
     try {
-      const parts = expr.trim().split(/\s+/);
+      const aliasMap: Record<string, string> = {
+        '@yearly': '0 0 1 1 *',
+        '@annually': '0 0 1 1 *',
+        '@monthly': '0 0 1 * *',
+        '@weekly': '0 0 * * 0',
+        '@daily': '0 0 * * *',
+        '@midnight': '0 0 * * *',
+        '@hourly': '0 * * * *',
+      };
+
+      const normalized = aliasMap[expr.trim().toLowerCase()] || expr.trim();
+      const parts = normalized.split(/\s+/);
       if (parts.length !== 5) throw new Error('Cron expression must have 5 fields (minute hour dom month dow)');
 
       const [minute, hour, dom, month, dow] = parts;
@@ -28,8 +39,8 @@ export class DeveloperEngine {
       // Human-readable explanation for common patterns
       const human = DeveloperEngine._describeCron(minute, hour, dom, month, dow);
 
-      // Generate next N runs (simplified parser)
-      const nextRuns = DeveloperEngine._getNextRuns(expr, nextN);
+      // Generate next N runs
+      const nextRuns = DeveloperEngine._getNextRuns(normalized, nextN);
 
       return {
         success: true,
@@ -332,13 +343,14 @@ export class DeveloperEngine {
   }
 
   /**
-   * Diff two .env files and report missing keys
+   * Diff two .env files and report missing keys with secret masking
    */
   static diffEnvFiles(
     env1Content: string,
     env2Content: string,
     label1: string = '.env',
-    label2: string = '.env.example'
+    label2: string = '.env.example',
+    options: { maskSecrets?: boolean } = { maskSecrets: true }
   ): EngineResult<{
     missingInFirst: string[];
     missingInSecond: string[];
@@ -347,6 +359,9 @@ export class DeveloperEngine {
   }> {
     const start = performance.now();
     try {
+      const isSecretKey = (k: string) =>
+        /(secret|password|key|token|auth|credential|cert|private)/i.test(k);
+
       const parseEnv = (content: string): Map<string, string> => {
         const map = new Map<string, string>();
         for (const line of content.split('\n')) {
@@ -355,7 +370,10 @@ export class DeveloperEngine {
           const eqIdx = trimmed.indexOf('=');
           if (eqIdx === -1) continue;
           const key = trimmed.slice(0, eqIdx).trim();
-          const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, '');
+          let val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, '');
+          if (options.maskSecrets && isSecretKey(key) && val.length > 0) {
+            val = '••••••••';
+          }
           map.set(key, val);
         }
         return map;

@@ -44,6 +44,9 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
   );
   const [formattedCode, setFormattedCode] = useState('');
   const [jsonViewMode, setJsonViewMode] = useState<'formatted' | 'tree'>('formatted');
+  const [sortJsonKeys, setSortJsonKeys] = useState(false);
+  const [minifyJson, setMinifyJson] = useState(false);
+  const [formatError, setFormatError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   // JWT Inspector State
@@ -57,14 +60,19 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
     'https://toiloki.local/api/v1/query?tag=utility&lang=en'
   );
   const [encodeOutput, setEncodeOutput] = useState('');
+  const [encodeMode, setEncodeMode] = useState<'standard' | 'urlsafe'>('standard');
 
   // Generators State
   const [uuidCount, setUuidCount] = useState(5);
+  const [uuidUppercase, setUuidUppercase] = useState(false);
+  const [uuidNoDashes, setUuidNoDashes] = useState(false);
+  const [uuidBraces, setUuidBraces] = useState(false);
   const [uuids, setUuids] = useState<string[]>([]);
   const [randomStringLen, setRandomStringLen] = useState(16);
   const [randomStringResult, setRandomStringResult] = useState('');
   const [timestampInput, setTimestampInput] = useState(String(Math.floor(Date.now() / 1000)));
   const [timestampResult, setTimestampResult] = useState<string | null>(null);
+  const [timestampData, setTimestampData] = useState<any>(null);
 
   // Regex Tester State
   const [regexPattern, setRegexPattern] = useState(
@@ -119,7 +127,11 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
       const res = DevEngine.decodeJwt(jwtInput);
       if (res.success) setJwtData(res.data);
     } else if (utilityId === 'gen-uuid') {
-      const res = DevEngine.generateUuids(uuidCount);
+      const res = DevEngine.generateUuids(uuidCount, {
+        uppercase: uuidUppercase,
+        noDashes: uuidNoDashes,
+        braces: uuidBraces,
+      });
       if (res.success && res.data) setUuids(res.data);
     } else if (utilityId === 'regex-tester-feature') {
       const res = DevEngine.testRegex(regexPattern, regexFlags, regexText);
@@ -128,10 +140,26 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
   }, [utilityId]);
 
   const handleFormatCode = () => {
+    setFormatError(null);
     try {
-      if (utilityId.includes('json') || codeSnippet.trim().startsWith('{') || codeSnippet.trim().startsWith('[')) {
-        const parsed = JSON.parse(codeSnippet);
-        setFormattedCode(JSON.stringify(parsed, null, 2));
+      const isJson =
+        utilityId.includes('json') ||
+        codeSnippet.trim().startsWith('{') ||
+        codeSnippet.trim().startsWith('[');
+
+      if (isJson) {
+        const res = DevEngine.formatJson(codeSnippet, {
+          indent: 2,
+          sortKeys: sortJsonKeys,
+          minify: minifyJson,
+        });
+        if (res.success && res.data) {
+          setFormattedCode(res.data.formatted);
+          setFormatError(null);
+        } else {
+          setFormatError(res.error || 'Syntax error in JSON');
+          setFormattedCode('');
+        }
       } else if (utilityId.includes('sql')) {
         const formatted = codeSnippet
           .replace(/\bSELECT\b/gi, 'SELECT\n ')
@@ -152,8 +180,9 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         output: 'Formatted code payload',
         status: 'completed',
       });
-    } catch {
-      setFormattedCode('Syntax error: Unable to parse snippet.');
+    } catch (e: any) {
+      setFormatError(e.message || 'Syntax error: Unable to parse snippet.');
+      setFormattedCode('');
     }
   };
 
@@ -174,12 +203,15 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
   };
 
   const handleConvertTimestamp = () => {
-    const num = Number(timestampInput);
-    if (!isNaN(num)) {
-      const date = new Date(num > 10000000000 ? num : num * 1000);
+    const res = DevEngine.generateTimestamp(timestampInput);
+    if (res.success && res.data) {
+      setTimestampData(res.data);
       setTimestampResult(
-        `UTC: ${date.toUTCString()}\nISO 8601: ${date.toISOString()}\nLocal: ${date.toLocaleString()}`
+        `UTC: ${res.data.isoUtc}\nLocal: ${res.data.localString}\nRelative: ${res.data.relative}\nUnix ms: ${res.data.unixMs}\nTimezone: ${res.data.timezone}`
       );
+    } else {
+      setTimestampResult(res.error || 'Invalid timestamp input');
+      setTimestampData(null);
     }
   };
 
@@ -230,7 +262,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         {(utilityId === 'dev-formatter' || utilityId.startsWith('format-') || groupId === 'dev-formatter') && (
           <SplitEditor
             toolbarOptions={
-              <div className="segmented-chip-row">
+              <div className="segmented-chip-row" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button
                   type="button"
                   className={`segmented-chip-btn ${jsonViewMode === 'formatted' ? 'active' : ''}`}
@@ -247,6 +279,26 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
                     Tree View
                   </button>
                 )}
+                {(utilityId.includes('json') || codeSnippet.trim().startsWith('{') || codeSnippet.trim().startsWith('[')) && (
+                  <>
+                    <button
+                      type="button"
+                      className={`segmented-chip-btn ${sortJsonKeys ? 'active' : ''}`}
+                      onClick={() => setSortJsonKeys(s => !s)}
+                      title="Sort object keys alphabetically"
+                    >
+                      Sort Keys {sortJsonKeys ? '✓' : ''}
+                    </button>
+                    <button
+                      type="button"
+                      className={`segmented-chip-btn ${minifyJson ? 'active' : ''}`}
+                      onClick={() => setMinifyJson(m => !m)}
+                      title="Minify JSON output"
+                    >
+                      Minify {minifyJson ? '✓' : ''}
+                    </button>
+                  </>
+                )}
               </div>
             }
             primaryAction={{
@@ -256,15 +308,19 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
             onClear={() => {
               setCodeSnippet('');
               setFormattedCode('');
+              setFormatError(null);
             }}
             onCopy={() => handleCopy(formattedCode || codeSnippet)}
             onSave={() => handleDownload(formattedCode || codeSnippet, 'formatted.txt')}
             copied={copied}
             inputValue={codeSnippet}
-            onInputChange={setCodeSnippet}
+            onInputChange={(val) => {
+              setCodeSnippet(val);
+              if (formatError) setFormatError(null);
+            }}
             inputLabel="Input Code"
             inputMeta={`${codeSnippet.split('\n').length} lines`}
-            outputValue={formattedCode}
+            outputValue={formatError ? `Syntax error: ${formatError}` : formattedCode}
             onOutputChange={setFormattedCode}
             outputLabel="Formatted Output"
             outputMeta={`${formattedCode.split('\n').length} lines`}
@@ -276,11 +332,15 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         {/* JWT Inspector */}
         {utilityId === 'dev-jwt' && (
           <div className="jwt-container">
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '10px 14px', marginBottom: '16px', fontSize: '12px', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '14px' }}>🔒</span>
+              <span><strong>Offline Inspection:</strong> Signature verification requires a secret or public key; payload decoded for offline inspection only.</span>
+            </div>
             <div className="jwt-input-header">
               <span className="field-label">Encoded JWT Token:</span>
               <button
                 className="tool-btn secondary small-btn"
-                onClick={() => setJwtInput('')}
+                onClick={() => { setJwtInput(''); setJwtData(null); }}
                 type="button"
               >
                 Clear
@@ -293,6 +353,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
                 setJwtInput(e.target.value);
                 const res = DevEngine.decodeJwt(e.target.value);
                 if (res.success) setJwtData(res.data);
+                else setJwtData(null);
               }}
               placeholder="Paste encoded JWT here..."
             />
@@ -334,9 +395,11 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
                     </div>
                   </div>
                   <pre className="jwt-code-pre">{JSON.stringify(jwtData.payload, null, 2)}</pre>
-                  {jwtData.expiresAt && (
-                    <div className="jwt-time-info">Expires at: {jwtData.expiresAt}</div>
-                  )}
+                  <div className="jwt-time-info" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    {jwtData.issuedAt && <div>Issued: {jwtData.issuedAt}</div>}
+                    {jwtData.expiresAt && <div>Expires: {jwtData.expiresAt}</div>}
+                    {jwtData.notBefore && <div>Not Before: {jwtData.notBefore}</div>}
+                  </div>
                 </div>
               </div>
             )}
@@ -352,33 +415,74 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
               value={encodeInput}
               onChange={(e) => setEncodeInput(e.target.value)}
             />
-            <div className="encode-action-btns">
-              <button
-                className="tool-btn secondary"
-                onClick={() => {
-                  const res = DevEngine.encodeDecode(
-                    encodeInput,
-                    utilityId === 'dev-base64' ? 'base64-encode' : 'url-encode'
-                  );
-                  if (res.success && res.data) setEncodeOutput(res.data);
-                }}
-                type="button"
-              >
-                Encode
-              </button>
-              <button
-                className="tool-btn secondary"
-                onClick={() => {
-                  const res = DevEngine.encodeDecode(
-                    encodeInput,
-                    utilityId === 'dev-base64' ? 'base64-decode' : 'url-decode'
-                  );
-                  if (res.success && res.data) setEncodeOutput(res.data);
-                }}
-                type="button"
-              >
-                Decode
-              </button>
+            <div className="encode-action-btns" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {utilityId === 'dev-base64' ? (
+                <>
+                  <button
+                    className="tool-btn secondary"
+                    onClick={() => {
+                      const res = DevEngine.encodeDecode(encodeInput, 'base64-encode');
+                      if (res.success && res.data) setEncodeOutput(res.data);
+                    }}
+                    type="button"
+                  >
+                    Base64 Encode
+                  </button>
+                  <button
+                    className="tool-btn secondary"
+                    onClick={() => {
+                      const res = DevEngine.encodeDecode(encodeInput, 'base64-decode');
+                      if (res.success && res.data) setEncodeOutput(res.data);
+                    }}
+                    type="button"
+                  >
+                    Base64 Decode
+                  </button>
+                  <button
+                    className="tool-btn secondary"
+                    onClick={() => {
+                      const res = DevEngine.encodeDecode(encodeInput, 'base64url-encode');
+                      if (res.success && res.data) setEncodeOutput(res.data);
+                    }}
+                    type="button"
+                  >
+                    Base64URL Encode
+                  </button>
+                  <button
+                    className="tool-btn secondary"
+                    onClick={() => {
+                      const res = DevEngine.encodeDecode(encodeInput, 'base64url-decode');
+                      if (res.success && res.data) setEncodeOutput(res.data);
+                    }}
+                    type="button"
+                  >
+                    Base64URL Decode
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="tool-btn secondary"
+                    onClick={() => {
+                      const res = DevEngine.encodeDecode(encodeInput, 'url-encode');
+                      if (res.success && res.data) setEncodeOutput(res.data);
+                    }}
+                    type="button"
+                  >
+                    URL Encode
+                  </button>
+                  <button
+                    className="tool-btn secondary"
+                    onClick={() => {
+                      const res = DevEngine.encodeDecode(encodeInput, 'url-decode');
+                      if (res.success && res.data) setEncodeOutput(res.data);
+                    }}
+                    type="button"
+                  >
+                    URL Decode
+                  </button>
+                </>
+              )}
             </div>
             {encodeOutput && (
               <div className="formatted-result-box">
@@ -398,28 +502,60 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         {/* UUID Generator */}
         {utilityId === 'gen-uuid' && (
           <div className="generator-container">
-            <div className="gen-controls-bar">
-              <label>Count:</label>
-              <select
-                className="control-input"
-                value={uuidCount}
-                onChange={(e) => setUuidCount(Number(e.target.value))}
-              >
-                <option value={1}>1 UUID</option>
-                <option value={5}>5 UUIDs</option>
-                <option value={10}>10 UUIDs</option>
-                <option value={25}>25 UUIDs</option>
-              </select>
+            <div className="gen-controls-bar" style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <label>Count:</label>
+                <select
+                  className="control-input"
+                  value={uuidCount}
+                  onChange={(e) => setUuidCount(Number(e.target.value))}
+                >
+                  <option value={1}>1 UUID</option>
+                  <option value={5}>5 UUIDs</option>
+                  <option value={10}>10 UUIDs</option>
+                  <option value={25}>25 UUIDs</option>
+                  <option value={50}>50 UUIDs</option>
+                  <option value={100}>100 UUIDs</option>
+                </select>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={uuidUppercase}
+                  onChange={(e) => setUuidUppercase(e.target.checked)}
+                />
+                Uppercase
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={uuidNoDashes}
+                  onChange={(e) => setUuidNoDashes(e.target.checked)}
+                />
+                No Hyphens
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={uuidBraces}
+                  onChange={(e) => setUuidBraces(e.target.checked)}
+                />
+                Braces {'{}'}
+              </label>
               <button
                 className="tool-btn primary small-btn"
                 onClick={() => {
-                  const res = DevEngine.generateUuids(uuidCount);
+                  const res = DevEngine.generateUuids(uuidCount, {
+                    uppercase: uuidUppercase,
+                    noDashes: uuidNoDashes,
+                    braces: uuidBraces,
+                  });
                   if (res.success && res.data) setUuids(res.data);
                 }}
                 type="button"
               >
                 <RefreshCw size={12} />
-                <span>Generate New UUIDs</span>
+                <span>Generate UUIDs</span>
               </button>
             </div>
 
@@ -733,7 +869,7 @@ function CronExplainerView() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
               {Object.entries(result.parts).map(([field, val]) => (
                 <div key={field} style={{ background: 'var(--surface)', borderRadius: 6, padding: '8px 10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 2 }}>{field}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>{field.toUpperCase()}</div>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, color: 'var(--accent)' }}>{val}</div>
                 </div>
               ))}
@@ -880,7 +1016,7 @@ function UserAgentView() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, maxWidth: 600 }}>
           {[['Browser', result.browser], ['Operating System', result.os], ['Rendering Engine', result.engine], ['Device Type', result.device]].map(([label, val]) => (
             <div key={label} style={{ background: 'var(--surface)', borderRadius: 6, padding: '10px 14px' }}>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>{label.toUpperCase()}</div>
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{val || 'Unknown'}</div>
             </div>
           ))}
@@ -944,14 +1080,26 @@ function GitignoreView() {
 function EnvDiffView() {
   const [env1, setEnv1] = React.useState('DATABASE_URL=postgres://localhost/app\nAPI_KEY=secret123\nDEBUG=true\nPORT=3000');
   const [env2, setEnv2] = React.useState('DATABASE_URL=\nAPI_KEY=\nSESSION_SECRET=\nPORT=3000\nNODE_ENV=production');
+  const [maskSecrets, setMaskSecrets] = React.useState(true);
 
   const result = React.useMemo(() => {
-    const r = DeveloperEngine.diffEnvFiles(env1, env2, '.env', '.env.example');
+    const r = DeveloperEngine.diffEnvFiles(env1, env2, '.env', '.env.example', { maskSecrets });
     return r.success ? r.data : null;
-  }, [env1, env2]);
+  }, [env1, env2, maskSecrets]);
 
   return (
     <div style={{ padding: '24px 32px', flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Compare environment variables and detect missing keys</span>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', color: 'var(--text-2)' }}>
+          <input
+            type="checkbox"
+            checked={maskSecrets}
+            onChange={(e) => setMaskSecrets(e.target.checked)}
+          />
+          Mask Secrets (••••••••)
+        </label>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {[[env1, setEnv1, '.env (actual)'], [env2, setEnv2, '.env.example (template)']].map(([val, setter, label], i) => (
           <div key={i} className="control-group">

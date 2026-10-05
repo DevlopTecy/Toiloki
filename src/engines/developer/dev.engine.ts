@@ -1,8 +1,14 @@
 import { EngineResult } from '../../core/types/engine';
 
+export interface JsonFormatOptions {
+  indent?: number;
+  sortKeys?: boolean;
+  minify?: boolean;
+}
+
 export class DevEngine {
   /**
-   * Decode JWT token into header and payload
+   * Decode JWT token into header, payload, and formatted dates
    */
   static decodeJwt(token: string): EngineResult<{
     header: Record<string, unknown>;
@@ -10,6 +16,9 @@ export class DevEngine {
     signature: string;
     isExpired?: boolean;
     expiresAt?: string;
+    issuedAt?: string;
+    notBefore?: string;
+    disclaimer: string;
   }> {
     const start = performance.now();
     try {
@@ -27,12 +36,12 @@ export class DevEngine {
         while (base64.length % 4) {
           base64 += '=';
         }
-        return decodeURIComponent(
-          atob(base64)
-            .split('')
-            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-            .join('')
-        );
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return new TextDecoder().decode(bytes);
       };
 
       const header = JSON.parse(decodeBase64Url(parts[0]));
@@ -41,16 +50,27 @@ export class DevEngine {
 
       let isExpired: boolean | undefined;
       let expiresAt: string | undefined;
+      let issuedAt: string | undefined;
+      let notBefore: string | undefined;
 
       if (typeof payload.exp === 'number') {
         const expDate = new Date(payload.exp * 1000);
         expiresAt = expDate.toISOString();
         isExpired = Date.now() > expDate.getTime();
       }
+      if (typeof payload.iat === 'number') {
+        issuedAt = new Date(payload.iat * 1000).toISOString();
+      }
+      if (typeof payload.nbf === 'number') {
+        notBefore = new Date(payload.nbf * 1000).toISOString();
+      }
+
+      const disclaimer =
+        'Signature verification requires a secret or public key; payload decoded for offline inspection only.';
 
       return {
         success: true,
-        data: { header, payload, signature, isExpired, expiresAt },
+        data: { header, payload, signature, isExpired, expiresAt, issuedAt, notBefore, disclaimer },
         elapsedMs: Math.round(performance.now() - start),
       };
     } catch (err) {
@@ -63,22 +83,44 @@ export class DevEngine {
   }
 
   /**
-   * Encode / Decode Base64 and URL
+   * Encode / Decode Base64 and URL with true Unicode UTF-8 & URL-safe support
    */
   static encodeDecode(
     input: string,
-    mode: 'base64-encode' | 'base64-decode' | 'url-encode' | 'url-decode'
+    mode: 'base64-encode' | 'base64-decode' | 'base64url-encode' | 'base64url-decode' | 'url-encode' | 'url-decode'
   ): EngineResult<string> {
     const start = performance.now();
     try {
       let out = '';
       switch (mode) {
         case 'base64-encode':
-          out = btoa(unescape(encodeURIComponent(input)));
+        case 'base64url-encode': {
+          const bytes = new TextEncoder().encode(input);
+          let binary = '';
+          const len = bytes.byteLength;
+          for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          out = btoa(binary);
+          if (mode === 'base64url-encode') {
+            out = out.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+          }
           break;
+        }
         case 'base64-decode':
-          out = decodeURIComponent(escape(atob(input)));
+        case 'base64url-decode': {
+          let base64 = input.trim().replace(/-/g, '+').replace(/_/g, '/');
+          while (base64.length % 4) {
+            base64 += '=';
+          }
+          const binary = atob(base64);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          out = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
           break;
+        }
         case 'url-encode':
           out = encodeURIComponent(input);
           break;
@@ -101,13 +143,21 @@ export class DevEngine {
   }
 
   /**
-   * Batch generate UUID v4
+   * Batch generate UUID v4 with format options
    */
-  static generateUuids(count = 1): EngineResult<string[]> {
+  static generateUuids(
+    count = 1,
+    options: { uppercase?: boolean; noDashes?: boolean; braces?: boolean } = {}
+  ): EngineResult<string[]> {
     const start = performance.now();
+    const safeCount = Math.max(1, Math.min(count, 1000));
     const uuids: string[] = [];
-    for (let i = 0; i < count; i++) {
-      uuids.push(crypto.randomUUID());
+    for (let i = 0; i < safeCount; i++) {
+      let u: string = crypto.randomUUID();
+      if (options.noDashes) u = u.replace(/-/g, '');
+      if (options.uppercase) u = u.toUpperCase();
+      if (options.braces) u = `{${u}}`;
+      uuids.push(u);
     }
     return {
       success: true,
@@ -117,25 +167,44 @@ export class DevEngine {
   }
 
   /**
-   * Regex tester
+   * Regex tester with catastrophic backtracking timeout protection
    */
   static testRegex(
     pattern: string,
     flags: string,
-    text: string
+    text: string,
+    timeoutMs = 100
   ): EngineResult<{
     matchCount: number;
     matches: Array<{ match: string; index: number; groups?: Record<string, string> }>;
   }> {
     const start = performance.now();
     try {
+      // ReDoS static protection against catastrophic backtracking (nested quantifiers e.g. (a+)+, (.*)*)
+      const hasNestedQuantifier =
+        /\([^)]*(\+|\*|\{\d+,?\d*\})\)[+*{]/.test(pattern) ||
+        /\((?:[^()]*\|)+[^()]*[+*]\)[+*{]/.test(pattern);
+
+      if (hasNestedQuantifier && text.length > 20) {
+        return {
+          success: false,
+          error: 'Regex execution rejected: dangerous nested quantifier detected (catastrophic backtracking risk)',
+          elapsedMs: Math.round(performance.now() - start),
+        };
+      }
+
       const reg = new RegExp(pattern, flags.includes('g') ? flags : flags + 'g');
       const matches: Array<{ match: string; index: number; groups?: Record<string, string> }> = [];
 
       let m;
       let iterations = 0;
-      while ((m = reg.exec(text)) !== null && iterations < 500) {
+      const startTime = Date.now();
+
+      while ((m = reg.exec(text)) !== null && iterations < 5000) {
         iterations++;
+        if (Date.now() - startTime > timeoutMs) {
+          throw new Error('Regex execution timed out (potential catastrophic backtracking)');
+        }
         matches.push({
           match: m[0],
           index: m.index,
@@ -210,15 +279,57 @@ export class DevEngine {
   }
 
   /**
-   * Timestamp generation across formats
+   * Timestamp generation & conversion across formats with relative time
    */
-  static generateTimestamp(date = new Date()): EngineResult<{
+  static generateTimestamp(input?: number | string | Date): EngineResult<{
     unixSeconds: number;
     unixMs: number;
     isoUtc: string;
     localString: string;
+    relative: string;
+    timezone: string;
   }> {
     const start = performance.now();
+    let date: Date;
+
+    if (!input) {
+      date = new Date();
+    } else if (input instanceof Date) {
+      date = input;
+    } else if (typeof input === 'number') {
+      // Auto-detect seconds vs ms (Unix seconds < 10^11)
+      date = input < 100000000000 ? new Date(input * 1000) : new Date(input);
+    } else {
+      const num = Number(input.trim());
+      if (!isNaN(num)) {
+        date = num < 100000000000 ? new Date(num * 1000) : new Date(num);
+      } else {
+        date = new Date(input);
+      }
+    }
+
+    if (isNaN(date.getTime())) {
+      return {
+        success: false,
+        error: 'Invalid date or timestamp value',
+        elapsedMs: 0,
+      };
+    }
+
+    // Relative time calculation
+    const diffSec = Math.round((date.getTime() - Date.now()) / 1000);
+    const absSec = Math.abs(diffSec);
+    let relative = '';
+    const suffix = diffSec >= 0 ? 'from now' : 'ago';
+
+    if (absSec < 5) relative = 'just now';
+    else if (absSec < 60) relative = `${absSec} seconds ${suffix}`;
+    else if (absSec < 3600) relative = `${Math.floor(absSec / 60)} minutes ${suffix}`;
+    else if (absSec < 86400) relative = `${Math.floor(absSec / 3600)} hours ${suffix}`;
+    else if (absSec < 2592000) relative = `${Math.floor(absSec / 86400)} days ${suffix}`;
+    else if (absSec < 31536000) relative = `${Math.floor(absSec / 2592000)} months ${suffix}`;
+    else relative = `${Math.floor(absSec / 31536000)} years ${suffix}`;
+
     return {
       success: true,
       data: {
@@ -226,9 +337,99 @@ export class DevEngine {
         unixMs: date.getTime(),
         isoUtc: date.toISOString(),
         localString: date.toString(),
+        relative,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
       },
       elapsedMs: Math.round(performance.now() - start),
     };
+  }
+
+  /**
+   * Format JSON with error line and column feedback, key sorting, and minification
+   */
+  static formatJson(
+    code: string,
+    options: JsonFormatOptions = {}
+  ): EngineResult<{ formatted: string; lineCount: number; byteLength: number }> {
+    const start = performance.now();
+    try {
+      if (!code.trim()) throw new Error('JSON input is empty');
+      let parsed = JSON.parse(code);
+
+      if (options.sortKeys) {
+        const sortKeysRecursive = (obj: unknown): unknown => {
+          if (Array.isArray(obj)) return obj.map(sortKeysRecursive);
+          if (obj !== null && typeof obj === 'object') {
+            return Object.keys(obj)
+              .sort()
+              .reduce((acc: Record<string, unknown>, key) => {
+                acc[key] = sortKeysRecursive((obj as Record<string, unknown>)[key]);
+                return acc;
+              }, {});
+          }
+          return obj;
+        };
+        parsed = sortKeysRecursive(parsed);
+      }
+
+      const indent = options.minify ? 0 : options.indent ?? 2;
+      const formatted = options.minify ? JSON.stringify(parsed) : JSON.stringify(parsed, null, indent);
+
+      return {
+        success: true,
+        data: {
+          formatted,
+          lineCount: formatted.split('\n').length,
+          byteLength: new TextEncoder().encode(formatted).length,
+        },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err: any) {
+      // Calculate precise line and column of JSON syntax error
+      let line = 1;
+      let column = 1;
+      const msg = err.message || '';
+      const posMatch = msg.match(/at position (\d+)/i) || msg.match(/column (\d+)/i);
+
+      if (posMatch) {
+        const pos = parseInt(posMatch[1], 10);
+        const sub = code.slice(0, pos);
+        const subLines = sub.split('\n');
+        line = subLines.length;
+        column = subLines[subLines.length - 1].length + 1;
+      } else {
+        const lineMatch = msg.match(/line (\d+) column (\d+)/i);
+        if (lineMatch) {
+          line = parseInt(lineMatch[1], 10);
+          column = parseInt(lineMatch[2], 10);
+        } else {
+          // V8 ellipsis snippet extraction: e.g. ...""broken": ,\n  "valid"...
+          const snippetMatch = msg.match(/\.\.\.([\s\S]+?)\.\.\./);
+          if (snippetMatch) {
+            let snippet = snippetMatch[1];
+            if (snippet.startsWith('""')) snippet = snippet.slice(1);
+            if (snippet.startsWith('"') && !snippet.endsWith('"')) snippet = snippet.slice(1);
+            let idx = code.indexOf(snippet);
+            if (idx === -1 && snippet.length > 5) {
+              idx = code.indexOf(snippet.slice(0, 6));
+            }
+            if (idx !== -1) {
+              const sub = code.slice(0, idx);
+              const subLines = sub.split('\n');
+              line = subLines.length;
+              column = subLines[subLines.length - 1].length + 1;
+            }
+          }
+        }
+      }
+
+      return {
+        success: false,
+        error: `JSON Error at line ${line}, column ${column}: ${msg}`,
+        metadata: { line, column },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
   }
 
   /**
@@ -243,8 +444,9 @@ export class DevEngine {
       let formatted = code;
 
       if (language === 'json') {
-        const parsed = JSON.parse(code);
-        formatted = JSON.stringify(parsed, null, 2);
+        const res = DevEngine.formatJson(code);
+        if (!res.success) return { success: false, error: res.error, elapsedMs: 0 };
+        formatted = res.data!.formatted;
       } else if (language === 'xml' || language === 'html') {
         // Tag indentation formatting
         let pad = 0;
