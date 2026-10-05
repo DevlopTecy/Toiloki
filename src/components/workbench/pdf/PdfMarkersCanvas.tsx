@@ -98,8 +98,50 @@ export const PdfMarkersCanvas: React.FC<PdfMarkersCanvasProps> = ({
     return [];
   }, [method, manualCuts, everyN, rangeString, targetSizeMb, pageCount, file.size]);
 
+  // Computed output parts preview
+  const outputPartsPreview = useMemo(() => {
+    const cleanBase = (file.name || 'document').replace(/\.pdf$/i, '');
+    const partRanges: { start: number; end: number }[] = [];
+
+    if (method === 'ranges') {
+      const parts = rangeString.split(',').map((p) => p.trim()).filter(Boolean);
+      for (const partStr of parts) {
+        const match = partStr.match(/^(\d+)(?:\s*-\s*(\d+|end))?$/i);
+        if (match) {
+          const start = parseInt(match[1], 10);
+          const endStr = match[2];
+          const end = endStr ? (endStr.toLowerCase() === 'end' ? pageCount : parseInt(endStr, 10)) : start;
+          const pMin = Math.max(1, Math.min(start, end));
+          const pMax = Math.min(pageCount, Math.max(start, end));
+          partRanges.push({ start: pMin, end: pMax });
+        }
+      }
+      if (partRanges.length === 0) {
+        partRanges.push({ start: 1, end: pageCount });
+      }
+    } else {
+      const sortedCuts = Array.from(new Set(activeCutPoints.filter((c) => c > 0 && c < pageCount))).sort((a, b) => a - b);
+      let prev = 1;
+      for (const cut of sortedCuts) {
+        partRanges.push({ start: prev, end: cut });
+        prev = cut + 1;
+      }
+      if (prev <= pageCount) {
+        partRanges.push({ start: prev, end: pageCount });
+      }
+    }
+
+    return partRanges.map((r, idx) => {
+      const name = r.start === r.end
+        ? `${cleanBase}_part${idx + 1}_p${r.start}.pdf`
+        : `${cleanBase}_part${idx + 1}_p${r.start}-${r.end}.pdf`;
+      const count = r.end - r.start + 1;
+      return { name, start: r.start, end: r.end, count };
+    });
+  }, [file.name, pageCount, activeCutPoints, method, rangeString]);
+
   // Number of output files created
-  const partsCount = activeCutPoints.length + 1;
+  const partsCount = outputPartsPreview.length;
 
   // Notify parent of updated split config
   useEffect(() => {
@@ -225,6 +267,34 @@ export const PdfMarkersCanvas: React.FC<PdfMarkersCanvasProps> = ({
           <strong>
             {partsCount} {partsCount === 1 ? 'file' : 'files'} will be created
           </strong>
+        </div>
+      </div>
+
+      {/* Planned Outputs Preview Banner */}
+      <div className="markers-output-preview" data-testid="split-output-preview">
+        <div className="markers-output-header">
+          <div className="markers-output-title-wrap">
+            <FileStack size={14} className="markers-preview-icon" />
+            <span className="markers-output-title">
+              Planned Outputs ({outputPartsPreview.length} {outputPartsPreview.length === 1 ? 'file' : 'files'})
+            </span>
+          </div>
+          <span className="markers-output-hint">
+            Output parts with computed page ranges
+          </span>
+        </div>
+        <div className="markers-output-chips">
+          {outputPartsPreview.map((part, idx) => (
+            <div
+              key={idx}
+              className="markers-output-chip"
+              title={`Part ${idx + 1}: Pages ${part.start} to ${part.end} (${part.count} ${part.count === 1 ? 'page' : 'pages'})`}
+            >
+              <span className="chip-part-idx">#{idx + 1}</span>
+              <span className="chip-filename">{part.name}</span>
+              <span className="chip-page-badge">{part.count}p</span>
+            </div>
+          ))}
         </div>
       </div>
 

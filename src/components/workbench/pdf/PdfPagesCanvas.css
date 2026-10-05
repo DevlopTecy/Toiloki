@@ -81,6 +81,32 @@
   background-color: var(--surface-hover);
 }
 
+/* Blank Sensitivity Selector */
+.blank-sensitivity-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blank-sensitivity-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.blank-sensitivity-select {
+  padding: 3px 8px;
+  font-size: 12px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.blank-sensitivity-select:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
 /* Crop Controls Banner */
 .crop-controls-banner {
   display: flex;
@@ -92,6 +118,48 @@
   padding: 10px 16px;
   margin-bottom: 16px;
   gap: 16px;
+}
+
+.crop-scope-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crop-scope-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.crop-scope-segmented {
+  display: inline-flex;
+  background-color: var(--bg);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--border);
+}
+
+.crop-scope-btn {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crop-scope-btn:hover {
+  color: var(--text);
+}
+
+.crop-scope-btn.is-active {
+  background-color: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .crop-banner-title {

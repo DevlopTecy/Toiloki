@@ -608,8 +608,11 @@ export class PdfEngine {
    */
   static async splitPdf(
     pdfBuffer: Uint8Array,
-    mode: 'each-page' | 'fixed-chunk' = 'each-page',
+    mode: 'each-page' | 'fixed-chunk' | 'markers' | 'everyN' | 'ranges' | 'size' = 'each-page',
     chunkSize = 1,
+    cutPoints: number[] = [],
+    ranges?: string,
+    baseFileName = 'document',
     onProgress?: (progress: EngineProgress) => void,
     signal?: AbortSignal
   ): Promise<EngineResult<Array<{ name: string; buffer: Uint8Array; pageCount: number }>>> {
@@ -618,29 +621,72 @@ export class PdfEngine {
       const srcDoc = await PDFDocument.load(pdfBuffer);
       const totalPages = srcDoc.getPageCount();
       const results: Array<{ name: string; buffer: Uint8Array; pageCount: number }> = [];
+      const cleanBase = baseFileName.replace(/\.pdf$/i, '');
 
-      const step = mode === 'each-page' ? 1 : Math.max(1, chunkSize);
+      let partRanges: number[][] = []; // Array of arrays of 0-based page indices
 
-      for (let i = 0; i < totalPages; i += step) {
+      if (mode === 'markers' && cutPoints && cutPoints.length > 0) {
+        // cutPoints are 1-based page numbers after which a cut occurs (e.g. [2, 4])
+        const sortedCuts = Array.from(new Set(cutPoints.filter((c) => c > 0 && c < totalPages))).sort((a, b) => a - b);
+        let prevCut = 0;
+        for (const cut of sortedCuts) {
+          const part: number[] = [];
+          for (let p = prevCut; p < cut; p++) part.push(p);
+          if (part.length > 0) partRanges.push(part);
+          prevCut = cut;
+        }
+        const lastPart: number[] = [];
+        for (let p = prevCut; p < totalPages; p++) lastPart.push(p);
+        if (lastPart.length > 0) partRanges.push(lastPart);
+      } else if (mode === 'ranges' && ranges && ranges.trim() !== '') {
+        const parts = ranges.split(',').map((p) => p.trim()).filter(Boolean);
+        for (const partStr of parts) {
+          const match = partStr.match(/^(\d+)(?:\s*-\s*(\d+|end))?$/i);
+          if (match) {
+            const start = parseInt(match[1], 10);
+            const endStr = match[2];
+            const end = endStr ? (endStr.toLowerCase() === 'end' ? totalPages : parseInt(endStr, 10)) : start;
+            const pMin = Math.max(1, Math.min(start, end));
+            const pMax = Math.min(totalPages, Math.max(start, end));
+            const part: number[] = [];
+            for (let p = pMin; p <= pMax; p++) part.push(p - 1);
+            if (part.length > 0) partRanges.push(part);
+          }
+        }
+        if (partRanges.length === 0) {
+          partRanges = [Array.from({ length: totalPages }, (_, i) => i)];
+        }
+      } else {
+        // everyN / fixed-chunk / each-page / size
+        const step = mode === 'each-page' ? 1 : Math.max(1, chunkSize);
+        for (let i = 0; i < totalPages; i += step) {
+          const end = Math.min(i + step, totalPages);
+          const part: number[] = [];
+          for (let k = i; k < end; k++) part.push(k);
+          partRanges.push(part);
+        }
+      }
+
+      for (let partIdx = 0; partIdx < partRanges.length; partIdx++) {
         if (signal?.aborted) throw new Error('Operation cancelled by user.');
 
-        const end = Math.min(i + step, totalPages);
-        const chunkIndices: number[] = [];
-        for (let k = i; k < end; k++) {
-          chunkIndices.push(k);
-        }
+        const indices = partRanges[partIdx];
+        const startP = indices[0] + 1;
+        const endP = indices[indices.length - 1] + 1;
+        const partName = indices.length === 1
+          ? `${cleanBase}_part${partIdx + 1}_p${startP}.pdf`
+          : `${cleanBase}_part${partIdx + 1}_p${startP}-${endP}.pdf`;
 
         onProgress?.({
-          percent: Math.round(((i + step) / totalPages) * 90),
-          stage: `Creating part for pages ${i + 1} to ${end}...`,
+          percent: Math.round(((partIdx + 1) / partRanges.length) * 90),
+          stage: `Creating part ${partIdx + 1} of ${partRanges.length} (${partName})...`,
         });
 
         const partDoc = await PDFDocument.create();
-        const copied = await partDoc.copyPages(srcDoc, chunkIndices);
+        const copied = await partDoc.copyPages(srcDoc, indices);
         copied.forEach((p) => partDoc.addPage(p));
-        const partBytes = await partDoc.save();
+        const partBytes = await partDoc.save({ useObjectStreams: true });
 
-        const partName = step === 1 ? `page_${i + 1}.pdf` : `pages_${i + 1}_to_${end}.pdf`;
         results.push({
           name: partName,
           buffer: partBytes,
@@ -1620,6 +1666,87 @@ export class PdfEngine {
         success: true,
         data: results,
         metadata: { pageCount, format: options.format || 'png' },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
+
+  /**
+   * Compress PDF with quality presets and numeric size optimization
+   */
+  static async compressPdf(
+    pdfBuffer: Uint8Array,
+    preset: 'light' | 'balanced' | 'extreme' = 'balanced',
+    onProgress?: (progress: EngineProgress) => void
+  ): Promise<EngineResult<{
+    originalSize: number;
+    newSize: number;
+    ratioPercent: number;
+    savedBytes: number;
+    isLarger: boolean;
+  }>> {
+    const start = performance.now();
+    const originalSize = pdfBuffer.length;
+    try {
+      onProgress?.({ percent: 20, stage: 'Analyzing document structure...' });
+      const doc = await PDFDocument.load(pdfBuffer, { ignoreEncryption: true });
+
+      // Flatten forms if balanced or extreme
+      if (preset === 'balanced' || preset === 'extreme') {
+        try {
+          const form = doc.getForm();
+          form.flatten();
+        } catch {}
+      }
+
+      // Metadata handling per preset
+      if (preset === 'extreme') {
+        doc.setTitle('');
+        doc.setAuthor('');
+        doc.setSubject('');
+        doc.setKeywords([]);
+        try {
+          doc.catalog.delete(PDFName.of('Metadata'));
+        } catch {}
+      } else {
+        doc.setProducer('Toiloki Offline PDF Engine');
+      }
+
+      onProgress?.({ percent: 70, stage: 'Compressing and optimizing streams...' });
+      const compressedBytes = await doc.save({
+        useObjectStreams: true,
+        addDefaultPage: false,
+      });
+
+      const newSize = compressedBytes.length;
+      const isLarger = newSize >= originalSize;
+      const savedBytes = isLarger ? 0 : originalSize - newSize;
+      const ratioPercent = isLarger ? 0 : Math.round((savedBytes / originalSize) * 100);
+      const finalBytes = isLarger ? pdfBuffer : compressedBytes;
+
+      return {
+        success: true,
+        outputBuffer: finalBytes,
+        data: {
+          originalSize,
+          newSize: isLarger ? originalSize : newSize,
+          ratioPercent,
+          savedBytes,
+          isLarger,
+        },
+        metadata: {
+          preset,
+          originalSize,
+          newSize,
+          isLarger,
+          ratioPercent,
+        },
         elapsedMs: Math.round(performance.now() - start),
       };
     } catch (err) {

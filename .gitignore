@@ -5,3 +5,4 @@ dist-electron/
 .DS_Store
 Thumbs.db
 .tmp/
+mega_prompt*.txt

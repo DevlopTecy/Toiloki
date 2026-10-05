@@ -33,9 +33,14 @@ interface PdfPagesCanvasProps {
   activeUtilityId: string;
   pages: PageCardItem[];
   onPagesChange: (pages: PageCardItem[]) => void;
-  onExecutePageAction?: (action: 'delete' | 'rotate' | 'extract' | 'duplicate' | 'crop', payload?: any) => void;
+  onExecutePageAction?: (
+    action: 'delete' | 'rotate' | 'extract' | 'duplicate' | 'crop' | 'replace',
+    payload?: any
+  ) => void;
   cropMargins?: { top: number; right: number; bottom: number; left: number };
   onCropMarginsChange?: (margins: { top: number; right: number; bottom: number; left: number }) => void;
+  cropScope?: 'all' | 'selected';
+  onCropScopeChange?: (scope: 'all' | 'selected') => void;
 }
 
 export const PdfPagesCanvas: React.FC<PdfPagesCanvasProps> = ({
@@ -46,11 +51,17 @@ export const PdfPagesCanvas: React.FC<PdfPagesCanvasProps> = ({
   onExecutePageAction,
   cropMargins = { top: 36, right: 36, bottom: 36, left: 36 },
   onCropMarginsChange,
+  cropScope = 'all',
+  onCropScopeChange,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
   const [draggedPageIndex, setDraggedPageIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [internalCropScope, setInternalCropScope] = useState<'all' | 'selected'>('all');
+  const [blankSensitivity, setBlankSensitivity] = useState<'low' | 'balanced' | 'high'>('balanced');
+
+  const activeCropScope = cropScope || internalCropScope;
 
   // Lasso selection state
   const [isLassoing, setIsLassoing] = useState(false);
@@ -262,16 +273,33 @@ export const PdfPagesCanvas: React.FC<PdfPagesCanvasProps> = ({
 
         <div className="pages-header-actions">
           {activeUtilityId === 'pdf-remove-blank-pages' && (
-            <button
-              type="button"
-              className="pages-utility-btn"
-              onClick={() => {
-                onPagesChange(pages.map((p, i) => ({ ...p, selected: i % 2 === 1 })));
-              }}
-            >
-              <FileCheck size={13} />
-              <span>Detect & select blanks</span>
-            </button>
+            <div className="blank-sensitivity-group">
+              <span className="blank-sensitivity-label">Threshold:</span>
+              <select
+                className="blank-sensitivity-select"
+                value={blankSensitivity}
+                onChange={(e) => setBlankSensitivity(e.target.value as any)}
+                aria-label="Blank detection sensitivity"
+              >
+                <option value="low">Low (Conservative)</option>
+                <option value="balanced">Balanced</option>
+                <option value="high">High (Aggressive)</option>
+              </select>
+              <button
+                type="button"
+                className="pages-utility-btn"
+                onClick={() => {
+                  const updated = pages.map((p) => ({
+                    ...p,
+                    selected: Boolean(p.isBlank),
+                  }));
+                  onPagesChange(updated);
+                }}
+              >
+                <FileCheck size={13} />
+                <span>Select blanks</span>
+              </button>
+            </div>
           )}
 
           <button
@@ -299,6 +327,33 @@ export const PdfPagesCanvas: React.FC<PdfPagesCanvasProps> = ({
             <Crop size={15} />
             <span>Crop margins (points)</span>
           </div>
+
+          <div className="crop-scope-group">
+            <span className="crop-scope-label">Apply to:</span>
+            <div className="crop-scope-segmented">
+              <button
+                type="button"
+                className={`crop-scope-btn ${activeCropScope === 'all' ? 'is-active' : ''}`}
+                onClick={() => {
+                  setInternalCropScope('all');
+                  onCropScopeChange?.('all');
+                }}
+              >
+                All pages
+              </button>
+              <button
+                type="button"
+                className={`crop-scope-btn ${activeCropScope === 'selected' ? 'is-active' : ''}`}
+                onClick={() => {
+                  setInternalCropScope('selected');
+                  onCropScopeChange?.('selected');
+                }}
+              >
+                Selected ({selectedCount})
+              </button>
+            </div>
+          </div>
+
           <div className="crop-inputs-row">
             <label>
               <span>Top:</span>
@@ -451,6 +506,18 @@ export const PdfPagesCanvas: React.FC<PdfPagesCanvasProps> = ({
             <Copy size={14} />
             <span>Duplicate</span>
           </button>
+
+          {selectedCount === 1 && (
+            <button
+              type="button"
+              className="floating-tool-btn"
+              title="Replace this page with a page from another PDF file"
+              onClick={() => onExecutePageAction?.('replace', { pageNumber: selectedPages[0].pageNumber })}
+            >
+              <RefreshCw size={14} />
+              <span>Replace</span>
+            </button>
+          )}
 
           <button
             type="button"

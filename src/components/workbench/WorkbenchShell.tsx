@@ -96,6 +96,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
   // Pages state for 'pages' mode
   const [pages, setPages] = useState<PageCardItem[]>([]);
   const [cropMargins, setCropMargins] = useState({ top: 36, right: 36, bottom: 36, left: 36 });
+  const [cropScope, setCropScope] = useState<'all' | 'selected'>('all');
 
   // Tray state for 'tray' mode
   const [fileRanges, setFileRanges] = useState<Record<string, string>>({});
@@ -1220,8 +1221,11 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     }
   }, [textContent, textLoremCount, textLoremUnit]);
 
-  // Execution: Handles Pages actions (Delete, Rotate, Extract, Duplicate, Crop)
-  const handleExecutePageAction = async (action: 'delete' | 'rotate' | 'extract' | 'duplicate' | 'crop') => {
+  // Execution: Handles Pages actions (Delete, Rotate, Extract, Duplicate, Crop, Replace)
+  const handleExecutePageAction = async (
+    action: 'delete' | 'rotate' | 'extract' | 'duplicate' | 'crop' | 'replace',
+    payload?: any
+  ) => {
     if (files.length === 0 || !files[0].buffer) return;
     setIsProcessing(true);
     setProgressPercent(20);
@@ -1274,11 +1278,45 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
         await pushNewVersion(`Duplicated ${selectedIndices.length} pages`, res.outputBuffer);
       } else if (action === 'crop') {
         setProgressPercent(50);
-        const res = await PdfEngine.cropPages(buffer, cropMargins);
+        const selectedPagesOneBased = pages
+          .map((p, idx) => (p.selected ? idx + 1 : -1))
+          .filter((n) => n !== -1);
+        const indicesToCrop = (cropScope === 'selected' && selectedPagesOneBased.length > 0)
+          ? selectedPagesOneBased
+          : undefined;
+
+        const res = await PdfEngine.cropPages(buffer, cropMargins, indicesToCrop);
         if (!res.success || !res.outputBuffer) {
           throw new Error(res.error || 'Failed to crop pages.');
         }
-        await pushNewVersion('Cropped pages', res.outputBuffer);
+        const scopeText = indicesToCrop ? `${indicesToCrop.length} selected pages` : 'all pages';
+        await pushNewVersion(`Cropped (${scopeText})`, res.outputBuffer);
+      } else if (action === 'replace') {
+        const replacePageNum = payload?.pageNumber || (selectedIndices.length > 0 ? selectedIndices[0] + 1 : 1);
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.pdf,application/pdf';
+        input.onchange = async () => {
+          if (input.files && input.files[0]) {
+            setIsProcessing(true);
+            setProgressPercent(50);
+            try {
+              const repBuf = new Uint8Array(await input.files[0].arrayBuffer());
+              const res = await PdfEngine.replacePages(buffer, [replacePageNum], repBuf);
+              if (!res.success || !res.outputBuffer) {
+                throw new Error(res.error || 'Failed to replace page.');
+              }
+              await pushNewVersion(`Replaced page ${replacePageNum}`, res.outputBuffer);
+            } catch (err: any) {
+              setErrorMessage(err.message || 'Page replacement failed.');
+              setIsProcessing(false);
+            }
+          } else {
+            setIsProcessing(false);
+          }
+        };
+        input.click();
+        return;
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Operation failed.');
@@ -1729,14 +1767,35 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
       } else if (mode === 'markers') {
         // Split PDF
         const buffer = await ensureBuffer(files[0]);
-        setProgressPercent(50);
-        const splitMode = splitConfig.method === 'everyN' ? 'fixed-chunk' : 'each-page';
-        const chunkSize = splitConfig.method === 'everyN' ? splitConfig.everyN : 1;
-        const res = await PdfEngine.splitPdf(buffer, splitMode, chunkSize);
+        setProgressPercent(40);
+        setStatusMessage('Splitting PDF document into parts...');
+        const res = await PdfEngine.splitPdf(
+          buffer,
+          splitConfig.method,
+          splitConfig.everyN,
+          splitConfig.cutPoints,
+          splitConfig.ranges,
+          files[0].name
+        );
         if (!res.success || !res.data || res.data.length === 0) {
           throw new Error(res.error || 'Failed to split PDF.');
         }
-        await pushNewVersion(`Split into ${res.data.length} files`, res.data[0].buffer);
+
+        if (res.data.length > 1) {
+          const zipRes = await ArchiveEngine.createZip(
+            res.data.map((p) => ({ name: p.name, buffer: p.buffer }))
+          );
+          if (zipRes.success && zipRes.data) {
+            await pushNewVersion(
+              `Split into ${res.data.length} files (${res.data.map((d) => d.name).join(', ')})`,
+              zipRes.data
+            );
+          } else {
+            await pushNewVersion(`Split into ${res.data.length} files`, res.data[0].buffer);
+          }
+        } else {
+          await pushNewVersion(`Split into 1 file`, res.data[0].buffer);
+        }
       } else if (mode === 'annotate') {
         const buffer = await ensureBuffer(files[0]);
         setProgressPercent(40);
@@ -1888,7 +1947,26 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           setSuccessResult(true);
           setIsProcessing(false);
           setProgressPercent(100);
-        } else if (activeId === 'compress-pdf' || activeId === 'optimize-images') {
+        } else if (activeId === 'compress-pdf') {
+          const buffer = await ensureBuffer(files[0]);
+          setStatusMessage('Compressing and optimizing PDF streams...');
+          const preset = (compressionQuality as 'light' | 'balanced' | 'extreme') || 'balanced';
+          const res = await PdfEngine.compressPdf(buffer, preset);
+          if (!res.success || !res.outputBuffer || !res.data) {
+            throw new Error(res.error || 'Failed to compress PDF.');
+          }
+
+          const origMb = (res.data.originalSize / (1024 * 1024)).toFixed(1);
+          const newMb = (res.data.newSize / (1024 * 1024)).toFixed(1);
+
+          let verLabel: string;
+          if (res.data.isLarger) {
+            verLabel = `Original preserved (${origMb} MB) · Result was larger`;
+          } else {
+            verLabel = `${origMb} MB to ${newMb} MB, ${res.data.ratioPercent}% smaller`;
+          }
+          await pushNewVersion(verLabel, res.outputBuffer);
+        } else if (activeId === 'optimize-images') {
           const buffer = await ensureBuffer(files[0]);
           const res = await PdfEngine.flattenAndStripMetadata(buffer);
           if (!res.success || !res.outputBuffer) throw new Error(res.error || 'Failed to optimize PDF.');
@@ -3480,6 +3558,8 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                 onExecutePageAction={handleExecutePageAction}
                 cropMargins={cropMargins}
                 onCropMarginsChange={setCropMargins}
+                cropScope={cropScope}
+                onCropScopeChange={setCropScope}
               />
             )}
 
