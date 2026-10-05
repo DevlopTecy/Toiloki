@@ -34,6 +34,64 @@ export const CalcKeypad: React.FC<CalcKeypadProps> = ({
     }
   }, [displayValue]);
 
+  // Keyboard event listener for numbers, operators, Enter, Backspace, Escape
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept if user is typing in an active input or textarea
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.key >= '0' && e.key <= '9') {
+        onKeyPress(e.key);
+      } else if (e.key === '.') {
+        onKeyPress('.');
+      } else if (e.key === '+') {
+        onKeyPress('+');
+      } else if (e.key === '-') {
+        onKeyPress('−');
+      } else if (e.key === '*') {
+        onKeyPress('×');
+      } else if (e.key === '/') {
+        e.preventDefault();
+        onKeyPress('÷');
+      } else if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();
+        onKeyPress('=');
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        onKeyPress('⌫');
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        onKeyPress('C');
+      } else if (e.key === '%') {
+        onKeyPress('%');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onKeyPress]);
+
+  const formattedDisplay = React.useMemo(() => {
+    if (!displayValue || displayValue === 'Error' || displayValue === 'Cannot divide by zero') {
+      return displayValue;
+    }
+    const num = Number(displayValue);
+    if (!isNaN(num) && isFinite(num) && !displayValue.endsWith('.')) {
+      const parts = displayValue.split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return parts.join('.');
+    }
+    return displayValue;
+  }, [displayValue]);
+
   const standardKeys = [
     ['C', 'CE', '%', '÷'],
     ['7', '8', '9', '×'],
@@ -57,7 +115,7 @@ export const CalcKeypad: React.FC<CalcKeypadProps> = ({
         <div className="calc-display-wrap">
           <div className="calc-expression-line">{expression || '\u00A0'}</div>
           <div className={`calc-main-display ${fadeDisplay ? 'display-value-fade' : ''}`}>
-            {displayValue}
+            {formattedDisplay}
           </div>
         </div>
 

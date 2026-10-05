@@ -23,23 +23,51 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
   // =================== BASIC & SCIENTIFIC CALCULATOR STATE ===================
   const [calcDisplay, setCalcDisplay] = useState<string>('0');
   const [calcMemory, setCalcMemory] = useState<number | null>(null);
-  const [calcHistory, setCalcHistory] = useState<string[]>([]);
+  const [calcHistory, setCalcHistory] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('toiloki_calc_history');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
   const [isRad, setIsRad] = useState<boolean>(false);
+
+  const updateCalcHistory = (newItem: string) => {
+    setCalcHistory((prev) => {
+      const next = [newItem, ...prev.slice(0, 19)];
+      try {
+        localStorage.setItem('toiloki_calc_history', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleClearHistory = () => {
+    setCalcHistory([]);
+    try {
+      localStorage.removeItem('toiloki_calc_history');
+    } catch {}
+  };
 
   const handleCalcInput = (token: string) => {
     const mapped = token === '÷' ? '/' : token === '×' ? '*' : token === '−' ? '-' : token;
     if (mapped === 'C' || mapped === 'CE') {
       setCalcDisplay('0');
     } else if (mapped === '⌫') {
-      if (calcDisplay.length > 1) {
+      if (
+        calcDisplay.length > 1 &&
+        calcDisplay !== 'Error' &&
+        calcDisplay !== 'Cannot divide by zero'
+      ) {
         setCalcDisplay(calcDisplay.slice(0, -1));
       } else {
         setCalcDisplay('0');
       }
     } else if (mapped === '=') {
-      const res = CalcEngine.evaluateExpression(calcDisplay);
+      const res = CalcEngine.evaluateExpression(calcDisplay, { isRad });
       if (res.success && res.data) {
-        setCalcHistory((prev) => [`${calcDisplay} = ${res.data}`, ...prev.slice(0, 9)]);
+        updateCalcHistory(`${calcDisplay} = ${res.data}`);
         setCalcDisplay(res.data);
         HistoryService.record({
           toolName: 'Calculator',
@@ -51,22 +79,77 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
           status: 'completed',
         });
       } else {
-        setCalcDisplay('Error');
+        setCalcDisplay(res.error || 'Error');
       }
     } else if (mapped === '±') {
       if (calcDisplay.startsWith('-')) {
         setCalcDisplay(calcDisplay.slice(1));
-      } else if (calcDisplay !== '0') {
+      } else if (
+        calcDisplay !== '0' &&
+        calcDisplay !== 'Error' &&
+        calcDisplay !== 'Cannot divide by zero'
+      ) {
         setCalcDisplay('-' + calcDisplay);
       }
     } else {
-      if (calcDisplay === '0' || calcDisplay === 'Error') {
+      if (
+        calcDisplay === '0' ||
+        calcDisplay === 'Error' ||
+        calcDisplay === 'Cannot divide by zero'
+      ) {
         setCalcDisplay(mapped);
       } else {
         setCalcDisplay(calcDisplay + mapped);
       }
     }
   };
+
+  // Keyboard handler for scientific calculator view
+  React.useEffect(() => {
+    if (utilityId !== 'calc-trig-logs') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.key >= '0' && e.key <= '9') {
+        handleCalcInput(e.key);
+      } else if (e.key === '.') {
+        handleCalcInput('.');
+      } else if (e.key === '+') {
+        handleCalcInput('+');
+      } else if (e.key === '-') {
+        handleCalcInput('-');
+      } else if (e.key === '*') {
+        handleCalcInput('*');
+      } else if (e.key === '/') {
+        e.preventDefault();
+        handleCalcInput('/');
+      } else if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();
+        handleCalcInput('=');
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleCalcInput('⌫');
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCalcInput('C');
+      } else if (e.key === '(' || e.key === ')') {
+        handleCalcInput(e.key);
+      } else if (e.key === '%') {
+        handleCalcInput('%');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [utilityId, calcDisplay, isRad]);
 
   // =================== PERCENTAGE STATE ===================
   const [pctX, setPctX] = useState<number>(15);
@@ -263,7 +346,7 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
           expression={calcHistory.length > 0 ? calcHistory[0] : undefined}
           onKeyPress={handleCalcInput}
           history={calcHistory}
-          onClearHistory={() => setCalcHistory([])}
+          onClearHistory={handleClearHistory}
           onSelectHistory={(item) => setCalcDisplay(item.split('=')[1]?.trim() || '0')}
         />
       )}

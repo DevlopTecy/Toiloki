@@ -22,17 +22,80 @@ export interface DiscountResult {
   totalSavings: number;
 }
 
+export interface EvaluateOptions {
+  isRad?: boolean;
+  precision?: number;
+}
+
 export class CalcEngine {
   /**
-   * Evaluate mathematical expressions safely using mathjs
+   * Format a number string with standard thousands commas (e.g. 1,234,567.89)
    */
-  static evaluateExpression(expr: string): EngineResult<string> {
+  static formatNumberWithCommas(val: number | string): string {
+    const str = String(val).trim();
+    if (!str || isNaN(Number(str))) return str;
+    const parts = str.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+
+  /**
+   * Evaluate mathematical expressions safely using mathjs with floating-point precision fix,
+   * standard percent behavior, Deg/Rad trig support, and divide-by-zero protection.
+   */
+  static evaluateExpression(expr: string, options: EvaluateOptions = { isRad: true }): EngineResult<string> {
     const start = performance.now();
     try {
-      const result = evaluate(expr);
+      if (!expr || !expr.trim()) {
+        return { success: true, data: '0', elapsedMs: 0 };
+      }
+
+      let sanitized = expr.trim();
+      // Normalize operators
+      sanitized = sanitized
+        .replace(/÷/g, '/')
+        .replace(/×/g, '*')
+        .replace(/−/g, '-');
+
+      // Percentage handling: e.g. "100 + 10%" -> "100 + (100 * (10 / 100))"
+      sanitized = sanitized.replace(
+        /(\d+(?:\.\d+)?)\s*([+-])\s*(\d+(?:\.\d+)?)%/g,
+        '$1 $2 ($1 * ($3 / 100))'
+      );
+      // Standalone percentages: "50%" -> "(50 / 100)"
+      sanitized = sanitized.replace(/(\d+(?:\.\d+)?)%/g, '($1 / 100)');
+
+      // DEG vs RAD handling for trigonometric functions
+      if (options.isRad === false) {
+        sanitized = sanitized.replace(/\b(sin|cos|tan)\(([^)]+)\)/g, '$1(($2) * pi / 180)');
+      }
+
+      const result = evaluate(sanitized);
+
+      // Divide by zero and Infinity check
+      if (result === Infinity || result === -Infinity || (typeof result === 'number' && !isFinite(result))) {
+        return {
+          success: false,
+          error: 'Cannot divide by zero',
+          elapsedMs: Math.round(performance.now() - start),
+        };
+      }
+
+      // Eliminate floating point noise: 0.1 + 0.2 -> 0.3
+      let output: string;
+      if (typeof result === 'number') {
+        if (Number.isInteger(result)) {
+          output = result.toString();
+        } else {
+          output = parseFloat(result.toPrecision(options.precision || 12)).toString();
+        }
+      } else {
+        output = String(result);
+      }
+
       return {
         success: true,
-        data: String(result),
+        data: output,
         elapsedMs: Math.round(performance.now() - start),
       };
     } catch (err) {
