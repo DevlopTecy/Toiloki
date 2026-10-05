@@ -368,6 +368,66 @@ export class ArchiveEngine {
       };
     }
   }
+
+  /**
+   * Inspect entries in an uncompressed TAR archive without extracting files
+   */
+  static inspectTar(buffer: Uint8Array): EngineResult<ArchiveEntry[]> {
+    const start = performance.now();
+    try {
+      const entries: ArchiveEntry[] = [];
+      const dec = new TextDecoder();
+      let offset = 0;
+
+      while (offset + 512 <= buffer.length) {
+        let isZero = true;
+        for (let i = 0; i < 512; i++) {
+          if (buffer[offset + i] !== 0) {
+            isZero = false;
+            break;
+          }
+        }
+        if (isZero) break;
+
+        const nameRaw = dec.decode(buffer.subarray(offset, offset + 100)).replace(/\0.*$/, '').trim();
+        if (!nameRaw) break;
+
+        const sizeStr = dec.decode(buffer.subarray(offset + 124, offset + 136)).replace(/\0.*$/, '').trim();
+        const size = parseInt(sizeStr, 8) || 0;
+        const typeFlag = String.fromCharCode(buffer[offset + 156]);
+        const mtimeStr = dec.decode(buffer.subarray(offset + 136, offset + 148)).replace(/\0.*$/, '').trim();
+        const mtimeSec = parseInt(mtimeStr, 8) || 0;
+
+        offset += 512;
+        if (offset + size > buffer.length) break;
+
+        const isDir = typeFlag === '5' || nameRaw.endsWith('/');
+        const safeName = PathSecurity.sanitizeArchivePath(nameRaw);
+
+        entries.push({
+          name: safeName,
+          size,
+          compressedSize: size,
+          isDir,
+          date: mtimeSec > 0 ? new Date(mtimeSec * 1000) : undefined,
+        });
+
+        offset += Math.ceil(size / 512) * 512;
+      }
+
+      return {
+        success: true,
+        data: entries,
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
 }
 
 

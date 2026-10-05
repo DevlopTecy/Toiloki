@@ -50,6 +50,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
     numberingDigits: 2,
   });
   const [useNumbering, setUseNumbering] = useState<boolean>(false);
+  const [renameNotice, setRenameNotice] = useState<string | null>(null);
 
   const renamePreview = useMemo(() => {
     if (files.length === 0) return [];
@@ -60,6 +61,50 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
     };
     return FileOpsEngine.applyBatchRename(names, rule).data || [];
   }, [files, renameRule, useNumbering]);
+
+  const handleApplyRename = () => {
+    if (files.length === 0 || renamePreview.length === 0) return;
+    const updatedFiles = files.map((f, i) => {
+      const prev = renamePreview[i];
+      return {
+        ...f,
+        name: prev ? prev.renamed : f.name,
+      };
+    });
+    setFiles(updatedFiles);
+    setRenameNotice(`Renamed ${updatedFiles.length} file(s) in place.`);
+    setTimeout(() => setRenameNotice(null), 3000);
+    HistoryService.record({
+      toolName: 'Batch Rename',
+      workspaceId: 'files',
+      groupId: 'files-operations',
+      utilityId: 'batch-rename-files',
+      input: `${files.length} files`,
+      output: `Batch rename applied`,
+      status: 'completed',
+    });
+  };
+
+  const handleDownloadRenamedZip = async () => {
+    if (files.length === 0 || renamePreview.length === 0) return;
+    const valid = files
+      .map((f, i) => ({
+        name: renamePreview[i]?.renamed || f.name,
+        buffer: f.buffer || new Uint8Array(),
+      }))
+      .filter((f) => f.buffer.length > 0);
+
+    const zipRes = await ArchiveEngine.createZip(valid);
+    if (zipRes.success && zipRes.data) {
+      const blob = new Blob([zipRes.data], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'renamed_files.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
 
   // =================== FILE ANALYZER & METADATA ===================
   const [fileAnalysisList, setFileAnalysisList] = useState<
@@ -111,6 +156,22 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
     });
   };
 
+  const handleExportChecksums = () => {
+    if (fileAnalysisList.length === 0) return;
+    const manifestItems = fileAnalysisList.map((item) => ({
+      name: item.file.name,
+      hash: item.sha256,
+    }));
+    const text = FileOpsEngine.formatChecksumManifest(manifestItems);
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'checksums.sha256';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // =================== DUPLICATE FINDER STATE ===================
   const [isScanningDuplicates, setIsScanningDuplicates] = useState(false);
   const [duplicateGroups, setDuplicateGroups] = useState<
@@ -123,6 +184,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
       }
     >
   >({});
+  const [wastedBytesTotal, setWastedBytesTotal] = useState<number>(0);
   const [selectedDuplicates, setSelectedDuplicates] = useState<Set<string>>(new Set());
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [deleteNotice, setDeleteNotice] = useState<string | null>(null);
@@ -130,48 +192,42 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
   const handleScanDuplicates = async () => {
     if (files.length < 2) return;
     setIsScanningDuplicates(true);
-    const groups: Record<string, SelectedFile[]> = {};
 
-    for (const f of files) {
-      if (f.buffer) {
-        const hashRes = await FileOpsEngine.calculateSha256(f.buffer);
-        if (hashRes.success && hashRes.data) {
-          const hash = hashRes.data;
-          if (!groups[hash]) groups[hash] = [];
-          groups[hash].push(f);
-        }
+    const dupRes = await FileOpsEngine.findDuplicates(files);
+    if (dupRes.success && dupRes.data) {
+      const actualDuplicates: Record<
+        string,
+        { hash: string; files: SelectedFile[]; totalSize: number }
+      > = {};
+
+      for (const group of dupRes.data.groups) {
+        const matchedFiles = group.files.map((gf) => files[gf.index]).filter(Boolean);
+        actualDuplicates[group.hash] = {
+          hash: group.hash,
+          files: matchedFiles,
+          totalSize: matchedFiles.reduce((acc, curr) => acc + curr.size, 0),
+        };
       }
+
+      setDuplicateGroups(actualDuplicates);
+      setWastedBytesTotal(dupRes.data.totalWastedBytes);
+      HistoryService.record({
+        toolName: 'Duplicate Finder',
+        workspaceId: 'files',
+        groupId: 'files-duplicate',
+        utilityId: 'find-duplicates',
+        input: `${files.length} files scanned`,
+        output: `Found ${dupRes.data.groups.length} duplicate groups (${(dupRes.data.totalWastedBytes / 1024).toFixed(1)} KB reclaimable)`,
+        status: 'completed',
+      });
     }
 
-    const actualDuplicates: Record<
-      string,
-      { hash: string; files: SelectedFile[]; totalSize: number }
-    > = {};
-
-    for (const [hash, list] of Object.entries(groups)) {
-      if (list.length > 1) {
-        const totalSize = list.reduce((acc, curr) => acc + curr.size, 0);
-        actualDuplicates[hash] = { hash, files: list, totalSize };
-      }
-    }
-
-    setDuplicateGroups(actualDuplicates);
     setIsScanningDuplicates(false);
-    HistoryService.record({
-      toolName: 'Duplicate Finder',
-      workspaceId: 'files',
-      groupId: 'files-duplicate',
-      utilityId: 'find-duplicates',
-      input: `${files.length} files scanned`,
-      output: `Found ${Object.keys(actualDuplicates).length} duplicate groups`,
-      status: 'completed',
-    });
   };
 
   const handleSelectAllDuplicates = () => {
     const s = new Set<string>();
     Object.values(duplicateGroups).forEach((group) => {
-      // select all except first (keeper)
       group.files.slice(1).forEach((f) => s.add(`${group.hash}-${f.name}`));
     });
     setSelectedDuplicates(s);
@@ -184,7 +240,6 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
   const handleConfirmDelete = () => {
     const count = selectedDuplicates.size;
     setIsConfirmDeleteOpen(false);
-    // remove selected from duplicate groups
     const nextGroups: Record<
       string,
       { hash: string; files: SelectedFile[]; totalSize: number }
@@ -250,18 +305,65 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
   const [inspectedZipEntries, setInspectedZipEntries] = useState<ArchiveEntry[]>([]);
   const [isInspectingZip, setIsInspectingZip] = useState<boolean>(false);
 
+  const [extractedFiles, setExtractedFiles] = useState<
+    Array<{ name: string; buffer: Uint8Array; size: number }>
+  >([]);
+  const [isExtracting, setIsExtracting] = useState<boolean>(false);
+  const [extractError, setExtractError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (utilityId === 'extract-zip-archive') {
+      setArchiveMode('extract');
+    } else if (utilityId === 'inspect-zip-archive') {
+      setArchiveMode('inspect');
+    } else if (utilityId === 'create-zip-archive') {
+      setArchiveMode('create');
+      setArchiveFormat('zip');
+    } else if (utilityId === 'tar-gzip-manager') {
+      setArchiveMode('create');
+      setArchiveFormat('tar');
+      setArchiveFilename('archive.tar');
+    }
+  }, [utilityId]);
+
   const handleCreateArchive = async () => {
     if (files.length === 0) return;
     setIsArchiving(true);
     const validFiles = files
       .filter((f) => f.buffer)
       .map((f) => ({ name: f.name, buffer: f.buffer! }));
-    const res = await ArchiveEngine.createZip(validFiles);
+
+    let res: { success: boolean; data?: Uint8Array; error?: string };
+
+    if (archiveFormat === 'tar') {
+      res = ArchiveEngine.createTar(validFiles);
+    } else if (archiveFormat === 'gzip') {
+      if (validFiles.length === 1) {
+        res = await ArchiveEngine.createGzip(validFiles[0].buffer);
+      } else {
+        const tarRes = ArchiveEngine.createTar(validFiles);
+        if (!tarRes.success || !tarRes.data) {
+          res = { success: false, error: tarRes.error || 'Failed to create TAR' };
+        } else {
+          res = await ArchiveEngine.createGzip(tarRes.data);
+        }
+      }
+    } else {
+      res = await ArchiveEngine.createZip(validFiles);
+    }
+
     setIsArchiving(false);
 
     if (res.success && res.data) {
       setArchiveSuccessBytes(res.data.length);
-      const ext = archiveFormat === 'zip' ? '.zip' : archiveFormat === 'tar' ? '.tar' : '.tar.gz';
+      const ext =
+        archiveFormat === 'zip'
+          ? '.zip'
+          : archiveFormat === 'tar'
+          ? '.tar'
+          : validFiles.length === 1
+          ? '.gz'
+          : '.tar.gz';
       const outName = archiveFilename.includes('.') ? archiveFilename : `${archiveFilename}${ext}`;
 
       const blob = new Blob([res.data], { type: 'application/octet-stream' });
@@ -285,12 +387,100 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
   };
 
   const handleInspectArchive = async () => {
-    if (files.length === 0 || !files[0].buffer) return;
+    const file = files[0];
+    if (!file || !file.buffer) return;
     setIsInspectingZip(true);
-    const res = await ArchiveEngine.inspectZip(files[0].buffer);
+    let res: { success: boolean; data?: ArchiveEntry[]; error?: string };
+
+    if (file.name.endsWith('.tar')) {
+      res = ArchiveEngine.inspectTar(file.buffer);
+    } else {
+      res = await ArchiveEngine.inspectZip(file.buffer);
+    }
+
     setIsInspectingZip(false);
     if (res.success && res.data) {
       setInspectedZipEntries(res.data);
+    }
+  };
+
+  const handleExtractArchive = async () => {
+    const file = files[0];
+    if (!file || !file.buffer) return;
+    const buf = file.buffer;
+    setIsExtracting(true);
+    setExtractError(null);
+    try {
+      let res: {
+        success: boolean;
+        data?: Array<{ name: string; buffer: Uint8Array }>;
+        error?: string;
+      };
+
+      if (file.name.endsWith('.tar')) {
+        res = ArchiveEngine.extractTar(buf);
+      } else if (file.name.endsWith('.tar.gz') || file.name.endsWith('.tgz')) {
+        const decomp = await ArchiveEngine.decompressGzip(buf);
+        if (!decomp.success || !decomp.data)
+          throw new Error(decomp.error || 'Failed to decompress GZIP');
+        res = ArchiveEngine.extractTar(decomp.data);
+      } else if (file.name.endsWith('.gz')) {
+        const decomp = await ArchiveEngine.decompressGzip(buf);
+        if (!decomp.success || !decomp.data)
+          throw new Error(decomp.error || 'Failed to decompress GZIP');
+        const uncompressedName = file.name.replace(/\.gz$/, '') || 'extracted_data';
+        res = { success: true, data: [{ name: uncompressedName, buffer: decomp.data }] };
+      } else {
+        res = await ArchiveEngine.extractZip(buf);
+      }
+
+      if (res.success && res.data) {
+        const mapped = res.data.map((item) => ({
+          name: item.name,
+          buffer: item.buffer,
+          size: item.buffer.length,
+        }));
+        setExtractedFiles(mapped);
+        HistoryService.record({
+          toolName: 'Archive Extractor',
+          workspaceId: 'files',
+          groupId: 'files-archive',
+          utilityId: 'extract-zip-archive',
+          input: file.name,
+          output: `Extracted ${mapped.length} files (${((file.size || 0) / 1024).toFixed(1)} KB)`,
+          status: 'completed',
+        });
+      } else {
+        setExtractError(res.error || 'Failed to extract archive');
+      }
+    } catch (e) {
+      setExtractError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleDownloadExtractedItem = (item: { name: string; buffer: Uint8Array }) => {
+    const blob = new Blob([item.buffer], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = item.name.split('/').pop() || item.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadAllExtracted = async () => {
+    if (extractedFiles.length === 0) return;
+    const res = await ArchiveEngine.createZip(extractedFiles);
+    if (res.success && res.data) {
+      const blob = new Blob([res.data], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'extracted_bundle.zip';
+      a.click();
+      URL.revokeObjectURL(url);
     }
   };
 
@@ -362,7 +552,21 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
                     <option value="lower">lowercase</option>
                     <option value="upper">UPPERCASE</option>
                     <option value="capitalize">Capitalize first letter</option>
+                    <option value="kebab">kebab-case</option>
+                    <option value="snake">snake_case</option>
                   </select>
+                </div>
+                <div className="control-group checkbox-align">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={renameRule.useRegex || false}
+                      onChange={(e) =>
+                        setRenameRule({ ...renameRule, useRegex: e.target.checked })
+                      }
+                    />
+                    Use RegEx Pattern
+                  </label>
                 </div>
                 <div className="control-group checkbox-align">
                   <label className="checkbox-label">
@@ -387,19 +591,36 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
                 </div>
               </div>
 
+              {renameNotice && (
+                <div className="delete-notice-banner">
+                  <CheckCircle size={14} color="var(--success)" />
+                  <span>{renameNotice}</span>
+                </div>
+              )}
+
               {/* Preview Table */}
               <div className="rename-preview-card">
                 <div className="rename-preview-header">
                   <h3 className="rename-preview-title">
                     Renaming Preview ({renamePreview.length} files)
                   </h3>
-                  <button
-                    className="tool-btn primary small-btn"
-                    onClick={() => alert('Batch rename applied! Files ready.')}
-                    type="button"
-                  >
-                    Apply Renaming
-                  </button>
+                  <div className="dup-header-actions">
+                    <button
+                      className="tool-btn primary small-btn"
+                      onClick={handleApplyRename}
+                      type="button"
+                    >
+                      Apply Renaming
+                    </button>
+                    <button
+                      className="tool-btn secondary small-btn"
+                      onClick={handleDownloadRenamedZip}
+                      type="button"
+                    >
+                      <Download size={12} />
+                      <span>Download ZIP</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="rename-table">
@@ -449,7 +670,19 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
 
             {fileAnalysisList.length > 0 && (
               <div className="analysis-results-card">
-                <h3 className="rename-preview-title">File Information Matrix</h3>
+                <div className="rename-preview-header">
+                  <h3 className="rename-preview-title">
+                    File Information Matrix ({fileAnalysisList.length} files)
+                  </h3>
+                  <button
+                    className="tool-btn secondary small-btn"
+                    onClick={handleExportChecksums}
+                    type="button"
+                  >
+                    <Download size={12} />
+                    <span>Export Checksums (.sha256)</span>
+                  </button>
+                </div>
                 <div className="analysis-grid">
                   {fileAnalysisList.map((item, idx) => (
                     <div key={idx} className="analysis-item-box">
@@ -600,7 +833,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
                     {Object.keys(duplicateGroups).length} Duplicate Group(s) Detected
                   </h3>
                   <span className="dup-sub-count">
-                    {selectedDuplicates.size} file(s) selected for deletion
+                    {selectedDuplicates.size} file(s) selected for deletion • {(wastedBytesTotal / 1024).toFixed(1)} KB reclaimable
                   </span>
                 </div>
                 {/* Actions: Select All, Deselect All, Remove Selected */}
@@ -931,12 +1164,65 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
 
                     <button
                       className="tool-btn primary small-btn"
-                      onClick={() => alert(`Archive extracted to ${archiveDest}!`)}
+                      onClick={handleExtractArchive}
+                      disabled={isExtracting}
                       type="button"
                     >
                       <Download size={13} />
-                      <span>Extract All Files</span>
+                      <span>{isExtracting ? 'Extracting archive...' : 'Extract All Files'}</span>
                     </button>
+
+                    {extractError && (
+                      <div className="error-notice-banner" style={{ marginTop: '10px' }}>
+                        <XCircle size={14} color="var(--danger)" />
+                        <span>{extractError}</span>
+                      </div>
+                    )}
+
+                    {extractedFiles.length > 0 && (
+                      <div className="archive-entries-card" style={{ marginTop: '14px' }}>
+                        <div className="rename-preview-header">
+                          <h3 className="rename-preview-title">
+                            Extracted Files ({extractedFiles.length} items)
+                          </h3>
+                          <button
+                            className="tool-btn secondary small-btn"
+                            onClick={handleDownloadAllExtracted}
+                            type="button"
+                          >
+                            <Download size={12} />
+                            <span>Download All as ZIP</span>
+                          </button>
+                        </div>
+                        <div className="archive-table">
+                          <div className="archive-header-row">
+                            <span className="col-entry-name">Filename</span>
+                            <span className="col-entry-size">Size</span>
+                            <span className="col-action">Action</span>
+                          </div>
+                          {extractedFiles.map((item, idx) => (
+                            <div key={idx} className="archive-data-row">
+                              <span className="col-entry-name" title={item.name}>
+                                📄 {item.name}
+                              </span>
+                              <span className="col-entry-size">
+                                {(item.size / 1024).toFixed(1)} KB
+                              </span>
+                              <span className="col-action">
+                                <button
+                                  className="tool-btn secondary small-btn"
+                                  onClick={() => handleDownloadExtractedItem(item)}
+                                  type="button"
+                                  title="Download extracted file"
+                                >
+                                  <Download size={11} /> Save
+                                </button>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

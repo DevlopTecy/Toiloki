@@ -5,7 +5,8 @@ export interface RenameRule {
   suffix?: string;
   findText?: string;
   replaceText?: string;
-  caseTransform?: 'lower' | 'upper' | 'capitalize' | 'none';
+  useRegex?: boolean;
+  caseTransform?: 'lower' | 'upper' | 'capitalize' | 'kebab' | 'snake' | 'none';
   numberingStart?: number;
   numberingDigits?: number;
 }
@@ -32,9 +33,18 @@ export class FileOpsEngine {
         let base = lastDot !== -1 ? name.substring(0, lastDot) : name;
         const ext = lastDot !== -1 ? name.substring(lastDot) : '';
 
-        // Find and replace
+        // Find and replace (literal or regex)
         if (rule.findText) {
-          base = base.replaceAll(rule.findText, rule.replaceText || '');
+          if (rule.useRegex) {
+            try {
+              const regex = new RegExp(rule.findText, 'g');
+              base = base.replace(regex, rule.replaceText || '');
+            } catch {
+              base = base.replaceAll(rule.findText, rule.replaceText || '');
+            }
+          } else {
+            base = base.replaceAll(rule.findText, rule.replaceText || '');
+          }
         }
 
         // Case transform
@@ -42,6 +52,10 @@ export class FileOpsEngine {
         else if (rule.caseTransform === 'upper') base = base.toUpperCase();
         else if (rule.caseTransform === 'capitalize') {
           base = base.charAt(0).toUpperCase() + base.slice(1);
+        } else if (rule.caseTransform === 'kebab') {
+          base = base.trim().replace(/[\s_]+/g, '-').toLowerCase();
+        } else if (rule.caseTransform === 'snake') {
+          base = base.trim().replace(/[\s-]+/g, '_').toLowerCase();
         }
 
         // Prefix & Suffix
@@ -147,6 +161,25 @@ export class FileOpsEngine {
         mime = 'image/webp';
         extension = 'webp';
         description = 'WebP Image';
+      } else if (buffer[0] === 0x1f && buffer[1] === 0x8b) {
+        mime = 'application/gzip';
+        extension = 'gz';
+        description = 'GZIP Compressed Archive';
+      } else if (
+        buffer.length >= 262 &&
+        buffer[257] === 0x75 &&
+        buffer[258] === 0x73 &&
+        buffer[259] === 0x74 &&
+        buffer[260] === 0x61 &&
+        buffer[261] === 0x72
+      ) {
+        mime = 'application/x-tar';
+        extension = 'tar';
+        description = 'POSIX TAR Archive';
+      } else if (buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33) {
+        mime = 'audio/mpeg';
+        extension = 'mp3';
+        description = 'MP3 Audio Document';
       } else if (
         // UTF-8 check for JSON / CSV / Text
         buffer.slice(0, 100).every((b) => b === 9 || b === 10 || b === 13 || (b >= 32 && b <= 126))
@@ -434,5 +467,12 @@ export class FileOpsEngine {
         elapsedMs: Math.round(performance.now() - start),
       };
     }
+  }
+
+  /**
+   * Format checksum manifest file (.sha256 format compatible with sha256sum)
+   */
+  static formatChecksumManifest(items: Array<{ name: string; hash: string }>): string {
+    return items.map((it) => `${it.hash}  ${it.name}`).join('\n') + '\n';
   }
 }
