@@ -1208,6 +1208,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 6px;
 }
+
 /* Phase 8: Standalone & Editor Workspaces Canvas */
 .workbench-standalone-canvas {
   flex: 1;
@@ -1220,7 +1221,7 @@
   background: var(--bg);
 }
 
-.workbench-standalone-canvas > * {
+.workbench-standalone-canvas>* {
   flex: 1;
   width: 100%;
   min-height: 0;

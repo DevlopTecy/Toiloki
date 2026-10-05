@@ -357,17 +357,17 @@
   transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease;
 }
 
-.toiloki-switch input:checked + .toiloki-switch-track {
+.toiloki-switch input:checked+.toiloki-switch-track {
   background-color: var(--accent);
   border-color: var(--accent);
 }
 
-.toiloki-switch input:checked + .toiloki-switch-track .toiloki-switch-thumb {
+.toiloki-switch input:checked+.toiloki-switch-track .toiloki-switch-thumb {
   transform: translateX(16px);
   background-color: var(--on-accent, #ffffff);
 }
 
-.toiloki-switch input:focus-visible + .toiloki-switch-track {
+.toiloki-switch input:focus-visible+.toiloki-switch-track {
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
 }
 

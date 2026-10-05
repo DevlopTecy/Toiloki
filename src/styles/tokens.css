@@ -15,69 +15,74 @@
 [data-theme='dark-navy'] {
 
   /* ── Surfaces ── */
-  --bg:            #111111;
-  --sidebar:       #151515;
-  --surface:       #1A1A1A;
+  --bg: #111111;
+  --sidebar: #151515;
+  --surface: #1A1A1A;
   --surface-hover: #222222;
-  --border:        #2E2E2E;
+  --border: #2E2E2E;
 
   /* ── Text ── */
-  --text:          #EDEDED;   /* 16.4:1 on --bg */
-  --text-2:        #B0B0B0;   /* 9.3:1 on --bg */
-  --text-muted:    #8E8E8E;   /* 5.0:1 on --bg — AA large text */
+  --text: #EDEDED;
+  /* 16.4:1 on --bg */
+  --text-2: #B0B0B0;
+  /* 9.3:1 on --bg */
+  --text-muted: #8E8E8E;
+  /* 5.0:1 on --bg — AA large text */
 
   /* ── Accent (orange — used ONLY as specified in Charter §Color) ── */
-  --accent:        #F5A524;
-  --accent-hover:  #FFB84A;
-  --on-accent:     #1A1100;   /* text ON accent-filled buttons */
-  --accent-text:   #F5A524;   /* accent-colored text (not on light bg) */
-  --accent-soft:   rgba(245, 165, 36, 0.12);
+  --accent: #F5A524;
+  --accent-hover: #FFB84A;
+  --on-accent: #1A1100;
+  /* text ON accent-filled buttons */
+  --accent-text: #F5A524;
+  /* accent-colored text (not on light bg) */
+  --accent-soft: rgba(245, 165, 36, 0.12);
 
   /* ── Focus ring — color only (box-shadow built in global.css) ── */
   --focus-ring-color: #F5A524;
-  --focus-ring:    0 0 0 2px #F5A524;
+  --focus-ring: 0 0 0 2px #F5A524;
 
   /* ── Status ── */
-  --success:       #4ADE80;
-  --success-bg:    rgba(74, 222, 128, 0.12);
-  --warning:       #F2C94C;
-  --warning-bg:    rgba(242, 201, 76, 0.12);
-  --danger:        #F87171;
-  --danger-bg:     rgba(248, 113, 113, 0.12);
+  --success: #4ADE80;
+  --success-bg: rgba(74, 222, 128, 0.12);
+  --warning: #F2C94C;
+  --warning-bg: rgba(242, 201, 76, 0.12);
+  --danger: #F87171;
+  --danger-bg: rgba(248, 113, 113, 0.12);
 
   /* ── Card shadow ── */
-  --card-shadow:   none;
+  --card-shadow: none;
 
   /* ── Image card tokens ── */
-  --image-card-border:           rgba(255, 255, 255, 0.10);
-  --image-card-border-hover:     rgba(255, 255, 255, 0.20);
-  --image-card-chevron-bg:       rgba(255, 255, 255, 0.10);
+  --image-card-border: rgba(255, 255, 255, 0.10);
+  --image-card-border-hover: rgba(255, 255, 255, 0.20);
+  --image-card-chevron-bg: rgba(255, 255, 255, 0.10);
   --image-card-chevron-bg-hover: rgba(255, 255, 255, 0.16);
-  --image-card-chevron-border:   rgba(255, 255, 255, 0.12);
-  --image-art-opacity:           1.0;
-  --surface-rgb:                 26, 26, 26;
+  --image-card-chevron-border: rgba(255, 255, 255, 0.12);
+  --image-art-opacity: 1.0;
+  --surface-rgb: 26, 26, 26;
 
   /* ─── Category Color Tokens (icon tiles only — never large surfaces) ─── */
-  --cat-pdf:         #EF4444;
-  --cat-documents:   #3B82F6;
-  --cat-images:      #22C55E;
-  --cat-data:        #F59E0B;
-  --cat-text:        #8B5CF6;
-  --cat-developer:   #F97316;
-  --cat-calculator:  #EAB308;
-  --cat-files:       #3B82F6;
-  --cat-system:      #64748B;
+  --cat-pdf: #EF4444;
+  --cat-documents: #3B82F6;
+  --cat-images: #22C55E;
+  --cat-data: #F59E0B;
+  --cat-text: #8B5CF6;
+  --cat-developer: #F97316;
+  --cat-calculator: #EAB308;
+  --cat-files: #3B82F6;
+  --cat-system: #64748B;
 
   /* ─── Radii — 8px harmonic grid ─── */
-  --radius-xs:       4px;
-  --radius-sm:       6px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
   --radius-controls: 8px;
-  --radius-md:       8px;
-  --radius-cards:    12px;
-  --radius-lg:       12px;
-  --radius-xl:       12px;
+  --radius-md: 8px;
+  --radius-cards: 12px;
+  --radius-lg: 12px;
+  --radius-xl: 12px;
   --radius-dropzone: 16px;
-  --radius-full:     9999px;
+  --radius-full: 9999px;
 
   /* ─── Spacing — 8px base grid ─── */
   --space-1: 8px;
@@ -87,8 +92,8 @@
   --space-5: 40px;
 
   /* ─── Typography ─── */
-  --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-mono:    'JetBrains Mono', 'Cascadia Code', 'Fira Mono', monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Mono', monospace;
   --font-display: var(--font-sans);
 
   /* ─── Shadows ─── */
@@ -97,102 +102,102 @@
   --shadow-lg: none;
 
   /* ─── Transitions ─── */
-  --transition-fast:   150ms ease;
+  --transition-fast: 150ms ease;
   --transition-normal: 150ms ease;
   --transition-smooth: 200ms ease;
 
   /* ─── Layout ─── */
-  --sidebar-width:       240px;
-  --sidebar-collapsed:   64px;
-  --titlebar-height:     40px;
-  --header-padding-x:    32px;
-  --content-padding-x:   32px;
-  --content-max-width:   1280px;
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 64px;
+  --titlebar-height: 40px;
+  --header-padding-x: 32px;
+  --content-padding-x: 32px;
+  --content-max-width: 1280px;
   --content-max-width-form: 1100px;
 
   /* ─── Backwards-compatible aliases (do not add new usage; migrate to primary tokens) ─── */
-  --bg-app:              var(--bg);
-  --bg-sidebar:          var(--sidebar);
-  --bg-panel:            var(--surface);
-  --bg-surface:          var(--surface);
-  --bg-raised:           var(--surface);
+  --bg-app: var(--bg);
+  --bg-sidebar: var(--sidebar);
+  --bg-panel: var(--surface);
+  --bg-surface: var(--surface);
+  --bg-raised: var(--surface);
   --bg-surface-elevated: var(--surface);
-  --bg-hover:            var(--surface-hover);
-  --bg-surface-hover:    var(--surface-hover);
-  --bg-selected:         var(--accent-soft);
-  --bg-input:            var(--surface);
-  --bg-header:           var(--bg);
+  --bg-hover: var(--surface-hover);
+  --bg-surface-hover: var(--surface-hover);
+  --bg-selected: var(--accent-soft);
+  --bg-input: var(--surface);
+  --bg-header: var(--bg);
 
   /* ─── Additional surface aliases ─── */
-  --surface-raised:      var(--surface);
-  --surface-card:        var(--surface);
-  --hover-surface:       var(--surface-hover);
-  --bg-card:             var(--surface);
-  --bg-card-hover:       var(--surface-hover);
-  --bg-secondary:        var(--surface);
-  --bg-surface-0:        var(--bg);
-  --bg-surface-1:        var(--surface);
-  --bg-surface-2:        var(--surface-hover);
-  --bg-surface-3:        var(--surface-hover);
-  --bg-panel-header:     var(--surface);
-  --bg-base:             var(--bg);
+  --surface-raised: var(--surface);
+  --surface-card: var(--surface);
+  --hover-surface: var(--surface-hover);
+  --bg-card: var(--surface);
+  --bg-card-hover: var(--surface-hover);
+  --bg-secondary: var(--surface);
+  --bg-surface-0: var(--bg);
+  --bg-surface-1: var(--surface);
+  --bg-surface-2: var(--surface-hover);
+  --bg-surface-3: var(--surface-hover);
+  --bg-panel-header: var(--surface);
+  --bg-base: var(--bg);
 
   /* ─── Border aliases ─── */
-  --border-subtle:  var(--border);
+  --border-subtle: var(--border);
   --border-default: var(--border);
-  --border-medium:  var(--border);
-  --border-strong:  var(--border);
+  --border-medium: var(--border);
+  --border-strong: var(--border);
   --border-focused: var(--accent);
-  --border-light:   var(--border);
-  --border-color:   var(--border);
-  --border-hover:   var(--border);
+  --border-light: var(--border);
+  --border-color: var(--border);
+  --border-hover: var(--border);
   --border-color-hover: var(--accent);
 
-  --accent-amber:        var(--accent);
-  --accent-amber-hover:  var(--accent-hover);
+  --accent-amber: var(--accent);
+  --accent-amber-hover: var(--accent-hover);
   --accent-amber-active: var(--accent);
   --accent-amber-subtle: var(--accent-soft);
   --accent-amber-border: var(--border);
-  --accent-primary:        var(--accent);
-  --accent-primary-hover:  var(--accent-hover);
+  --accent-primary: var(--accent);
+  --accent-primary-hover: var(--accent-hover);
   --accent-primary-active: var(--accent);
   --accent-primary-subtle: var(--accent-soft);
   --accent-primary-border: var(--border);
 
-  --text-primary:   var(--text);
+  --text-primary: var(--text);
   --text-secondary: var(--text-2);
-  --text-tertiary:  var(--text-muted);
-  --text-inverse:   #111111;
+  --text-tertiary: var(--text-muted);
+  --text-inverse: #111111;
 
-  --color-success:    var(--success);
+  --color-success: var(--success);
   --color-success-bg: var(--success-bg);
-  --color-warning:    var(--warning);
+  --color-warning: var(--warning);
   --color-warning-bg: var(--warning-bg);
-  --color-danger:     var(--danger);
-  --color-danger-bg:  var(--danger-bg);
-  --color-info:       var(--text-2);
-  --color-info-bg:    var(--surface-hover);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-info: var(--text-2);
+  --color-info-bg: var(--surface-hover);
 
   /* Badge tokens (icon tiles only) */
-  --badge-pdf:      var(--text-2);
-  --badge-doc:      var(--text-2);
-  --badge-img:      var(--text-2);
-  --badge-data:     var(--text-2);
-  --badge-files:    var(--text-2);
-  --badge-text:     var(--text-2);
-  --badge-dev:      var(--text-2);
-  --badge-calc:     var(--text-2);
+  --badge-pdf: var(--text-2);
+  --badge-doc: var(--text-2);
+  --badge-img: var(--text-2);
+  --badge-data: var(--text-2);
+  --badge-files: var(--text-2);
+  --badge-text: var(--text-2);
+  --badge-dev: var(--text-2);
+  --badge-calc: var(--text-2);
   --badge-security: var(--text-2);
-  --badge-media:    var(--text-2);
-  --badge-network:  var(--text-2);
-  --badge-design:   var(--text-2);
-  --badge-system:   var(--text-2);
+  --badge-media: var(--text-2);
+  --badge-network: var(--text-2);
+  --badge-design: var(--text-2);
+  --badge-system: var(--text-2);
 
   /* ─── Additional accent aliases ─── */
-  --color-accent:    var(--accent);
-  --accent-subtle:   var(--accent-soft);
-  --accent-border:   var(--border);
-  --accent-warning:  var(--warning);
+  --color-accent: var(--accent);
+  --accent-subtle: var(--accent-soft);
+  --accent-border: var(--border);
+  --accent-warning: var(--warning);
   --scrim-strength-art: 0.20;
 }
 
@@ -205,134 +210,139 @@
 [data-theme='light'] {
 
   /* ── Surfaces ── */
-  --bg:            #FAFAF9;
-  --sidebar:       #F3F3F1;
-  --surface:       #FFFFFF;
+  --bg: #FAFAF9;
+  --sidebar: #F3F3F1;
+  --surface: #FFFFFF;
   --surface-hover: #F3F3F0;
-  --border:        #E3E3DE;
+  --border: #E3E3DE;
 
   /* ── Text ── */
-  --text:          #171717;   /* 17.9:1 on --surface */
-  --text-2:        #54544F;   /* 7.3:1 on --surface */
-  --text-muted:    #6B6B65;   /* 4.9:1 on --surface — AA */
+  --text: #171717;
+  /* 17.9:1 on --surface */
+  --text-2: #54544F;
+  /* 7.3:1 on --surface */
+  --text-muted: #6B6B65;
+  /* 4.9:1 on --surface — AA */
 
   /* ── Accent (orange) ── */
-  --accent:        #E8890C;
-  --accent-hover:  #D17A06;
-  --on-accent:     #1A1100;   /* text ON accent-filled buttons */
-  --accent-text:   #9A5B00;   /* accent-colored text (on light bg) — 4.6:1 on --surface */
-  --accent-soft:   rgba(232, 137, 12, 0.10);
+  --accent: #E8890C;
+  --accent-hover: #D17A06;
+  --on-accent: #1A1100;
+  /* text ON accent-filled buttons */
+  --accent-text: #9A5B00;
+  /* accent-colored text (on light bg) — 4.6:1 on --surface */
+  --accent-soft: rgba(232, 137, 12, 0.10);
 
   /* ── Focus ring ── */
   --focus-ring-color: #C26F00;
-  --focus-ring:    0 0 0 2px #C26F00;
+  --focus-ring: 0 0 0 2px #C26F00;
 
   /* ── Status ── */
-  --success:       #1F7A45;
-  --success-bg:    #E6F4EC;
-  --warning:       #7A5C00;
-  --warning-bg:    #FFF4D6;
-  --danger:        #C62828;
-  --danger-bg:     #FDECEC;
+  --success: #1F7A45;
+  --success-bg: #E6F4EC;
+  --warning: #7A5C00;
+  --warning-bg: #FFF4D6;
+  --danger: #C62828;
+  --danger-bg: #FDECEC;
 
   /* ── Card shadow ── */
-  --card-shadow:   0 1px 2px rgba(0, 0, 0, 0.04);
-  --surface-rgb:   255, 255, 255;
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --surface-rgb: 255, 255, 255;
 
   /* ── Image card tokens ── */
-  --image-card-border:           rgba(0, 0, 0, 0.10);
-  --image-card-border-hover:     rgba(0, 0, 0, 0.18);
-  --image-card-chevron-bg:       rgba(0, 0, 0, 0.06);
+  --image-card-border: rgba(0, 0, 0, 0.10);
+  --image-card-border-hover: rgba(0, 0, 0, 0.18);
+  --image-card-chevron-bg: rgba(0, 0, 0, 0.06);
   --image-card-chevron-bg-hover: rgba(0, 0, 0, 0.12);
-  --image-card-chevron-border:   rgba(0, 0, 0, 0.10);
-  --image-art-opacity:           0.55;
+  --image-card-chevron-border: rgba(0, 0, 0, 0.10);
+  --image-art-opacity: 0.55;
 
   /* ── Backwards-compatible aliases ── */
-  --bg-app:              var(--bg);
-  --bg-sidebar:          var(--sidebar);
-  --bg-panel:            var(--surface);
-  --bg-surface:          var(--surface);
-  --bg-raised:           var(--surface);
+  --bg-app: var(--bg);
+  --bg-sidebar: var(--sidebar);
+  --bg-panel: var(--surface);
+  --bg-surface: var(--surface);
+  --bg-raised: var(--surface);
   --bg-surface-elevated: var(--surface);
-  --bg-hover:            var(--surface-hover);
-  --bg-surface-hover:    var(--surface-hover);
-  --bg-selected:         var(--accent-soft);
-  --bg-input:            var(--surface);
-  --bg-header:           var(--bg);
+  --bg-hover: var(--surface-hover);
+  --bg-surface-hover: var(--surface-hover);
+  --bg-selected: var(--accent-soft);
+  --bg-input: var(--surface);
+  --bg-header: var(--bg);
 
   /* ─── Additional surface aliases ─── */
-  --surface-raised:      var(--surface);
-  --surface-card:        var(--surface);
-  --hover-surface:       var(--surface-hover);
-  --bg-card:             var(--surface);
-  --bg-card-hover:       var(--surface-hover);
-  --bg-secondary:        var(--surface);
-  --bg-surface-0:        var(--bg);
-  --bg-surface-1:        var(--surface);
-  --bg-surface-2:        var(--surface-hover);
-  --bg-surface-3:        var(--surface-hover);
-  --bg-panel-header:     var(--surface);
-  --bg-base:             var(--bg);
+  --surface-raised: var(--surface);
+  --surface-card: var(--surface);
+  --hover-surface: var(--surface-hover);
+  --bg-card: var(--surface);
+  --bg-card-hover: var(--surface-hover);
+  --bg-secondary: var(--surface);
+  --bg-surface-0: var(--bg);
+  --bg-surface-1: var(--surface);
+  --bg-surface-2: var(--surface-hover);
+  --bg-surface-3: var(--surface-hover);
+  --bg-panel-header: var(--surface);
+  --bg-base: var(--bg);
 
   /* ─── Border aliases ─── */
-  --border-subtle:  var(--border);
+  --border-subtle: var(--border);
   --border-default: var(--border);
-  --border-medium:  var(--border);
-  --border-strong:  var(--border);
+  --border-medium: var(--border);
+  --border-strong: var(--border);
   --border-focused: var(--accent);
-  --border-light:   var(--border);
-  --border-color:   var(--border);
-  --border-hover:   var(--border);
+  --border-light: var(--border);
+  --border-color: var(--border);
+  --border-hover: var(--border);
   --border-color-hover: var(--accent);
 
-  --accent-amber:        var(--accent);
-  --accent-amber-hover:  var(--accent-hover);
+  --accent-amber: var(--accent);
+  --accent-amber-hover: var(--accent-hover);
   --accent-amber-active: var(--accent);
   --accent-amber-subtle: var(--accent-soft);
   --accent-amber-border: var(--border);
-  --accent-primary:        var(--accent);
-  --accent-primary-hover:  var(--accent-hover);
+  --accent-primary: var(--accent);
+  --accent-primary-hover: var(--accent-hover);
   --accent-primary-active: var(--accent);
   --accent-primary-subtle: var(--accent-soft);
   --accent-primary-border: var(--border);
 
-  --text-primary:   var(--text);
+  --text-primary: var(--text);
   --text-secondary: var(--text-2);
-  --text-tertiary:  var(--text-muted);
-  --text-inverse:   #FFFFFF;
+  --text-tertiary: var(--text-muted);
+  --text-inverse: #FFFFFF;
 
-  --color-success:    var(--success);
+  --color-success: var(--success);
   --color-success-bg: var(--success-bg);
-  --color-warning:    var(--warning);
+  --color-warning: var(--warning);
   --color-warning-bg: var(--warning-bg);
-  --color-danger:     var(--danger);
-  --color-danger-bg:  var(--danger-bg);
-  --color-info:       var(--text-2);
-  --color-info-bg:    var(--surface-hover);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-info: var(--text-2);
+  --color-info-bg: var(--surface-hover);
 
   /* ─── Additional accent aliases ─── */
-  --color-accent:    var(--accent);
-  --accent-subtle:   var(--accent-soft);
-  --accent-border:   var(--border);
-  --accent-warning:  var(--warning);
+  --color-accent: var(--accent);
+  --accent-subtle: var(--accent-soft);
+  --accent-border: var(--border);
+  --accent-warning: var(--warning);
 
   --shadow-sm: var(--card-shadow);
   --shadow-md: var(--card-shadow);
   --shadow-lg: var(--card-shadow);
 
-  --badge-pdf:      var(--text-2);
-  --badge-doc:      var(--text-2);
-  --badge-img:      var(--text-2);
-  --badge-data:     var(--text-2);
-  --badge-files:    var(--text-2);
-  --badge-text:     var(--text-2);
-  --badge-dev:      var(--text-2);
-  --badge-calc:     var(--text-2);
+  --badge-pdf: var(--text-2);
+  --badge-doc: var(--text-2);
+  --badge-img: var(--text-2);
+  --badge-data: var(--text-2);
+  --badge-files: var(--text-2);
+  --badge-text: var(--text-2);
+  --badge-dev: var(--text-2);
+  --badge-calc: var(--text-2);
   --badge-security: var(--text-2);
-  --badge-media:    var(--text-2);
-  --badge-network:  var(--text-2);
-  --badge-design:   var(--text-2);
-  --badge-system:   var(--text-2);
+  --badge-media: var(--text-2);
+  --badge-network: var(--text-2);
+  --badge-design: var(--text-2);
+  --badge-system: var(--text-2);
   --scrim-strength-art: 0.20;
 }
 
@@ -341,109 +351,110 @@
    SYSTEM Theme — follows OS prefers-color-scheme
    ───────────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: light) {
+
   :root:not([data-theme='dark']):not([data-theme='dark-navy']),
   [data-theme='system'] {
-    --bg:            #FAFAF9;
-    --sidebar:       #F3F3F1;
-    --surface:       #FFFFFF;
+    --bg: #FAFAF9;
+    --sidebar: #F3F3F1;
+    --surface: #FFFFFF;
     --surface-hover: #F3F3F0;
-    --border:        #E3E3DE;
-    --text:          #171717;
-    --text-2:        #54544F;
-    --text-muted:    #6B6B65;
-    --accent:        #E8890C;
-    --accent-hover:  #D17A06;
-    --on-accent:     #1A1100;
-    --accent-text:   #9A5B00;
-    --accent-soft:   rgba(232, 137, 12, 0.10);
+    --border: #E3E3DE;
+    --text: #171717;
+    --text-2: #54544F;
+    --text-muted: #6B6B65;
+    --accent: #E8890C;
+    --accent-hover: #D17A06;
+    --on-accent: #1A1100;
+    --accent-text: #9A5B00;
+    --accent-soft: rgba(232, 137, 12, 0.10);
     --focus-ring-color: #C26F00;
-    --focus-ring:    0 0 0 2px #C26F00;
-    --success:       #1F7A45;
-    --success-bg:    #E6F4EC;
-    --warning:       #7A5C00;
-    --warning-bg:    #FFF4D6;
-    --danger:        #C62828;
-    --danger-bg:     #FDECEC;
-    --card-shadow:   0 1px 2px rgba(0, 0, 0, 0.04);
+    --focus-ring: 0 0 0 2px #C26F00;
+    --success: #1F7A45;
+    --success-bg: #E6F4EC;
+    --warning: #7A5C00;
+    --warning-bg: #FFF4D6;
+    --danger: #C62828;
+    --danger-bg: #FDECEC;
+    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 
-    --bg-app:              var(--bg);
-    --bg-sidebar:          var(--sidebar);
-    --bg-panel:            var(--surface);
-    --bg-surface:          var(--surface);
-    --bg-raised:           var(--surface);
+    --bg-app: var(--bg);
+    --bg-sidebar: var(--sidebar);
+    --bg-panel: var(--surface);
+    --bg-surface: var(--surface);
+    --bg-raised: var(--surface);
     --bg-surface-elevated: var(--surface);
-    --bg-hover:            var(--surface-hover);
-    --bg-surface-hover:    var(--surface-hover);
-    --bg-selected:         var(--accent-soft);
-    --bg-input:            var(--surface);
-    --bg-header:           var(--bg);
+    --bg-hover: var(--surface-hover);
+    --bg-surface-hover: var(--surface-hover);
+    --bg-selected: var(--accent-soft);
+    --bg-input: var(--surface);
+    --bg-header: var(--bg);
 
-    --surface-raised:      var(--surface);
-    --surface-card:        var(--surface);
-    --hover-surface:       var(--surface-hover);
-    --bg-card:             var(--surface);
-    --bg-card-hover:       var(--surface-hover);
-    --bg-secondary:        var(--surface);
-    --bg-surface-0:        var(--bg);
-    --bg-surface-1:        var(--surface);
-    --bg-surface-2:        var(--surface-hover);
-    --bg-surface-3:        var(--surface-hover);
-    --bg-panel-header:     var(--surface);
-    --bg-base:             var(--bg);
+    --surface-raised: var(--surface);
+    --surface-card: var(--surface);
+    --hover-surface: var(--surface-hover);
+    --bg-card: var(--surface);
+    --bg-card-hover: var(--surface-hover);
+    --bg-secondary: var(--surface);
+    --bg-surface-0: var(--bg);
+    --bg-surface-1: var(--surface);
+    --bg-surface-2: var(--surface-hover);
+    --bg-surface-3: var(--surface-hover);
+    --bg-panel-header: var(--surface);
+    --bg-base: var(--bg);
 
-    --border-subtle:  var(--border);
+    --border-subtle: var(--border);
     --border-default: var(--border);
-    --border-medium:  var(--border);
-    --border-strong:  var(--border);
+    --border-medium: var(--border);
+    --border-strong: var(--border);
     --border-focused: var(--accent);
-    --border-light:   var(--border);
-    --border-color:   var(--border);
-    --border-hover:   var(--border);
+    --border-light: var(--border);
+    --border-color: var(--border);
+    --border-hover: var(--border);
     --border-color-hover: var(--accent);
 
-    --accent-amber:        var(--accent);
-    --accent-amber-hover:  var(--accent-hover);
+    --accent-amber: var(--accent);
+    --accent-amber-hover: var(--accent-hover);
     --accent-amber-active: var(--accent);
     --accent-amber-subtle: var(--accent-soft);
     --accent-amber-border: var(--border);
-    --accent-primary:        var(--accent);
-    --accent-primary-hover:  var(--accent-hover);
+    --accent-primary: var(--accent);
+    --accent-primary-hover: var(--accent-hover);
     --accent-primary-active: var(--accent);
     --accent-primary-subtle: var(--accent-soft);
     --accent-primary-border: var(--border);
 
-    --text-primary:   var(--text);
+    --text-primary: var(--text);
     --text-secondary: var(--text-2);
-    --text-tertiary:  var(--text-muted);
-    --text-inverse:   #FFFFFF;
+    --text-tertiary: var(--text-muted);
+    --text-inverse: #FFFFFF;
 
-    --color-success:    var(--success);
+    --color-success: var(--success);
     --color-success-bg: var(--success-bg);
-    --color-warning:    var(--warning);
+    --color-warning: var(--warning);
     --color-warning-bg: var(--warning-bg);
-    --color-danger:     var(--danger);
-    --color-danger-bg:  var(--danger-bg);
-    --color-info:       var(--text-2);
-    --color-info-bg:    var(--surface-hover);
+    --color-danger: var(--danger);
+    --color-danger-bg: var(--danger-bg);
+    --color-info: var(--text-2);
+    --color-info-bg: var(--surface-hover);
 
-    --color-accent:    var(--accent);
-    --accent-subtle:   var(--accent-soft);
-    --accent-border:   var(--border);
-    --accent-warning:  var(--warning);
+    --color-accent: var(--accent);
+    --accent-subtle: var(--accent-soft);
+    --accent-border: var(--border);
+    --accent-warning: var(--warning);
 
-    --badge-pdf:      var(--text-2);
-    --badge-doc:      var(--text-2);
-    --badge-img:      var(--text-2);
-    --badge-data:     var(--text-2);
-    --badge-files:    var(--text-2);
-    --badge-text:     var(--text-2);
-    --badge-dev:      var(--text-2);
-    --badge-calc:     var(--text-2);
+    --badge-pdf: var(--text-2);
+    --badge-doc: var(--text-2);
+    --badge-img: var(--text-2);
+    --badge-data: var(--text-2);
+    --badge-files: var(--text-2);
+    --badge-text: var(--text-2);
+    --badge-dev: var(--text-2);
+    --badge-calc: var(--text-2);
     --badge-security: var(--text-2);
-    --badge-media:    var(--text-2);
-    --badge-network:  var(--text-2);
-    --badge-design:   var(--text-2);
-    --badge-system:   var(--text-2);
+    --badge-media: var(--text-2);
+    --badge-network: var(--text-2);
+    --badge-design: var(--text-2);
+    --badge-system: var(--text-2);
 
     --shadow-sm: var(--card-shadow);
     --shadow-md: var(--card-shadow);
@@ -454,107 +465,107 @@
 
 @media (prefers-color-scheme: dark) {
   [data-theme='system'] {
-    --bg:            #111111;
-    --sidebar:       #151515;
-    --surface:       #1A1A1A;
+    --bg: #111111;
+    --sidebar: #151515;
+    --surface: #1A1A1A;
     --surface-hover: #222222;
-    --border:        #2E2E2E;
-    --text:          #EDEDED;
-    --text-2:        #B0B0B0;
-    --text-muted:    #8E8E8E;
-    --accent:        #F5A524;
-    --accent-hover:  #FFB84A;
-    --on-accent:     #1A1100;
-    --accent-text:   #F5A524;
-    --accent-soft:   rgba(245, 165, 36, 0.12);
+    --border: #2E2E2E;
+    --text: #EDEDED;
+    --text-2: #B0B0B0;
+    --text-muted: #8E8E8E;
+    --accent: #F5A524;
+    --accent-hover: #FFB84A;
+    --on-accent: #1A1100;
+    --accent-text: #F5A524;
+    --accent-soft: rgba(245, 165, 36, 0.12);
     --focus-ring-color: #F5A524;
-    --focus-ring:    0 0 0 2px #F5A524;
-    --success:       #4ADE80;
-    --success-bg:    rgba(74, 222, 128, 0.12);
-    --warning:       #F2C94C;
-    --warning-bg:    rgba(242, 201, 76, 0.12);
-    --danger:        #F87171;
-    --danger-bg:     rgba(248, 113, 113, 0.12);
-    --card-shadow:   none;
+    --focus-ring: 0 0 0 2px #F5A524;
+    --success: #4ADE80;
+    --success-bg: rgba(74, 222, 128, 0.12);
+    --warning: #F2C94C;
+    --warning-bg: rgba(242, 201, 76, 0.12);
+    --danger: #F87171;
+    --danger-bg: rgba(248, 113, 113, 0.12);
+    --card-shadow: none;
 
-    --bg-app:              var(--bg);
-    --bg-sidebar:          var(--sidebar);
-    --bg-panel:            var(--surface);
-    --bg-surface:          var(--surface);
-    --bg-raised:           var(--surface);
+    --bg-app: var(--bg);
+    --bg-sidebar: var(--sidebar);
+    --bg-panel: var(--surface);
+    --bg-surface: var(--surface);
+    --bg-raised: var(--surface);
     --bg-surface-elevated: var(--surface);
-    --bg-hover:            var(--surface-hover);
-    --bg-surface-hover:    var(--surface-hover);
-    --bg-selected:         var(--accent-soft);
-    --bg-input:            var(--surface);
-    --bg-header:           var(--bg);
+    --bg-hover: var(--surface-hover);
+    --bg-surface-hover: var(--surface-hover);
+    --bg-selected: var(--accent-soft);
+    --bg-input: var(--surface);
+    --bg-header: var(--bg);
 
-    --surface-raised:      var(--surface);
-    --surface-card:        var(--surface);
-    --hover-surface:       var(--surface-hover);
-    --bg-card:             var(--surface);
-    --bg-card-hover:       var(--surface-hover);
-    --bg-secondary:        var(--surface);
-    --bg-surface-0:        var(--bg);
-    --bg-surface-1:        var(--surface);
-    --bg-surface-2:        var(--surface-hover);
-    --bg-surface-3:        var(--surface-hover);
-    --bg-panel-header:     var(--surface);
-    --bg-base:             var(--bg);
+    --surface-raised: var(--surface);
+    --surface-card: var(--surface);
+    --hover-surface: var(--surface-hover);
+    --bg-card: var(--surface);
+    --bg-card-hover: var(--surface-hover);
+    --bg-secondary: var(--surface);
+    --bg-surface-0: var(--bg);
+    --bg-surface-1: var(--surface);
+    --bg-surface-2: var(--surface-hover);
+    --bg-surface-3: var(--surface-hover);
+    --bg-panel-header: var(--surface);
+    --bg-base: var(--bg);
 
-    --border-subtle:  var(--border);
+    --border-subtle: var(--border);
     --border-default: var(--border);
-    --border-medium:  var(--border);
-    --border-strong:  var(--border);
+    --border-medium: var(--border);
+    --border-strong: var(--border);
     --border-focused: var(--accent);
-    --border-light:   var(--border);
-    --border-color:   var(--border);
-    --border-hover:   var(--border);
+    --border-light: var(--border);
+    --border-color: var(--border);
+    --border-hover: var(--border);
     --border-color-hover: var(--accent);
 
-    --accent-amber:        var(--accent);
-    --accent-amber-hover:  var(--accent-hover);
+    --accent-amber: var(--accent);
+    --accent-amber-hover: var(--accent-hover);
     --accent-amber-active: var(--accent);
     --accent-amber-subtle: var(--accent-soft);
     --accent-amber-border: var(--border);
-    --accent-primary:        var(--accent);
-    --accent-primary-hover:  var(--accent-hover);
+    --accent-primary: var(--accent);
+    --accent-primary-hover: var(--accent-hover);
     --accent-primary-active: var(--accent);
     --accent-primary-subtle: var(--accent-soft);
     --accent-primary-border: var(--border);
 
-    --text-primary:   var(--text);
+    --text-primary: var(--text);
     --text-secondary: var(--text-2);
-    --text-tertiary:  var(--text-muted);
-    --text-inverse:   #111111;
+    --text-tertiary: var(--text-muted);
+    --text-inverse: #111111;
 
-    --color-success:    var(--success);
+    --color-success: var(--success);
     --color-success-bg: var(--success-bg);
-    --color-warning:    var(--warning);
+    --color-warning: var(--warning);
     --color-warning-bg: var(--warning-bg);
-    --color-danger:     var(--danger);
-    --color-danger-bg:  var(--danger-bg);
-    --color-info:       var(--text-2);
-    --color-info-bg:    var(--surface-hover);
+    --color-danger: var(--danger);
+    --color-danger-bg: var(--danger-bg);
+    --color-info: var(--text-2);
+    --color-info-bg: var(--surface-hover);
 
-    --color-accent:    var(--accent);
-    --accent-subtle:   var(--accent-soft);
-    --accent-border:   var(--border);
-    --accent-warning:  var(--warning);
+    --color-accent: var(--accent);
+    --accent-subtle: var(--accent-soft);
+    --accent-border: var(--border);
+    --accent-warning: var(--warning);
 
-    --badge-pdf:      var(--text-2);
-    --badge-doc:      var(--text-2);
-    --badge-img:      var(--text-2);
-    --badge-data:     var(--text-2);
-    --badge-files:    var(--text-2);
-    --badge-text:     var(--text-2);
-    --badge-dev:      var(--text-2);
-    --badge-calc:     var(--text-2);
+    --badge-pdf: var(--text-2);
+    --badge-doc: var(--text-2);
+    --badge-img: var(--text-2);
+    --badge-data: var(--text-2);
+    --badge-files: var(--text-2);
+    --badge-text: var(--text-2);
+    --badge-dev: var(--text-2);
+    --badge-calc: var(--text-2);
     --badge-security: var(--text-2);
-    --badge-media:    var(--text-2);
-    --badge-network:  var(--text-2);
-    --badge-design:   var(--text-2);
-    --badge-system:   var(--text-2);
+    --badge-media: var(--text-2);
+    --badge-network: var(--text-2);
+    --badge-design: var(--text-2);
+    --badge-system: var(--text-2);
 
     --shadow-sm: none;
     --shadow-md: none;
@@ -568,12 +579,12 @@
    DENSITY overrides
    ───────────────────────────────────────────────────────────────── */
 [data-density='comfortable'] {
-  --control-height:  38px;
+  --control-height: 38px;
   --density-padding: 10px 14px;
 }
 
 [data-density='compact'] {
-  --control-height:  28px;
+  --control-height: 28px;
   --density-padding: 4px 8px;
 }
 
@@ -582,34 +593,34 @@
    CORNER RADIUS overrides
    ───────────────────────────────────────────────────────────────── */
 [data-corner='sharp'] {
-  --radius-xs:       1px;
-  --radius-sm:       2px;
+  --radius-xs: 1px;
+  --radius-sm: 2px;
   --radius-controls: 3px;
-  --radius-md:       4px;
-  --radius-cards:    4px;
-  --radius-lg:       6px;
-  --radius-xl:       6px;
+  --radius-md: 4px;
+  --radius-cards: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 6px;
   --radius-dropzone: 8px;
 }
 
 [data-corner='round'] {
-  --radius-xs:       6px;
-  --radius-sm:       10px;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
   --radius-controls: 12px;
-  --radius-md:       14px;
-  --radius-cards:    16px;
-  --radius-lg:       18px;
-  --radius-xl:       20px;
+  --radius-md: 14px;
+  --radius-cards: 16px;
+  --radius-lg: 18px;
+  --radius-xl: 20px;
   --radius-dropzone: 24px;
 }
 
 [data-corner='default'] {
-  --radius-xs:       4px;
-  --radius-sm:       6px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
   --radius-controls: 8px;
-  --radius-md:       8px;
-  --radius-cards:    12px;
-  --radius-lg:       12px;
-  --radius-xl:       12px;
+  --radius-md: 8px;
+  --radius-cards: 12px;
+  --radius-lg: 12px;
+  --radius-xl: 12px;
   --radius-dropzone: 16px;
 }

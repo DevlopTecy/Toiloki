@@ -10,24 +10,12 @@ An automated contrast verification and accessibility audit was executed across a
 
 **Audit Statistics:**
 - **Total Token Pairs Audited:** 44
-- **Passed WCAG AA:** 33
-- **Failures / Non-Compliant Pairs:** 11
+- **Passed WCAG AA:** 44
+- **Failures / Non-Compliant Pairs:** 0
 
 ## 2. Contrast Failure Analysis
 
-| Theme | UI Element & Pair | Contrast Ratio | Required | Issue & WCAG Violation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Dark Theme** | UI Border on Background (`border (#2E2E2E) on bg (#111111)`) | **1.39:1** | `3:1` | Subtle/decorative border fails 3:1 non-text boundary threshold (WCAG 2.1 SC 1.4.11). Decorative or card delimiter borders are acceptable if the surface background difference provides sufficient separation. |
-| **Dark Theme** | UI Border on Surface (`border (#2E2E2E) on surface (#1A1A1A)`) | **1.28:1** | `3:1` | Subtle/decorative border fails 3:1 non-text boundary threshold (WCAG 2.1 SC 1.4.11). Decorative or card delimiter borders are acceptable if the surface background difference provides sufficient separation. |
-| **Light Theme** | On-Accent Text on Accent Button (`onAccent (#FFFFFF) on accent (#E8890C)`) | **2.62:1** | `4.5:1` | Fails WCAG 2.1 AA requirement. |
-| **Light Theme** | Accent Text on Background (`accent (#E8890C) on bg (#FAFAF9)`) | **2.51:1** | `4.5:1` | Orange accent used as raw text on dark/light background fails 4.5:1 normal text contrast. Should be restricted to large text, icons, or filled buttons with high-contrast text. |
-| **Light Theme** | Accent Text on Surface (`accent (#E8890C) on surface (#FFFFFF)`) | **2.62:1** | `4.5:1` | Orange accent used as raw text on dark/light background fails 4.5:1 normal text contrast. Should be restricted to large text, icons, or filled buttons with high-contrast text. |
-| **Light Theme** | Success Text on Surface (`success (#16A34A) on surface (#FFFFFF)`) | **3.30:1** | `4.5:1` | Status color used as text fails 4.5:1 minimum on surface. Requires status pill badge background or darker shade. |
-| **Light Theme** | Warning Text on Surface (`warning (#D97706) on surface (#FFFFFF)`) | **3.19:1** | `4.5:1` | Status color used as text fails 4.5:1 minimum on surface. Requires status pill badge background or darker shade. |
-| **Light Theme** | UI Border on Background (`border (#E3E3DE) on bg (#FAFAF9)`) | **1.23:1** | `3:1` | Subtle/decorative border fails 3:1 non-text boundary threshold (WCAG 2.1 SC 1.4.11). Decorative or card delimiter borders are acceptable if the surface background difference provides sufficient separation. |
-| **Light Theme** | UI Border on Surface (`border (#E3E3DE) on surface (#FFFFFF)`) | **1.29:1** | `3:1` | Subtle/decorative border fails 3:1 non-text boundary threshold (WCAG 2.1 SC 1.4.11). Decorative or card delimiter borders are acceptable if the surface background difference provides sufficient separation. |
-| **Light Theme** | Focus Ring on Background (`focusRing (#E8890C) on bg (#FAFAF9)`) | **2.51:1** | `3:1` | Fails WCAG 2.1 AA requirement. |
-| **Light Theme** | Focus Ring on Surface (`focusRing (#E8890C) on surface (#FFFFFF)`) | **2.62:1** | `3:1` | Fails WCAG 2.1 AA requirement. |
+All audited pairs passed WCAG 2.1 AA thresholds.
 
 ## 3. Full Token Contrast Audit Table
 
@@ -46,13 +34,13 @@ An automated contrast verification and accessibility audit was executed across a
 | Dark Theme | text-muted | Muted Text on Sidebar | `textMuted (#8E8E8E) on sidebar (#151515)` | 5.57:1 | 4.5:1 | ✓ PASS |
 | Dark Theme | text-muted | Muted Text on Surface Hover | `textMuted (#8E8E8E) on surfaceHover (#222222)` | 4.86:1 | 4.5:1 | ✓ PASS |
 | Dark Theme | text-button | On-Accent Text on Accent Button | `onAccent (#1A1100) on accent (#F5A524)` | 9.15:1 | 4.5:1 | ✓ PASS |
-| Dark Theme | text-accent | Accent Text on Background | `accent (#F5A524) on bg (#111111)` | 9.25:1 | 4.5:1 | ✓ PASS |
-| Dark Theme | text-accent | Accent Text on Surface | `accent (#F5A524) on surface (#1A1A1A)` | 8.53:1 | 4.5:1 | ✓ PASS |
+| Dark Theme | text-accent | Accent Text on Background | `accentText (#F5A524) on bg (#111111)` | 9.25:1 | 4.5:1 | ✓ PASS |
+| Dark Theme | text-accent | Accent Text on Surface | `accentText (#F5A524) on surface (#1A1A1A)` | 8.53:1 | 4.5:1 | ✓ PASS |
 | Dark Theme | status-text | Success Text on Surface | `success (#4ADE80) on surface (#1A1A1A)` | 9.99:1 | 4.5:1 | ✓ PASS |
 | Dark Theme | status-text | Warning Text on Surface | `warning (#F2C94C) on surface (#1A1A1A)` | 10.97:1 | 4.5:1 | ✓ PASS |
 | Dark Theme | status-text | Danger Text on Surface | `danger (#F87171) on surface (#1A1A1A)` | 6.29:1 | 4.5:1 | ✓ PASS |
-| Dark Theme | border-ui | UI Border on Background | `border (#2E2E2E) on bg (#111111)` | 1.39:1 | 3:1 | ❌ FAIL |
-| Dark Theme | border-ui | UI Border on Surface | `border (#2E2E2E) on surface (#1A1A1A)` | 1.28:1 | 3:1 | ❌ FAIL |
+| Dark Theme | control-border-ui | Control Boundary on Background | `borderStrong (#6B6B6B) on bg (#111111)` | 3.54:1 | 3:1 | ✓ PASS |
+| Dark Theme | control-border-ui | Control Boundary on Surface | `borderStrong (#6B6B6B) on surface (#1A1A1A)` | 3.27:1 | 3:1 | ✓ PASS |
 | Dark Theme | focus-ring | Focus Ring on Background | `focusRing (#F5A524) on bg (#111111)` | 9.25:1 | 3:1 | ✓ PASS |
 | Dark Theme | focus-ring | Focus Ring on Surface | `focusRing (#F5A524) on surface (#1A1A1A)` | 8.53:1 | 3:1 | ✓ PASS |
 | Light Theme | text-normal | Primary Text on Background | `text (#171717) on bg (#FAFAF9)` | 17.17:1 | 4.5:1 | ✓ PASS |
@@ -67,16 +55,16 @@ An automated contrast verification and accessibility audit was executed across a
 | Light Theme | text-muted | Muted Text on Surface Card | `textMuted (#6B6B65) on surface (#FFFFFF)` | 5.36:1 | 4.5:1 | ✓ PASS |
 | Light Theme | text-muted | Muted Text on Sidebar | `textMuted (#6B6B65) on sidebar (#F3F3F1)` | 4.83:1 | 4.5:1 | ✓ PASS |
 | Light Theme | text-muted | Muted Text on Surface Hover | `textMuted (#6B6B65) on surfaceHover (#F3F3F0)` | 4.82:1 | 4.5:1 | ✓ PASS |
-| Light Theme | text-button | On-Accent Text on Accent Button | `onAccent (#FFFFFF) on accent (#E8890C)` | 2.62:1 | 4.5:1 | ❌ FAIL |
-| Light Theme | text-accent | Accent Text on Background | `accent (#E8890C) on bg (#FAFAF9)` | 2.51:1 | 4.5:1 | ❌ FAIL |
-| Light Theme | text-accent | Accent Text on Surface | `accent (#E8890C) on surface (#FFFFFF)` | 2.62:1 | 4.5:1 | ❌ FAIL |
-| Light Theme | status-text | Success Text on Surface | `success (#16A34A) on surface (#FFFFFF)` | 3.30:1 | 4.5:1 | ❌ FAIL |
-| Light Theme | status-text | Warning Text on Surface | `warning (#D97706) on surface (#FFFFFF)` | 3.19:1 | 4.5:1 | ❌ FAIL |
-| Light Theme | status-text | Danger Text on Surface | `danger (#DC2626) on surface (#FFFFFF)` | 4.83:1 | 4.5:1 | ✓ PASS |
-| Light Theme | border-ui | UI Border on Background | `border (#E3E3DE) on bg (#FAFAF9)` | 1.23:1 | 3:1 | ❌ FAIL |
-| Light Theme | border-ui | UI Border on Surface | `border (#E3E3DE) on surface (#FFFFFF)` | 1.29:1 | 3:1 | ❌ FAIL |
-| Light Theme | focus-ring | Focus Ring on Background | `focusRing (#E8890C) on bg (#FAFAF9)` | 2.51:1 | 3:1 | ❌ FAIL |
-| Light Theme | focus-ring | Focus Ring on Surface | `focusRing (#E8890C) on surface (#FFFFFF)` | 2.62:1 | 3:1 | ❌ FAIL |
+| Light Theme | text-button | On-Accent Text on Accent Button | `onAccent (#1A1100) on accent (#E8890C)` | 7.13:1 | 4.5:1 | ✓ PASS |
+| Light Theme | text-accent | Accent Text on Background | `accentText (#9A5B00) on bg (#FAFAF9)` | 5.20:1 | 4.5:1 | ✓ PASS |
+| Light Theme | text-accent | Accent Text on Surface | `accentText (#9A5B00) on surface (#FFFFFF)` | 5.43:1 | 4.5:1 | ✓ PASS |
+| Light Theme | status-text | Success Text on Surface | `success (#1F7A45) on surface (#FFFFFF)` | 5.35:1 | 4.5:1 | ✓ PASS |
+| Light Theme | status-text | Warning Text on Surface | `warning (#7A5C00) on surface (#FFFFFF)` | 6.25:1 | 4.5:1 | ✓ PASS |
+| Light Theme | status-text | Danger Text on Surface | `danger (#C62828) on surface (#FFFFFF)` | 5.62:1 | 4.5:1 | ✓ PASS |
+| Light Theme | control-border-ui | Control Boundary on Background | `borderStrong (#8A8A84) on bg (#FAFAF9)` | 3.32:1 | 3:1 | ✓ PASS |
+| Light Theme | control-border-ui | Control Boundary on Surface | `borderStrong (#8A8A84) on surface (#FFFFFF)` | 3.47:1 | 3:1 | ✓ PASS |
+| Light Theme | focus-ring | Focus Ring on Background | `focusRing (#C26F00) on bg (#FAFAF9)` | 3.61:1 | 3:1 | ✓ PASS |
+| Light Theme | focus-ring | Focus Ring on Surface | `focusRing (#C26F00) on surface (#FFFFFF)` | 3.77:1 | 3:1 | ✓ PASS |
 
 ## 4. Automated Axe Accessibility Rules Compliance
 
