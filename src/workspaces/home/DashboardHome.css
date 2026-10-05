@@ -568,3 +568,29 @@
   opacity: 0.6;
 }
 
+/* ─── Unsaved Session Resume Row ─── */
+.unsaved-resume-row {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface)) !important;
+  border-left: 3px solid var(--accent);
+}
+
+.unsaved-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+  flex-shrink: 0;
+}
+
+.resume-btn {
+  background: var(--accent) !important;
+  color: var(--on-accent) !important;
+  border: 1px solid var(--accent) !important;
+  font-weight: 600;
+}
+
+.resume-btn:hover {
+  background: var(--accent-hover) !important;
+}
+

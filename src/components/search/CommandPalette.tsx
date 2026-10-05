@@ -3,6 +3,8 @@ import { Search, X, ChevronRight, CornerDownLeft } from 'lucide-react';
 import { WORKSPACES } from '../../core/registry/app-registry';
 import { WorkspaceId, UtilityStatus, FeatureKind, FeatureStatus } from '../../core/types/workspace';
 import { SettingsService } from '../../core/services/settings.service';
+import { SmartPasteService } from '../../core/services/smart-paste.service';
+import { PipeService } from '../../core/services/pipe.service';
 import './CommandPalette.css';
 
 interface CommandPaletteProps {
@@ -31,6 +33,9 @@ interface SearchItem {
   isFeature?: boolean;
   featureId?: string;
   featureKind?: FeatureKind;
+  isSmartPaste?: boolean;
+  clipText?: string;
+  formatId?: string;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -40,6 +45,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [smartPasteItem, setSmartPasteItem] = useState<SearchItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [showUpcoming, setShowUpcoming] = useState(() => SettingsService.getSettings().showUpcomingUtilities);
@@ -108,33 +114,46 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   }, [showUpcoming]);
 
   const filtered = React.useMemo(() => {
-    if (!query.trim()) return allUtilities.slice(0, 12);
-    const q = query.toLowerCase();
-    const matches = allUtilities.filter(
-      (item) =>
-        item.utilityName.toLowerCase().includes(q) ||
-        item.aliases?.some((a) => a.toLowerCase().includes(q)) ||
-        item.keywords?.some((k) => k.toLowerCase().includes(q)) ||
-        item.groupName.toLowerCase().includes(q) ||
-        item.workspaceName.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q)
-    );
+    const q = query.toLowerCase().trim();
+    let matches = allUtilities;
 
-    // Rank exact/title matches first
-    return matches.sort((a, b) => {
-      const aName = a.utilityName.toLowerCase();
-      const bName = b.utilityName.toLowerCase();
-      const aStartsWith = aName.startsWith(q);
-      const bStartsWith = bName.startsWith(q);
-      if (aStartsWith && !bStartsWith) return -1;
-      if (!aStartsWith && bStartsWith) return 1;
-      const aIncludes = aName.includes(q);
-      const bIncludes = bName.includes(q);
-      if (aIncludes && !bIncludes) return -1;
-      if (!aIncludes && bIncludes) return 1;
-      return 0;
-    });
-  }, [allUtilities, query]);
+    if (q) {
+      matches = allUtilities.filter(
+        (item) =>
+          item.utilityName.toLowerCase().includes(q) ||
+          item.aliases?.some((a) => a.toLowerCase().includes(q)) ||
+          item.keywords?.some((k) => k.toLowerCase().includes(q)) ||
+          item.groupName.toLowerCase().includes(q) ||
+          item.workspaceName.toLowerCase().includes(q) ||
+          item.description.toLowerCase().includes(q)
+      );
+
+      // Rank exact/title matches first
+      matches = matches.sort((a, b) => {
+        const aName = a.utilityName.toLowerCase();
+        const bName = b.utilityName.toLowerCase();
+        const aStartsWith = aName.startsWith(q);
+        const bStartsWith = bName.startsWith(q);
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        const aIncludes = aName.includes(q);
+        const bIncludes = bName.includes(q);
+        if (aIncludes && !bIncludes) return -1;
+        if (!aIncludes && bIncludes) return 1;
+        return 0;
+      });
+    } else {
+      matches = allUtilities.slice(0, 12);
+    }
+
+    if (smartPasteItem) {
+      if (!q || q.includes('paste') || q.includes('smart') || smartPasteItem.utilityName.toLowerCase().includes(q)) {
+        return [smartPasteItem, ...matches.filter((m) => m.utilityId !== smartPasteItem.utilityId)];
+      }
+    }
+
+    return matches;
+  }, [allUtilities, query, smartPasteItem]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -143,10 +162,59 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
+
+      // Clipboard Sniffer for Smart Paste
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.readText) {
+        navigator.clipboard.readText()
+          .then((text) => {
+            const raw = (text || '').trim();
+            if (!raw) {
+              setSmartPasteItem(null);
+              return;
+            }
+            const det = SmartPasteService.detect(raw);
+            if (det && det.formatId !== 'unknown' && det.suggestedUtilities.length > 0) {
+              const top = det.suggestedUtilities[0];
+              setSmartPasteItem({
+                workspaceId: top.workspaceId,
+                workspaceName: 'Smart Paste',
+                groupId: top.groupId,
+                groupName: `Clipboard (${det.badgeText})`,
+                utilityId: top.utilityId,
+                utilityName: `Smart Paste — Open in ${top.name}`,
+                description: `Detected ${det.badgeText} on clipboard. Press Enter to paste and launch.`,
+                badgeGradient: 'var(--accent)',
+                status: 'ready',
+                keywords: ['smart', 'paste', 'clipboard', det.formatId],
+                isSmartPaste: true,
+                clipText: raw,
+                formatId: det.formatId,
+              });
+            } else {
+              setSmartPasteItem(null);
+            }
+          })
+          .catch(() => {
+            setSmartPasteItem(null);
+          });
+      }
     } else {
       setQuery('');
+      setSmartPasteItem(null);
     }
   }, [isOpen]);
+
+  const handleSelectItem = (item: SearchItem) => {
+    if (item.isSmartPaste && item.clipText) {
+      PipeService.pipeToUtility(item.utilityId, {
+        text: item.clipText,
+        format: item.formatId || 'text',
+        sourceUtilityName: `Smart Paste (${item.groupName})`,
+      });
+    }
+    onSelectUtility(item.workspaceId, item.groupId, item.utilityId, item.featureId);
+    onClose();
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -164,16 +232,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           setSelectedIndex((prev) => (prev - 1 >= 0 ? prev - 1 : filtered.length - 1));
         } else if (e.key === 'Enter' && filtered[selectedIndex]) {
           e.preventDefault();
-          const item = filtered[selectedIndex];
-          onSelectUtility(item.workspaceId, item.groupId, item.utilityId, item.featureId);
-          onClose();
+          handleSelectItem(filtered[selectedIndex]);
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, filtered, selectedIndex, onClose, onSelectUtility]);
+  }, [isOpen, filtered, selectedIndex, onClose, onSelectUtility, smartPasteItem]);
 
   if (!isOpen) return null;
 
@@ -205,10 +271,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               <div
                 key={`${item.workspaceId}-${item.groupId}-${item.utilityId}-${item.featureId || 'main'}`}
                 className={`palette-item ${index === selectedIndex ? 'selected' : ''}`}
-                onClick={() => {
-                  onSelectUtility(item.workspaceId, item.groupId, item.utilityId, item.featureId);
-                  onClose();
-                }}
+                onClick={() => handleSelectItem(item)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
                 <div className="palette-badge" style={{ background: item.badgeGradient }} />

@@ -75,6 +75,23 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
     return HistoryService.getRecords().slice(0, 5);
   }, []);
 
+  // Check for unsaved session draft
+  const [unsavedSession] = React.useState<{
+    workspaceId: WorkspaceId;
+    groupId: string;
+    utilityId: string;
+    title: string;
+    summary: string;
+  } | null>(() => {
+    try {
+      const raw =
+        localStorage.getItem('toiloki_unsaved_session') ||
+        sessionStorage.getItem('toiloki_unsaved_session');
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return null;
+  });
+
   // Pinned Quick Actions with dynamic sync and drag-and-drop reordering
   const [pinnedIds, setPinnedIds] = React.useState<string[]>(() => UtilityRegistry.getPinnedIds());
   const [draggedQaIdx, setDraggedQaIdx] = React.useState<number | null>(null);
@@ -149,51 +166,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
         </section>
       )}
 
-      {/* ─── 1. Category Grid (4x2 grid / 20px gap) ─── */}
-      <section className="dashboard-section">
-        <div className="section-header">
-          <div className="section-title-wrap">
-            <h2 className="section-title">Utility categories</h2>
-            <span className="section-count">{visibleWorkspacesList.length} Workspaces</span>
-          </div>
-        </div>
-
-        <div className="categories-grid">
-          {visibleWorkspacesList.map((ws) => {
-            const allUtils = ws.groups.flatMap((g) => g.utilities);
-            const uniqueUtils = Array.from(new Map(allUtils.map((u) => [u.id, u])).values());
-            const ready = uniqueUtils.filter((u) => u.status === 'ready' || !u.status).length;
-            const beta = uniqueUtils.filter((u) => u.status === 'beta').length;
-            const soon = uniqueUtils.filter((u) => u.status === 'soon').length;
-            const utilityCount = settings.showUpcomingUtilities ? uniqueUtils.length : (ready + beta);
-            const tooltip = settings.showUpcomingUtilities
-              ? `${ready} ready · ${beta} beta · ${soon} coming soon`
-              : `${ready} ready · ${beta} beta (${soon} upcoming hidden)`;
-            const categoryColor = CATEGORY_COLORS[ws.id] || 'var(--cat-system, #64748B)';
-            const pictureConfig = activeTheme.buttons?.pictures?.[ws.id];
-
-            return (
-              <ImageCard
-                key={ws.id}
-                id={ws.id}
-                title={ws.name}
-                description={ws.description}
-                toolCount={utilityCount}
-                tooltip={tooltip}
-                icon={ws.icon}
-                categoryColor={categoryColor}
-                cardStyle={isImageStyle ? 'image' : 'flat'}
-                pictureConfig={pictureConfig}
-                onClick={() => onSelectWorkspace(ws.id)}
-              />
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ─── 2. Two-Column Section: Recent Activity & Quick Actions ─── */}
+      {/* ─── 1. Two-Column Section: Recent Activity & Quick Actions (Pinned) ─── */}
       <div className="dashboard-two-col">
-        {/* Left Column: Recent files & runs */}
+        {/* Left Column: Recent files & runs (with resume row for unsaved session) */}
         <section className="dashboard-section col-half">
           <div className="section-header">
             <div className="section-title-wrap">
@@ -203,7 +178,36 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
           </div>
 
           <div className="recent-runs-list">
-            {records.length === 0 ? (
+            {unsavedSession && (
+              <div
+                className="recent-run-row unsaved-resume-row"
+                onClick={() =>
+                  onSelectUtility(unsavedSession.workspaceId, unsavedSession.groupId, unsavedSession.utilityId)
+                }
+              >
+                <div className="run-row-left">
+                  <div className="unsaved-pulse-dot" title="Unsaved changes pending" />
+                  <div className="run-details">
+                    <span className="run-tool-name">Resume session: {unsavedSession.title}</span>
+                    <span className="run-file-target">{unsavedSession.summary || 'Unsaved draft'}</span>
+                  </div>
+                </div>
+                <div className="run-row-right">
+                  <button
+                    type="button"
+                    className="run-open-btn resume-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectUtility(unsavedSession.workspaceId, unsavedSession.groupId, unsavedSession.utilityId);
+                    }}
+                  >
+                    <span>Resume</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {records.length === 0 && !unsavedSession ? (
               <div className="empty-runs-state">
                 <FileCode size={18} className="empty-icon" />
                 <span className="empty-runs-title">No recent operations</span>
@@ -387,6 +391,46 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
           </div>
         </section>
       </div>
+
+      {/* ─── 2. Category Grid (Workspaces) ─── */}
+      <section className="dashboard-section">
+        <div className="section-header">
+          <div className="section-title-wrap">
+            <h2 className="section-title">Utility categories</h2>
+            <span className="section-count">{visibleWorkspacesList.length} Workspaces</span>
+          </div>
+        </div>
+
+        <div className="categories-grid">
+          {visibleWorkspacesList.map((ws) => {
+            const allUtils = ws.groups.flatMap((g) => g.utilities);
+            const uniqueUtils = Array.from(new Map(allUtils.map((u) => [u.id, u])).values());
+            const ready = uniqueUtils.filter((u) => u.status === 'ready' || !u.status).length;
+            const beta = uniqueUtils.filter((u) => u.status === 'beta').length;
+            const soon = uniqueUtils.filter((u) => u.status === 'soon').length;
+            const utilityCount = ready + beta;
+            const tooltip = `${ready} ready · ${beta} beta · ${soon} coming soon`;
+            const categoryColor = CATEGORY_COLORS[ws.id] || 'var(--cat-system, #64748B)';
+            const pictureConfig = activeTheme.buttons?.pictures?.[ws.id];
+
+            return (
+              <ImageCard
+                key={ws.id}
+                id={ws.id}
+                title={ws.name}
+                description={ws.description}
+                toolCount={utilityCount}
+                tooltip={tooltip}
+                icon={ws.icon}
+                categoryColor={categoryColor}
+                cardStyle={isImageStyle ? 'image' : 'flat'}
+                pictureConfig={pictureConfig}
+                onClick={() => onSelectWorkspace(ws.id)}
+              />
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 };

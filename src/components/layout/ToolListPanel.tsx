@@ -53,14 +53,12 @@ export const ToolListPanel: React.FC<ToolListPanelProps> = ({
     const ready = unique.filter((u) => u.status === 'ready' || !u.status).length;
     const beta = unique.filter((u) => u.status === 'beta').length;
     const soon = unique.filter((u) => u.status === 'soon').length;
-    const total = showUpcoming ? unique.length : (ready + beta);
+    const total = ready + beta;
     return {
       total,
-      tooltip: showUpcoming
-        ? `${ready} ready · ${beta} beta · ${soon} coming soon`
-        : `${ready} ready · ${beta} beta (${soon} upcoming hidden)`,
+      tooltip: `${ready} ready · ${beta} beta · ${soon} coming soon`,
     };
-  }, [workspace, showUpcoming]);
+  }, [workspace]);
 
   // Filtered groups & utilities
   const filteredGroups = useMemo(() => {

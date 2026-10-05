@@ -70,6 +70,9 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           {/* Utility Title 22px + Favorite Star */}
           <div className="header-title-row">
             <h1 className="header-tool-title">{activeUtility.name}</h1>
+            {activeUtility.status === 'beta' && (
+              <span className="utility-beta-badge">Beta</span>
+            )}
             <button
               type="button"
               className={`header-star-btn ${isFavorite ? 'favorited' : ''}`}
@@ -87,17 +90,15 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
         {/* Action Buttons on the Right */}
         <div className="header-right-col">
-          {activeUtility.features && activeUtility.features.length > 0 && (
-            <button
-              type="button"
-              className="toiloki-btn toiloki-btn-ghost toiloki-btn-compact header-info-btn"
-              onClick={() => setIsWhatModalOpen(true)}
-              title="What this can do — View capabilities & upcoming features"
-            >
-              <Info size={13} />
-              <span>What this can do</span>
-            </button>
-          )}
+          <button
+            type="button"
+            className="toiloki-btn toiloki-btn-ghost toiloki-btn-compact header-info-btn"
+            onClick={() => setIsWhatModalOpen(true)}
+            title="What this can do — View capabilities & status"
+          >
+            <Info size={13} />
+            <span>What this can do</span>
+          </button>
 
           {onReset && (
             <button
@@ -114,17 +115,15 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       </header>
 
       {/* "What this can do" Feature Inventory Modal */}
-      {activeUtility.features && activeUtility.features.length > 0 && (
-        <WhatThisCanDoModal
-          utility={activeUtility}
-          isOpen={isWhatModalOpen}
-          onClose={() => setIsWhatModalOpen(false)}
-          onSelectFeature={(featId) => {
-            onSelectFeature?.(featId);
-            setIsWhatModalOpen(false);
-          }}
-        />
-      )}
+      <WhatThisCanDoModal
+        utility={activeUtility}
+        isOpen={isWhatModalOpen}
+        onClose={() => setIsWhatModalOpen(false)}
+        onSelectFeature={(featId) => {
+          onSelectFeature?.(featId);
+          setIsWhatModalOpen(false);
+        }}
+      />
     </>
   );
 };

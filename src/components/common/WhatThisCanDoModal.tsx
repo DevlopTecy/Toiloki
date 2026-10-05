@@ -71,6 +71,17 @@ export const WhatThisCanDoModal: React.FC<WhatThisCanDoModalProps> = ({
           )}
         </div>
 
+        {/* Beta Limitation Callout */}
+        {utility.status === 'beta' && (
+          <div className="what-beta-limitation-banner" role="note">
+            <span className="what-beta-tag">Beta</span>
+            <span className="what-beta-text">
+              {(utility as any).limitation ||
+                'Local engine in beta: fully functional for standard files; edge cases and high-complexity layouts are in active refinement.'}
+            </span>
+          </div>
+        )}
+
         {/* Features List */}
         <div className="what-modal-body">
           {features.length === 0 ? (

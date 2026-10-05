@@ -27,8 +27,12 @@ import {
   Search,
   Image as ImageIcon,
   Check,
-  ExternalLink
+  ExternalLink,
+  Feather,
+  Gauge,
+  Minimize2,
 } from 'lucide-react';
+import { WhatThisCanDoModal } from '../common/WhatThisCanDoModal';
 import { PdfEngine } from '../../engines/pdf/pdf.engine';
 import { PdfSecurityEngine } from '../../engines/pdf/pdf-security.engine';
 import { DocumentEngine } from '../../engines/documents/document.engine';
@@ -313,7 +317,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
   const [highlightColor, setHighlightColor] = useState<string>('#FACC15');
 
   // Options for 'panel' mode
-  const [compressionQuality, setCompressionQuality] = useState<'recommended' | 'extreme' | 'low'>('recommended');
+  const [compressionQuality, setCompressionQuality] = useState<'light' | 'balanced' | 'extreme' | 'recommended' | 'low'>('balanced');
   const [optimizeDpi, setOptimizeDpi] = useState<number>(150);
   const [optimizeQuality, setOptimizeQuality] = useState<number>(80);
   const [stripAllMetadata, setStripAllMetadata] = useState<boolean>(true);
@@ -3545,15 +3549,24 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                     {activeUtility.id === 'page-numbers' && (
                       <div className="panel-options-section">
                         <label className="option-label">Position on Page</label>
-                        <select
-                          className="workbench-select"
-                          value={pageNumberPosition}
-                          onChange={(e: any) => setPageNumberPosition(e.target.value)}
-                        >
-                          <option value="bottom-center">Bottom Center (Standard)</option>
-                          <option value="bottom-right">Bottom Right</option>
-                          <option value="top-right">Top Right (Header)</option>
-                        </select>
+                        <div className="segmented-control" role="radiogroup" aria-label="Position on Page">
+                          {[
+                            { val: 'bottom-center', label: 'Bottom Center' },
+                            { val: 'bottom-right', label: 'Bottom Right' },
+                            { val: 'top-right', label: 'Top Right' },
+                          ].map((opt) => (
+                            <button
+                              key={opt.val}
+                              type="button"
+                              role="radio"
+                              aria-checked={pageNumberPosition === opt.val}
+                              className={`segmented-item ${pageNumberPosition === opt.val ? 'is-active' : ''}`}
+                              onClick={() => setPageNumberPosition(opt.val as any)}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
                         <label className="option-label" style={{ marginTop: '12px' }}>
                           Start Page Number
                         </label>
@@ -3644,15 +3657,24 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                     {activeUtility.id === 'draw-shapes' && (
                       <div className="panel-options-section">
                         <label className="option-label">Shape Type</label>
-                        <select
-                          className="workbench-select"
-                          value={shapeType}
-                          onChange={(e: any) => setShapeType(e.target.value)}
-                        >
-                          <option value="rect">Rectangle Box</option>
-                          <option value="circle">Circle / Ellipse</option>
-                          <option value="line">Horizontal Rule Line</option>
-                        </select>
+                        <div className="segmented-control" role="radiogroup" aria-label="Shape Type">
+                          {[
+                            { val: 'rect', label: 'Rectangle' },
+                            { val: 'circle', label: 'Circle' },
+                            { val: 'line', label: 'Line' },
+                          ].map((opt) => (
+                            <button
+                              key={opt.val}
+                              type="button"
+                              role="radio"
+                              aria-checked={shapeType === opt.val}
+                              className={`segmented-item ${shapeType === opt.val ? 'is-active' : ''}`}
+                              onClick={() => setShapeType(opt.val as any)}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
                         <label className="option-label" style={{ marginTop: '10px' }}>
                           Border Thickness ({shapeBorderWidth}px)
                         </label>
@@ -3728,14 +3750,23 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                     {activeUtility.id === 'pdf-redact' && (
                       <div className="panel-options-section">
                         <label className="option-label">Redaction Style</label>
-                        <select
-                          className="workbench-select"
-                          value={redactStyle}
-                          onChange={(e: any) => setRedactStyle(e.target.value)}
-                        >
-                          <option value="black">Solid Blackout Box</option>
-                          <option value="white">Whiteout Mask</option>
-                        </select>
+                        <div className="segmented-control" role="radiogroup" aria-label="Redaction Style">
+                          {[
+                            { val: 'black', label: 'Solid Blackout' },
+                            { val: 'white', label: 'Whiteout Mask' },
+                          ].map((opt) => (
+                            <button
+                              key={opt.val}
+                              type="button"
+                              role="radio"
+                              aria-checked={redactStyle === opt.val}
+                              className={`segmented-item ${redactStyle === opt.val ? 'is-active' : ''}`}
+                              onClick={() => setRedactStyle(opt.val as any)}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
                         <label className="option-label" style={{ marginTop: '10px' }}>
                           Overlay Label
                         </label>
@@ -3937,15 +3968,50 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                     {activeUtility.id === 'compress-pdf' && (
                       <div className="panel-options-section">
                         <label className="option-label">Compression Preset</label>
-                        <select
-                          className="workbench-select"
-                          value={compressionQuality}
-                          onChange={(e: any) => setCompressionQuality(e.target.value)}
-                        >
-                          <option value="recommended">Recommended (Balanced quality)</option>
-                          <option value="extreme">Extreme (Smallest file size)</option>
-                          <option value="low">Less compression (High quality)</option>
-                        </select>
+                        <div className="compression-tiles-grid" role="radiogroup" aria-label="Compression Preset">
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={compressionQuality === 'light' || compressionQuality === 'low'}
+                            className={`compression-tile ${compressionQuality === 'light' || compressionQuality === 'low' ? 'selected' : ''}`}
+                            onClick={() => setCompressionQuality('light')}
+                          >
+                            <div className="compression-tile-top">
+                              <Feather size={15} className="compression-tile-icon" />
+                              <span className="compression-tile-title">Light</span>
+                            </div>
+                            <span className="compression-tile-hint">Highest quality (~15-20% reduction)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={compressionQuality === 'balanced' || compressionQuality === 'recommended'}
+                            className={`compression-tile ${compressionQuality === 'balanced' || compressionQuality === 'recommended' ? 'selected' : ''}`}
+                            onClick={() => setCompressionQuality('balanced')}
+                          >
+                            <div className="compression-tile-top">
+                              <Gauge size={15} className="compression-tile-icon" />
+                              <span className="compression-tile-title">Balanced</span>
+                              <span className="compression-tile-badge">Recommended</span>
+                            </div>
+                            <span className="compression-tile-hint">Best quality & size balance (~40-50% reduction)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={compressionQuality === 'extreme'}
+                            className={`compression-tile ${compressionQuality === 'extreme' ? 'selected' : ''}`}
+                            onClick={() => setCompressionQuality('extreme')}
+                          >
+                            <div className="compression-tile-top">
+                              <Minimize2 size={15} className="compression-tile-icon" />
+                              <span className="compression-tile-title">Extreme</span>
+                            </div>
+                            <span className="compression-tile-hint">Maximum file reduction (~70%+ reduction)</span>
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -4256,6 +4322,14 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           </button>
         </div>
       </footer>
+      )}
+
+      {showWhatModal && (
+        <WhatThisCanDoModal
+          utility={activeUtility}
+          isOpen={showWhatModal}
+          onClose={() => setShowWhatModal(false)}
+        />
       )}
     </div>
   );

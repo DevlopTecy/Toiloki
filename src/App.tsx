@@ -444,8 +444,6 @@ const AppContent: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', overflow: 'hidden' }}>
       <TitleBar
         onOpenSearch={() => setIsCommandPaletteOpen(true)}
-        onOpenSmartPaste={() => setIsSmartPasteOpen(true)}
-        onOpenChains={() => setIsChainsOpen(true)}
       />
 
       {/* Utility Tab Bar */}
@@ -459,6 +457,10 @@ const AppContent: React.FC = () => {
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
         <Sidebar activeNav={activeNav} onSelectNav={(nav) => {
+          if (nav === 'workflows') {
+            setIsChainsOpen(true);
+            return;
+          }
           setActiveNav(nav);
           setTabs((prev) =>
             prev.map((t) => (t.id === activeTabId ? { ...t, workspaceId: nav, title: String(nav).toUpperCase() } : t))

@@ -33,6 +33,9 @@ import {
   Image as ImageIcon,
   Wrench,
   CheckSquare,
+  Feather,
+  Gauge,
+  Minimize2,
 } from 'lucide-react';
 import './PdfWorkspaceView.css';
 
@@ -82,7 +85,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
   const [watermarkText, setWatermarkText] = useState('CONFIDENTIAL');
   const [watermarkOpacity, setWatermarkOpacity] = useState(0.3);
   const [pageNumberPosition, setPageNumberPosition] = useState('bottom-center');
-  const [compressionLevel, setCompressionLevel] = useState('recommended');
+  const [compressionLevel, setCompressionLevel] = useState<'light' | 'balanced' | 'extreme' | string>('balanced');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -380,7 +383,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
         setProgressPercent(50);
         setProgressStage('Re-compressing stream objects...');
         const ratio =
-          compressionLevel === 'extreme' ? 0.55 : compressionLevel === 'high' ? 0.72 : 0.85;
+          compressionLevel === 'extreme' ? 0.55 : (compressionLevel === 'balanced' || compressionLevel === 'recommended' || compressionLevel === 'high') ? 0.72 : 0.85;
         const simulatedLength = Math.max(500, Math.round(buf.length * ratio));
         const outBuf = buf.slice(0, simulatedLength);
 
@@ -1035,17 +1038,24 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                 {utilityId === 'rotate-pages' && (
                   <div className="option-row">
                     <label className="option-label">Global Rotation Angle:</label>
-                    <select
-                      className="control-input"
-                      value={rotationDegrees}
-                      onChange={(e) =>
-                        setRotationDegrees(Number(e.target.value) as 90 | 180 | 270)
-                      }
-                    >
-                      <option value={90}>90° Clockwise</option>
-                      <option value={180}>180° Flip</option>
-                      <option value={270}>270° Counter-Clockwise</option>
-                    </select>
+                    <div className="segmented-control" role="radiogroup" aria-label="Global Rotation Angle">
+                      {[
+                        { val: 90, label: '90° Clockwise' },
+                        { val: 180, label: '180° Flip' },
+                        { val: 270, label: '270° Counter-Clockwise' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.val}
+                          type="button"
+                          role="radio"
+                          aria-checked={rotationDegrees === opt.val}
+                          className={`segmented-item ${rotationDegrees === opt.val ? 'is-active' : ''}`}
+                          onClick={() => setRotationDegrees(opt.val as 90 | 180 | 270)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -1081,33 +1091,75 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                 {utilityId === 'page-numbers' && (
                   <div className="option-row">
                     <label className="option-label">Position on Page:</label>
-                    <select
-                      className="control-input"
-                      value={pageNumberPosition}
-                      onChange={(e) => setPageNumberPosition(e.target.value)}
-                    >
-                      <option value="bottom-center">Bottom Center</option>
-                      <option value="bottom-right">Bottom Right</option>
-                      <option value="top-right">Top Right</option>
-                    </select>
+                    <div className="segmented-control" role="radiogroup" aria-label="Position on Page">
+                      {[
+                        { val: 'bottom-center', label: 'Bottom Center' },
+                        { val: 'bottom-right', label: 'Bottom Right' },
+                        { val: 'top-right', label: 'Top Right' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.val}
+                          type="button"
+                          role="radio"
+                          aria-checked={pageNumberPosition === opt.val}
+                          className={`segmented-item ${pageNumberPosition === opt.val ? 'is-active' : ''}`}
+                          onClick={() => setPageNumberPosition(opt.val)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
                 {/* Compression options */}
                 {utilityId === 'compress-pdf' && (
-                  <div className="option-row">
+                  <div className="option-row" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label className="option-label">Compression Profile:</label>
-                    <select
-                      className="control-input"
-                      value={compressionLevel}
-                      onChange={(e) => setCompressionLevel(e.target.value)}
-                    >
-                      <option value="recommended">
-                        Recommended (Best Quality & Size Balance)
-                      </option>
-                      <option value="high">High Compression (Smaller File Size)</option>
-                      <option value="extreme">Extreme Compression (Maximum Reduction)</option>
-                    </select>
+                    <div className="compression-tiles-grid" role="radiogroup" aria-label="Compression Profile">
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={compressionLevel === 'light'}
+                        className={`compression-tile ${compressionLevel === 'light' ? 'selected' : ''}`}
+                        onClick={() => setCompressionLevel('light')}
+                      >
+                        <div className="compression-tile-top">
+                          <Feather size={15} className="compression-tile-icon" />
+                          <span className="compression-tile-title">Light</span>
+                        </div>
+                        <span className="compression-tile-hint">Highest quality (~15-20% reduction)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={compressionLevel === 'balanced' || compressionLevel === 'recommended'}
+                        className={`compression-tile ${compressionLevel === 'balanced' || compressionLevel === 'recommended' ? 'selected' : ''}`}
+                        onClick={() => setCompressionLevel('balanced')}
+                      >
+                        <div className="compression-tile-top">
+                          <Gauge size={15} className="compression-tile-icon" />
+                          <span className="compression-tile-title">Balanced</span>
+                          <span className="compression-tile-badge">Recommended</span>
+                        </div>
+                        <span className="compression-tile-hint">Best quality & size balance (~40-50% reduction)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={compressionLevel === 'extreme'}
+                        className={`compression-tile ${compressionLevel === 'extreme' ? 'selected' : ''}`}
+                        onClick={() => setCompressionLevel('extreme')}
+                      >
+                        <div className="compression-tile-top">
+                          <Minimize2 size={15} className="compression-tile-icon" />
+                          <span className="compression-tile-title">Extreme</span>
+                        </div>
+                        <span className="compression-tile-hint">Maximum file reduction (~70%+ reduction)</span>
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -1341,15 +1393,24 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                   <div className="options-grid-2">
                     <div className="option-row">
                       <label className="option-label">Shape Type:</label>
-                      <select
-                        className="control-input"
-                        value={shapeType}
-                        onChange={(e) => setShapeType(e.target.value as any)}
-                      >
-                        <option value="rect">Rectangle Box</option>
-                        <option value="circle">Circle / Ellipse</option>
-                        <option value="line">Straight Line</option>
-                      </select>
+                      <div className="segmented-control" role="radiogroup" aria-label="Shape Type">
+                        {[
+                          { val: 'rect', label: 'Rectangle' },
+                          { val: 'circle', label: 'Circle' },
+                          { val: 'line', label: 'Line' },
+                        ].map((opt) => (
+                          <button
+                            key={opt.val}
+                            type="button"
+                            role="radio"
+                            aria-checked={shapeType === opt.val}
+                            className={`segmented-item ${shapeType === opt.val ? 'is-active' : ''}`}
+                            onClick={() => setShapeType(opt.val as any)}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div className="option-row">
                       <label className="option-label">Target Page:</label>
@@ -1403,14 +1464,23 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                   <div className="options-grid-2">
                     <div className="option-row">
                       <label className="option-label">Highlight Type:</label>
-                      <select
-                        className="control-input"
-                        value={highlightType}
-                        onChange={(e) => setHighlightType(e.target.value as any)}
-                      >
-                        <option value="highlight">Yellow Highlight Bar</option>
-                        <option value="underline">Accent Blue Underline</option>
-                      </select>
+                      <div className="segmented-control" role="radiogroup" aria-label="Highlight Type">
+                        {[
+                          { val: 'highlight', label: 'Highlight' },
+                          { val: 'underline', label: 'Underline' },
+                        ].map((opt) => (
+                          <button
+                            key={opt.val}
+                            type="button"
+                            role="radio"
+                            aria-checked={highlightType === opt.val}
+                            className={`segmented-item ${highlightType === opt.val ? 'is-active' : ''}`}
+                            onClick={() => setHighlightType(opt.val as any)}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div className="option-row">
                       <label className="option-label">Target Page:</label>
@@ -1547,15 +1617,24 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                 {utilityId === 'pdf-to-images' && (
                   <div className="option-row">
                     <label className="option-label">Rasterization Resolution:</label>
-                    <select
-                      className="control-input"
-                      value={renderDpi}
-                      onChange={(e) => setRenderDpi(Number(e.target.value))}
-                    >
-                      <option value={72}>72 DPI (Standard Web Preview)</option>
-                      <option value={150}>150 DPI (Crisp Retina Display)</option>
-                      <option value={300}>300 DPI (High Resolution Print Quality)</option>
-                    </select>
+                    <div className="segmented-control" role="radiogroup" aria-label="Rasterization Resolution">
+                      {[
+                        { val: 72, label: '72 DPI (Preview)' },
+                        { val: 150, label: '150 DPI (Retina)' },
+                        { val: 300, label: '300 DPI (Print)' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.val}
+                          type="button"
+                          role="radio"
+                          aria-checked={renderDpi === opt.val}
+                          className={`segmented-item ${renderDpi === opt.val ? 'is-active' : ''}`}
+                          onClick={() => setRenderDpi(opt.val)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 

@@ -36,35 +36,12 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         <span className="app-suite-caption">Local Utility Suite</span>
       </div>
 
-      <div className="title-bar-center no-drag" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div className="title-bar-center no-drag">
         {onOpenSearch && (
           <button className="titlebar-search-trigger" onClick={onOpenSearch} title="Quick search (Ctrl+K)">
             <Search size={12} className="titlebar-search-icon" />
             <span className="titlebar-search-text">Search utilities...</span>
             <kbd className="titlebar-kbd">Ctrl K</kbd>
-          </button>
-        )}
-        {onOpenSmartPaste && (
-          <button
-            className="titlebar-search-trigger"
-            onClick={onOpenSmartPaste}
-            title="Smart Paste (Ctrl+Shift+V)"
-            style={{ padding: '4px 8px' }}
-          >
-            <Clipboard size={12} style={{ color: 'var(--color-accent)' }} />
-            <span className="titlebar-search-text" style={{ fontSize: '11px' }}>Smart Paste</span>
-            <kbd className="titlebar-kbd">Ctrl+Shift+V</kbd>
-          </button>
-        )}
-        {onOpenChains && (
-          <button
-            className="titlebar-search-trigger"
-            onClick={onOpenChains}
-            title="Chains & Presets"
-            style={{ padding: '4px 8px' }}
-          >
-            <Link size={12} style={{ color: 'var(--color-accent)' }} />
-            <span className="titlebar-search-text" style={{ fontSize: '11px' }}>Chains</span>
           </button>
         )}
       </div>

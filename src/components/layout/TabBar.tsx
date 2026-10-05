@@ -27,6 +27,8 @@ export const TabBar: React.FC<TabBarProps> = ({
   onCloseTab,
   onNewTab,
 }) => {
+  if (tabs.length < 2) return null;
+
   return (
     <div className="toiloki-tab-bar" role="tablist" aria-label="Utility Tabs">
       {tabs.map((tab) => {
