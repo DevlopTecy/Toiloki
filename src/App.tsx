@@ -5,10 +5,8 @@ import { Sidebar, ActiveNav } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { DashboardHome } from './workspaces/home/DashboardHome';
 import { WorkspaceView } from './workspaces/WorkspaceView';
-import { CommandPalette } from './components/search/CommandPalette';
-import { SmartPasteModal } from './components/common/SmartPasteModal';
+import { NewTabPage } from './components/views/NewTabPage';
 import { DropAnywhereOverlay, DropTargetUtility } from './components/common/DropAnywhereOverlay';
-import { ChainsModal } from './components/common/ChainsModal';
 import { ShortcutSheetModal } from './components/common/ShortcutSheetModal';
 import { IntroModal } from './components/common/IntroModal';
 import { FavoritesView } from './components/views/FavoritesView';
@@ -24,6 +22,20 @@ import { WORKSPACES, findUtilityByFeatureId } from './core/registry/app-registry
 import { WorkspaceId } from './core/types/workspace';
 import './styles/global.css';
 
+const getWorkspaceSentenceName = (id: string): string => {
+  const ws = WORKSPACES.find((w) => w.id === id);
+  if (ws) return ws.name;
+  switch (id) {
+    case 'home': return 'Home';
+    case 'new-tab': return 'New tab';
+    case 'history': return 'History';
+    case 'favorites': return 'Favorites';
+    case 'settings': return 'Settings';
+    case 'trash': return 'Trash';
+    default: return id.charAt(0).toUpperCase() + id.slice(1).toLowerCase();
+  }
+};
+
 const AppContent: React.FC = () => {
   const [activeNav, setActiveNav] = useState<ActiveNav>('home');
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
@@ -31,9 +43,6 @@ const AppContent: React.FC = () => {
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | undefined>();
 
   // Modals & Overlays
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-  const [isSmartPasteOpen, setIsSmartPasteOpen] = useState(false);
-  const [isChainsOpen, setIsChainsOpen] = useState(false);
   const [isShortcutSheetOpen, setIsShortcutSheetOpen] = useState(false);
   const [isIntroOpen, setIsIntroOpen] = useState(() => {
     return typeof window !== 'undefined' && !localStorage.getItem('toiloki_intro_completed');
@@ -50,6 +59,9 @@ const AppContent: React.FC = () => {
     { id: 'tab-home', workspaceId: 'home', title: 'Home' },
   ]);
   const [activeTabId, setActiveTabId] = useState('tab-home');
+
+  // Confirmation modal for tabs holding files or unsaved changes
+  const [confirmCloseTab, setConfirmCloseTab] = useState<UtilityTabItem | null>(null);
 
   const { showToast } = useToast();
 
@@ -89,7 +101,7 @@ const AppContent: React.FC = () => {
       if (groupParam && utilParam) {
         handleSelectUtility(navParam as WorkspaceId, groupParam, utilParam);
       } else {
-        setActiveNav(navParam as ActiveNav);
+        handleSelectWorkspace(navParam as ActiveNav);
       }
     }
 
@@ -133,8 +145,8 @@ const AppContent: React.FC = () => {
         targetUtil = 'compress-pdf';
       } else if (['png', 'jpg', 'jpeg', 'webp', 'svg'].includes(ext)) {
         targetWs = 'images';
-        targetGroup = 'img-optimizer';
-        targetUtil = 'compress-image';
+        targetGroup = 'img-dimensions';
+        targetUtil = 'img-resize';
       } else if (['csv', 'tsv'].includes(ext)) {
         targetWs = 'data';
         targetGroup = 'data-tabular';
@@ -168,22 +180,12 @@ const AppContent: React.FC = () => {
       handleSelectUtility(targetWs, targetGroup, targetUtil);
     });
 
-    const unbindCommandPalette = toiloki.appBridge.onTriggerCommandPalette(() => {
-      setIsCommandPaletteOpen((prev) => !prev);
-    });
-
-    const unbindSmartPaste = toiloki.appBridge.onTriggerSmartPaste(() => {
-      setIsSmartPasteOpen(true);
-    });
-
     const unbindNavigate = toiloki.appBridge.onNavigateWorkspace((wsId: WorkspaceId) => {
       handleSelectWorkspace(wsId);
     });
 
     return () => {
       unbindOpenFile?.();
-      unbindCommandPalette?.();
-      unbindSmartPaste?.();
       unbindNavigate?.();
     };
   }, [showToast]);
@@ -223,7 +225,6 @@ const AppContent: React.FC = () => {
 
     const handleWindowDrop = (e: DragEvent) => {
       dragCounter = 0;
-      // DropAnywhereOverlay handles specific drops; if dropped outside, reset
       setIsDragOverActive(false);
     };
 
@@ -240,19 +241,14 @@ const AppContent: React.FC = () => {
     };
   }, []);
 
-  // Global Keyboard Shortcuts (Ctrl+O, Ctrl+S, Ctrl+F, Ctrl+K, Ctrl+Shift+V, Ctrl+W, Ctrl+T, Escape)
+  // Global Keyboard Shortcuts
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       const tag = (document.activeElement?.tagName || '').toLowerCase();
       const isEditable = tag === 'input' || tag === 'textarea' || (document.activeElement as HTMLElement)?.isContentEditable;
 
-      // Ctrl+Shift+V: Open Smart Paste
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'v') {
-        e.preventDefault();
-        setIsSmartPasteOpen(true);
-      }
       // Ctrl+Shift+M: Dev toggle 5x slow motion for review
-      else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'm') {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'm') {
         e.preventDefault();
         const isSlow = document.documentElement.getAttribute('data-motion-slow') === 'true';
         if (isSlow) {
@@ -268,16 +264,11 @@ const AppContent: React.FC = () => {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('toiloki-trigger-copy-result'));
       }
-      // Ctrl+Enter: Run active utility
-      else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      // Ctrl+Enter: Run active utility (when not in search or editable)
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !isEditable) {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('toiloki-trigger-run'));
         showToast('Running active utility...', 'info');
-      }
-      // Ctrl+F or Ctrl+K: Open Search
-      else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'f')) {
-        e.preventDefault();
-        setIsCommandPaletteOpen((prev) => !prev);
       }
       // ? (Shift+/): Open Keyboard Shortcuts Cheatsheet
       else if (!isEditable && (e.key === '?' || (e.shiftKey && e.key === '/'))) {
@@ -287,14 +278,40 @@ const AppContent: React.FC = () => {
       // Ctrl+W: Close active tab
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'w') {
         e.preventDefault();
-        handleCloseTab(activeTabId);
+        requestCloseTab(activeTabId);
       }
       // Ctrl+T: New tab
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
         e.preventDefault();
         handleNewTab();
       }
-      // Ctrl+O: Open file
+      // Ctrl+Tab & Ctrl+Shift+Tab: Switch tabs
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'Tab') {
+        e.preventDefault();
+        setTabs((currentTabs) => {
+          const idx = currentTabs.findIndex((t) => t.id === activeTabId);
+          if (idx === -1) return currentTabs;
+          const nextIdx = e.shiftKey
+            ? (idx - 1 + currentTabs.length) % currentTabs.length
+            : (idx + 1) % currentTabs.length;
+          const nextTab = currentTabs[nextIdx];
+          setActiveTabId(nextTab.id);
+          setActiveNav(nextTab.workspaceId as ActiveNav);
+          setSelectedGroupId(nextTab.groupId);
+          setSelectedUtilityId(nextTab.utilityId);
+          setSelectedFeatureId(nextTab.featureId);
+          return currentTabs;
+        });
+      }
+      // Ctrl+1 through Ctrl+9: Jump to specific tab
+      else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key >= '1' && e.key <= '9') {
+        const targetIdx = parseInt(e.key, 10) - 1;
+        if (tabs[targetIdx]) {
+          e.preventDefault();
+          handleSelectTab(tabs[targetIdx].id);
+        }
+      }
+      // Ctrl+O: Open file hint
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o') {
         e.preventDefault();
         showToast('Ready to accept files. Drag & drop or browse.', 'info');
@@ -306,83 +323,230 @@ const AppContent: React.FC = () => {
       }
       // Escape: Close modals
       else if (e.key === 'Escape') {
+        if (confirmCloseTab) setConfirmCloseTab(null);
         if (isShortcutSheetOpen) setIsShortcutSheetOpen(false);
         if (isIntroOpen) setIsIntroOpen(false);
-        if (isCommandPaletteOpen) setIsCommandPaletteOpen(false);
-        if (isSmartPasteOpen) setIsSmartPasteOpen(false);
-        if (isChainsOpen) setIsChainsOpen(false);
         if (isDragOverActive) setIsDragOverActive(false);
       }
     };
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [isCommandPaletteOpen, isSmartPasteOpen, isChainsOpen, isShortcutSheetOpen, isIntroOpen, isDragOverActive, activeTabId, showToast]);
+  }, [confirmCloseTab, isShortcutSheetOpen, isIntroOpen, isDragOverActive, activeTabId, tabs, showToast]);
 
   // Tab management
-  const handleSelectTab = (tabId: string) => {
-    const tab = tabs.find((t) => t.id === tabId);
+  const handleSelectTab = (tabId: string, customTabs?: UtilityTabItem[]) => {
+    const list = customTabs || tabs;
+    const tab = list.find((t) => t.id === tabId);
     if (!tab) return;
     setActiveTabId(tabId);
-    setActiveNav(tab.workspaceId);
+    setActiveNav(tab.workspaceId as ActiveNav);
     setSelectedGroupId(tab.groupId);
     setSelectedUtilityId(tab.utilityId);
     setSelectedFeatureId(tab.featureId);
   };
 
-  const handleCloseTab = (tabIdToClose: string) => {
-    if (tabs.length <= 1) return; // Keep at least one tab
+  const requestCloseTab = (tabIdToClose: string) => {
+    const tab = tabs.find((t) => t.id === tabIdToClose);
+    if (!tab) return;
+    if (tab.hasFiles || tab.hasUnsaved) {
+      setConfirmCloseTab(tab);
+      return;
+    }
+    executeCloseTab(tabIdToClose);
+  };
+
+  const executeCloseTab = (tabIdToClose: string) => {
+    const tabToClose = tabs.find((t) => t.id === tabIdToClose);
+    if (!tabToClose) return;
+    // Don't close if only home tab is open
+    if (tabToClose.workspaceId === 'home' && tabs.length === 1) return;
+
     const closeIdx = tabs.findIndex((t) => t.id === tabIdToClose);
     const newTabs = tabs.filter((t) => t.id !== tabIdToClose);
-    setTabs(newTabs);
+    const resolvedTabs = newTabs.length > 0 ? newTabs : [{ id: 'tab-home', workspaceId: 'home' as const, title: 'Home' }];
+
+    setTabs(resolvedTabs);
 
     if (activeTabId === tabIdToClose) {
       const nextActiveIdx = Math.max(0, closeIdx - 1);
-      const nextTab = newTabs[nextActiveIdx];
-      setActiveTabId(nextTab.id);
-      setActiveNav(nextTab.workspaceId);
-      setSelectedGroupId(nextTab.groupId);
-      setSelectedUtilityId(nextTab.utilityId);
-      setSelectedFeatureId(nextTab.featureId);
+      const nextTab = resolvedTabs[nextActiveIdx] || resolvedTabs[0];
+      handleSelectTab(nextTab.id, resolvedTabs);
     }
+
+    // 10-second Undo toast
+    showToast('Tab closed', 'info', 10000, {
+      label: 'Undo',
+      onClick: () => {
+        setTabs((prev) => {
+          const restored = [...prev];
+          restored.splice(closeIdx, 0, tabToClose);
+          return restored;
+        });
+        handleSelectTab(tabToClose.id);
+      },
+    });
+  };
+
+  const handleCloseOthers = (tabId: string) => {
+    const targetTab = tabs.find((t) => t.id === tabId);
+    if (!targetTab) return;
+
+    const oldTabs = [...tabs];
+    const homeTab = tabs.find((t) => t.workspaceId === 'home') || { id: 'tab-home', workspaceId: 'home' as const, title: 'Home' };
+    const newTabs = targetTab.workspaceId === 'home' ? [targetTab] : [homeTab, targetTab];
+    const removedCount = oldTabs.length - newTabs.length;
+    if (removedCount <= 0) return;
+
+    setTabs(newTabs);
+    handleSelectTab(targetTab.id, newTabs);
+
+    showToast(`${removedCount} ${removedCount === 1 ? 'tab' : 'tabs'} closed`, 'info', 10000, {
+      label: 'Undo',
+      onClick: () => {
+        setTabs(oldTabs);
+      },
+    });
+  };
+
+  const handleCloseRight = (tabId: string) => {
+    const idx = tabs.findIndex((t) => t.id === tabId);
+    if (idx === -1 || idx >= tabs.length - 1) return;
+
+    const oldTabs = [...tabs];
+    const newTabs = tabs.slice(0, idx + 1);
+    const removedCount = oldTabs.length - newTabs.length;
+
+    setTabs(newTabs);
+    if (!newTabs.some((t) => t.id === activeTabId)) {
+      handleSelectTab(tabId, newTabs);
+    }
+
+    showToast(`${removedCount} ${removedCount === 1 ? 'tab' : 'tabs'} closed`, 'info', 10000, {
+      label: 'Undo',
+      onClick: () => {
+        setTabs(oldTabs);
+      },
+    });
+  };
+
+  const handleCloseAll = () => {
+    const homeTab = tabs.find((t) => t.workspaceId === 'home') || { id: 'tab-home', workspaceId: 'home' as const, title: 'Home' };
+    const oldTabs = [...tabs];
+    const removedCount = oldTabs.filter((t) => t.id !== homeTab.id).length;
+    if (removedCount === 0) return;
+
+    setTabs([homeTab]);
+    handleSelectTab(homeTab.id, [homeTab]);
+
+    showToast('All tabs closed', 'info', 10000, {
+      label: 'Undo',
+      onClick: () => {
+        setTabs(oldTabs);
+      },
+    });
   };
 
   const handleNewTab = () => {
     const newId = `tab_${Date.now()}`;
     const newTab: UtilityTabItem = {
       id: newId,
-      workspaceId: 'home',
-      title: 'Home',
+      workspaceId: 'new-tab',
+      title: 'New tab',
     };
     setTabs((prev) => [...prev, newTab]);
     setActiveTabId(newId);
-    setActiveNav('home');
+    setActiveNav('new-tab');
     setSelectedGroupId(undefined);
     setSelectedUtilityId(undefined);
     setSelectedFeatureId(undefined);
   };
 
-  const handleSelectWorkspace = (id: WorkspaceId) => {
+  const handleSelectWorkspace = (id: ActiveNav, openInNewTab = false) => {
+    const title = getWorkspaceSentenceName(id);
+
+    if (id === 'home') {
+      const existingHome = tabs.find((t) => t.workspaceId === 'home');
+      if (existingHome) {
+        setActiveTabId(existingHome.id);
+        setActiveNav('home');
+        setSelectedGroupId(undefined);
+        setSelectedUtilityId(undefined);
+        setSelectedFeatureId(undefined);
+      } else {
+        const homeTab: UtilityTabItem = { id: 'tab-home', workspaceId: 'home', title: 'Home' };
+        setTabs((prev) => [homeTab, ...prev]);
+        setActiveTabId('tab-home');
+        setActiveNav('home');
+      }
+      return;
+    }
+
+    if (openInNewTab) {
+      const newId = `tab_${Date.now()}`;
+      const newTab: UtilityTabItem = {
+        id: newId,
+        workspaceId: id,
+        title,
+      };
+      setTabs((prev) => [...prev, newTab]);
+      setActiveTabId(newId);
+      setActiveNav(id);
+      setSelectedGroupId(undefined);
+      setSelectedUtilityId(undefined);
+      setSelectedFeatureId(undefined);
+      return;
+    }
+
+    // Default: One tab per workspace. Check if active tab is 'new-tab'
+    const activeTab = tabs.find((t) => t.id === activeTabId);
+    if (activeTab && activeTab.workspaceId === 'new-tab') {
+      setTabs((prev) =>
+        prev.map((t) =>
+          t.id === activeTabId
+            ? { ...t, workspaceId: id, groupId: undefined, utilityId: undefined, featureId: undefined, title }
+            : t
+        )
+      );
+      setActiveNav(id);
+      setSelectedGroupId(undefined);
+      setSelectedUtilityId(undefined);
+      setSelectedFeatureId(undefined);
+      return;
+    }
+
+    // Check if a tab for this workspace already exists
+    const existingWsTab = tabs.find((t) => t.workspaceId === id);
+    if (existingWsTab) {
+      setActiveTabId(existingWsTab.id);
+      setActiveNav(id);
+      setSelectedGroupId(existingWsTab.groupId);
+      setSelectedUtilityId(existingWsTab.utilityId);
+      setSelectedFeatureId(existingWsTab.featureId);
+      return;
+    }
+
+    // Otherwise create a tab for this workspace
+    const newId = `tab_${Date.now()}`;
+    const newTab: UtilityTabItem = {
+      id: newId,
+      workspaceId: id,
+      title,
+    };
+    setTabs((prev) => [...prev, newTab]);
+    setActiveTabId(newId);
     setActiveNav(id);
     setSelectedGroupId(undefined);
     setSelectedUtilityId(undefined);
-
-    // Update active tab title
-    const ws = WORKSPACES.find((w) => w.id === id);
-    setTabs((prev) =>
-      prev.map((t) =>
-        t.id === activeTabId
-          ? { ...t, workspaceId: id, groupId: undefined, utilityId: undefined, title: ws?.name || id }
-          : t
-      )
-    );
+    setSelectedFeatureId(undefined);
   };
 
   const handleSelectUtility = (
     workspaceId: WorkspaceId,
     groupId: string,
     utilityId: string,
-    featureId?: string
+    featureId?: string,
+    openInNewTab = false
   ) => {
     setActiveNav(workspaceId);
     setSelectedGroupId(groupId);
@@ -391,21 +555,56 @@ const AppContent: React.FC = () => {
 
     const title = getUtilityName(workspaceId, groupId, utilityId);
 
-    // Update active tab or convert home tab into utility tab
-    setTabs((prev) =>
-      prev.map((t) =>
-        t.id === activeTabId
-          ? {
-              ...t,
-              workspaceId,
-              groupId,
-              utilityId,
-              featureId,
-              title,
-            }
-          : t
-      )
-    );
+    if (openInNewTab) {
+      const newId = `tab_${Date.now()}`;
+      const newTab: UtilityTabItem = {
+        id: newId,
+        workspaceId,
+        groupId,
+        utilityId,
+        featureId,
+        title,
+      };
+      setTabs((prev) => [...prev, newTab]);
+      setActiveTabId(newId);
+    } else {
+      // If currently on new-tab, replace it
+      const activeTab = tabs.find((t) => t.id === activeTabId);
+      if (activeTab && activeTab.workspaceId === 'new-tab') {
+        setTabs((prev) =>
+          prev.map((t) =>
+            t.id === activeTabId
+              ? { ...t, workspaceId, groupId, utilityId, featureId, title }
+              : t
+          )
+        );
+      } else {
+        // One tab per workspace: check if a tab for this workspace exists
+        const existingWsTab = tabs.find((t) => t.workspaceId === workspaceId);
+        if (existingWsTab) {
+          setActiveTabId(existingWsTab.id);
+          setTabs((prev) =>
+            prev.map((t) =>
+              t.id === existingWsTab.id
+                ? { ...t, groupId, utilityId, featureId, title }
+                : t
+            )
+          );
+        } else {
+          const newId = `tab_${Date.now()}`;
+          const newTab: UtilityTabItem = {
+            id: newId,
+            workspaceId,
+            groupId,
+            utilityId,
+            featureId,
+            title,
+          };
+          setTabs((prev) => [...prev, newTab]);
+          setActiveTabId(newId);
+        }
+      }
+    }
 
     const url = new URL(window.location.href);
     url.searchParams.set('nav', workspaceId);
@@ -442,30 +641,29 @@ const AppContent: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      {/* ─── 1. Title Bar: Logo + Toiloki, Centered E-commerce Search, Window Controls ─── */}
       <TitleBar
-        onOpenSearch={() => setIsCommandPaletteOpen(true)}
+        onSelectUtility={(ws, grp, util, feat, inNewTab) => handleSelectUtility(ws, grp, util, feat, inNewTab)}
       />
 
-      {/* Utility Tab Bar */}
+      {/* ─── 2. Slim 34px Native Tab Row (Always Visible) ─── */}
       <TabBar
         tabs={tabs}
         activeTabId={activeTabId}
         onSelectTab={handleSelectTab}
-        onCloseTab={handleCloseTab}
+        onCloseTab={requestCloseTab}
+        onCloseOthers={handleCloseOthers}
+        onCloseRight={handleCloseRight}
+        onCloseAll={handleCloseAll}
         onNewTab={handleNewTab}
       />
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-        <Sidebar activeNav={activeNav} onSelectNav={(nav) => {
-          if (nav === 'workflows') {
-            setIsChainsOpen(true);
-            return;
-          }
-          setActiveNav(nav);
-          setTabs((prev) =>
-            prev.map((t) => (t.id === activeTabId ? { ...t, workspaceId: nav, title: String(nav).toUpperCase() } : t))
-          );
-        }} />
+        {/* ─── 3. Sidebar (Footer = Settings only, Workflows removed) ─── */}
+        <Sidebar
+          activeNav={activeNav}
+          onSelectNav={(nav) => handleSelectWorkspace(nav)}
+        />
 
         <main
           key={activeNav}
@@ -477,14 +675,24 @@ const AppContent: React.FC = () => {
               <Header
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
-                onOpenSearchModal={() => setIsCommandPaletteOpen(true)}
+                onOpenSearchModal={() => {
+                  const input = document.querySelector<HTMLInputElement>('.ecommerce-search-input');
+                  input?.focus();
+                }}
                 showHeroBanner={true}
               />
               <DashboardHome
-                onSelectWorkspace={handleSelectWorkspace}
-                onSelectUtility={handleSelectUtility}
+                onSelectWorkspace={(ws) => handleSelectWorkspace(ws)}
+                onSelectUtility={(ws, grp, util) => handleSelectUtility(ws, grp, util)}
               />
             </>
+          )}
+
+          {activeNav === 'new-tab' && (
+            <NewTabPage
+              onSelectWorkspace={(ws) => handleSelectWorkspace(ws)}
+              onSelectUtility={(ws, grp, util, feat) => handleSelectUtility(ws, grp, util, feat)}
+            />
           )}
 
           {activeWorkspace && (
@@ -493,41 +701,57 @@ const AppContent: React.FC = () => {
               initialGroupId={selectedGroupId}
               initialUtilityId={selectedUtilityId}
               initialFeatureId={selectedFeatureId}
-              onBackToHome={() => setActiveNav('home')}
+              onBackToHome={() => handleSelectWorkspace('home')}
             />
           )}
 
           {activeNav === 'history' && (
-            <HistoryView onOpenUtility={handleSelectUtility} />
+            <HistoryView onOpenUtility={(ws, grp, util) => handleSelectUtility(ws, grp, util)} />
           )}
           {activeNav === 'favorites' && (
-            <FavoritesView onSelectUtility={handleSelectUtility} />
+            <FavoritesView onSelectUtility={(ws, grp, util) => handleSelectUtility(ws, grp, util)} />
           )}
           {activeNav === 'trash' && <TrashView />}
           {activeNav === 'settings' && <SettingsView />}
         </main>
       </div>
 
-      {/* Omnisearch Command Palette */}
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-        onSelectUtility={handleSelectUtility}
-      />
-
-      {/* Smart Paste Sniffer Modal */}
-      <SmartPasteModal
-        isOpen={isSmartPasteOpen}
-        onClose={() => setIsSmartPasteOpen(false)}
-        onSelectUtility={handleSelectUtility}
-      />
-
-      {/* Chains & Presets Modal */}
-      <ChainsModal
-        isOpen={isChainsOpen}
-        onClose={() => setIsChainsOpen(false)}
-        onLaunchUtility={handleSelectUtility}
-      />
+      {/* ─── Tab Discard Confirmation Modal ─── */}
+      {confirmCloseTab && (
+        <div className="tab-discard-modal-backdrop" onClick={() => setConfirmCloseTab(null)}>
+          <div className="tab-discard-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="tab-discard-title">
+              {confirmCloseTab.fileCount
+                ? `Discard ${confirmCloseTab.fileCount} ${confirmCloseTab.fileCount === 1 ? 'file' : 'files'}?`
+                : `Discard unsaved changes in ${confirmCloseTab.title}?`}
+            </h3>
+            <p className="tab-discard-desc">
+              Closing this tab will discard your current progress in this workspace.
+            </p>
+            <div className="tab-discard-actions">
+              <button
+                type="button"
+                className="tab-discard-btn secondary"
+                onClick={() => setConfirmCloseTab(null)}
+                autoFocus
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="tab-discard-btn primary-danger"
+                onClick={() => {
+                  const id = confirmCloseTab.id;
+                  setConfirmCloseTab(null);
+                  executeCloseTab(id);
+                }}
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Drop Anywhere Interactive Overlay */}
       {isDragOverActive && (

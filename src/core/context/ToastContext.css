@@ -88,3 +88,22 @@
   color: var(--text);
   background: var(--surface-hover);
 }
+
+.toast-action-btn {
+  background: var(--surface-hover);
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: var(--radius-xs, 4px);
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--dur-fast) var(--ease-standard);
+  flex-shrink: 0;
+}
+
+.toast-action-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}

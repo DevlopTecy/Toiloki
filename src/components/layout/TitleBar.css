@@ -1,120 +1,54 @@
 /* ═══════════════════════════════════════════════════
-   TitleBar — Native Desktop Window Frame (40px)
-   Clean Minimal Theme • Search with Radius 10px
+   TitleBar — Native Desktop Window Frame (52px)
+   Clean Minimal Theme • Centered E-Commerce Search
    ═══════════════════════════════════════════════════ */
 
 .title-bar {
-  height: var(--titlebar-height);
-  min-height: var(--titlebar-height);
+  height: var(--titlebar-height, 52px);
+  min-height: var(--titlebar-height, 52px);
   background-color: var(--sidebar);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 0 0 14px;
+  padding: 0 0 0 16px;
   user-select: none;
   z-index: 1000;
   transition: background-color 150ms ease, border-color 150ms ease;
+  position: relative;
 }
 
-/* ─── Left Section ─── */
+/* ─── Left Section: Logo + Toiloki only ─── */
 .title-bar-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .app-wordmark {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text);
   line-height: 1;
 }
 
-.app-suite-caption {
-  font-size: 10px;
-  font-family: var(--font-sans);
-  font-weight: 500;
-  color: var(--text-muted);
-  padding: 1px 4px;
-  line-height: 1;
-}
-
-/* ─── Center Section: Search (10px Radius, Accent Focus Ring) ─── */
+/* ─── Center Section: E-Commerce Search ─── */
 .title-bar-center {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 1;
+  max-width: 640px;
+  margin: 0 16px;
 }
 
-.titlebar-search-trigger {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 150ms ease;
-  height: 28px;
-}
-
-.titlebar-search-trigger:hover {
-  background: var(--surface-hover);
-  border-color: var(--border);
-  color: var(--text-2);
-}
-
-.titlebar-search-trigger:focus-visible {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent);
-}
-
-.titlebar-search-icon {
-  color: var(--text-2);
-}
-
-.titlebar-search-text {
-  font-size: 12px;
-  font-family: var(--font-sans);
-}
-
-.titlebar-kbd {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  background: var(--surface-hover);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 0 5px;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
-.titlebar-center-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-}
-
-.status-dot-active {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--success);
-}
-
-/* ─── Window Controls ─── */
+/* ─── Right Section: Window Controls ─── */
 .title-bar-controls {
   display: flex;
   height: 100%;
+  flex-shrink: 0;
 }
 
 .window-control-btn {

@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { Minus, Square, Copy, X, Search, Clipboard, Link } from 'lucide-react';
+import { Minus, Square, Copy, X } from 'lucide-react';
 import { ToilokiLogo } from '../common/ToilokiLogo';
+import { EcommerceSearchBar } from '../search/EcommerceSearchBar';
+import { WorkspaceId } from '../../core/types/workspace';
 import './TitleBar.css';
 
 interface TitleBarProps {
-  onOpenSearch?: () => void;
-  onOpenSmartPaste?: () => void;
-  onOpenChains?: () => void;
+  onSelectUtility: (
+    workspaceId: WorkspaceId,
+    groupId: string,
+    utilityId: string,
+    featureId?: string,
+    openInNewTab?: boolean
+  ) => void;
 }
 
-export const TitleBar: React.FC<TitleBarProps> = ({
-  onOpenSearch,
-  onOpenSmartPaste,
-  onOpenChains,
-}) => {
+export const TitleBar: React.FC<TitleBarProps> = ({ onSelectUtility }) => {
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
@@ -30,22 +32,18 @@ export const TitleBar: React.FC<TitleBarProps> = ({
 
   return (
     <header className="title-bar drag-region">
+      {/* ─── Left Section: Logo + Toiloki only ─── */}
       <div className="title-bar-left no-drag">
         <ToilokiLogo variant="symbol" size={18} />
         <span className="app-wordmark">Toiloki</span>
-        <span className="app-suite-caption">Local Utility Suite</span>
       </div>
 
+      {/* ─── Center Section: E-Commerce Style Search ─── */}
       <div className="title-bar-center no-drag">
-        {onOpenSearch && (
-          <button className="titlebar-search-trigger" onClick={onOpenSearch} title="Quick search (Ctrl+K)">
-            <Search size={12} className="titlebar-search-icon" />
-            <span className="titlebar-search-text">Search utilities...</span>
-            <kbd className="titlebar-kbd">Ctrl K</kbd>
-          </button>
-        )}
+        <EcommerceSearchBar onSelectUtility={onSelectUtility} />
       </div>
 
+      {/* ─── Right Section: Window Controls ─── */}
       <div className="title-bar-controls no-drag">
         <button
           className="window-control-btn minimize"

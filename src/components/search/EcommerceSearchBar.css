@@ -1,0 +1,267 @@
+/* ═══════════════════════════════════════════════════
+   EcommerceSearchBar — E-Commerce Styled Search & Dropdown Panel
+   Height 40px • Radius 12px • Soft Shadows • Neutral Focus
+   ═══════════════════════════════════════════════════ */
+
+.ecommerce-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: clamp(280px, 40vw, 640px);
+}
+
+.ecommerce-search-field-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: 12px;
+  padding: 0 12px;
+  gap: 10px;
+  transition: border-color var(--dur-fast, 120ms) var(--ease-standard),
+              box-shadow var(--dur-fast, 120ms) var(--ease-standard);
+  position: relative;
+  z-index: 2001;
+}
+
+.ecommerce-search-field-container.is-focused {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10);
+}
+
+[data-theme="light"] .ecommerce-search-field-container.is-focused {
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+}
+
+.ecommerce-search-icon {
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.ecommerce-search-input {
+  flex: 1;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1;
+}
+
+.ecommerce-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.ecommerce-search-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface-hover);
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: all var(--dur-fast, 120ms) ease;
+}
+
+.ecommerce-search-clear-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+/* 25% Dim Backdrop */
+.ecommerce-search-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 1999;
+  backdrop-filter: blur(1px);
+}
+
+/* Dropdown Suggestion Panel directly beneath field */
+.ecommerce-search-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  z-index: 2002;
+  max-height: 480px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.ecommerce-search-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.ecommerce-search-section:not(:last-child) {
+  margin-bottom: 12px;
+}
+
+.ecommerce-search-heading {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 4px 12px 6px 12px;
+  user-select: none;
+}
+
+/* 44px Result Row */
+.ecommerce-search-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0 12px;
+  margin: 2px 4px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: calc(100% - 8px);
+  text-align: left;
+  user-select: none;
+  transition: background-color var(--dur-fast, 120ms) var(--ease-standard);
+}
+
+.ecommerce-search-row:hover,
+.ecommerce-search-row.is-selected {
+  background-color: var(--surface-hover);
+}
+
+.ecommerce-search-row-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.ecommerce-search-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ecommerce-search-row-name {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ecommerce-search-row-name mark {
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  padding: 0;
+}
+
+.ecommerce-search-row-secondary {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Empty / No-match state */
+.ecommerce-search-empty-state {
+  padding: 20px 16px;
+  text-align: left;
+}
+
+.ecommerce-search-empty-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.ecommerce-search-empty-suggestions {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ecommerce-search-suggestion-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--surface-hover);
+  border-radius: var(--radius-xs, 4px);
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  width: fit-content;
+  margin-top: 4px;
+}
+
+.ecommerce-search-suggestion-chip:hover {
+  color: var(--text);
+  background: var(--border);
+}
+
+/* Compact Search Icon button (under 600px width) */
+.ecommerce-search-collapsed-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .ecommerce-search-wrapper {
+    width: auto;
+  }
+  .ecommerce-search-wrapper:not(.sheet-open) .ecommerce-search-field-container {
+    display: none;
+  }
+  .ecommerce-search-wrapper:not(.sheet-open) .ecommerce-search-collapsed-btn {
+    display: flex;
+  }
+  .ecommerce-search-wrapper.sheet-open {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    padding: 10px;
+    background: var(--surface);
+    z-index: 3000;
+  }
+  .ecommerce-search-wrapper.sheet-open .ecommerce-search-field-container {
+    display: flex;
+    width: 100%;
+  }
+}

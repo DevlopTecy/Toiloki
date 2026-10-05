@@ -28,14 +28,11 @@ export const Header: React.FC<HeaderProps> = ({
           <input
             type="text"
             className="search-input"
-            placeholder="Search utilities and converters... (Ctrl+K)"
+            placeholder="Search utilities"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             onClick={(e) => e.stopPropagation()}
           />
-          <div className="search-shortcut-badge">
-            <span>Ctrl K</span>
-          </div>
         </div>
       </div>
     </header>

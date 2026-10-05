@@ -16,7 +16,6 @@ import {
   Cpu,
   Star,
   Clock,
-  Workflow,
   Settings,
   Trash2,
   PanelLeftClose,
@@ -27,7 +26,7 @@ import { WORKSPACES } from '../../core/registry/app-registry';
 import { SettingsService, AppSettings } from '../../core/services/settings.service';
 import './Sidebar.css';
 
-export type ActiveNav = 'home' | WorkspaceId | 'favorites' | 'history' | 'settings' | 'trash' | 'workflows';
+export type ActiveNav = 'home' | 'new-tab' | WorkspaceId | 'favorites' | 'history' | 'settings' | 'trash';
 
 interface SidebarProps {
   activeNav: ActiveNav;
@@ -233,17 +232,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {!isCollapsed && <span className="sidebar-btn-label">Recent</span>}
         </button>
         <button
-          data-nav="workflows"
-          className={`sidebar-nav-btn ${activeNav === 'workflows' ? 'active' : ''}`}
-          onClick={() => onSelectNav('workflows')}
-          title="Workflows & Chains"
-        >
-          <div className="nav-tile history-tile">
-            <Workflow size={12} />
-          </div>
-          {!isCollapsed && <span className="sidebar-btn-label">Workflows</span>}
-        </button>
-        <button
           data-nav="trash"
           className={`sidebar-nav-btn ${activeNav === 'trash' ? 'active' : ''}`}
           onClick={() => onSelectNav('trash')}
@@ -267,16 +255,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Settings size={15} />
           {!isCollapsed && <span className="sidebar-btn-label">Settings</span>}
         </button>
-
-        {/* Offline trust signal */}
-        <div
-          className="sidebar-offline-indicator"
-          title="Everything runs on this device"
-          aria-label="Everything runs on this device"
-        >
-          <span className="offline-dot" aria-hidden="true" />
-          {!isCollapsed && <span className="offline-label">Offline</span>}
-        </div>
       </div>
 
     </aside>
