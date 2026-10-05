@@ -10,13 +10,26 @@ interface LibraryNotice {
 }
 
 const BUNDLED_LIBRARIES: LibraryNotice[] = [
-  { name: 'React', version: '^18.3.1', license: 'MIT', description: 'Declarative component framework' },
-  { name: 'Electron', version: '^34.2.0', license: 'MIT', description: 'Desktop window and native shell environment' },
-  { name: 'Vite', version: '^6.0.7', license: 'MIT', description: 'Frontend bundler and build engine' },
-  { name: 'Lucide React', version: '^0.468.0', license: 'ISC', description: 'Clean geometric icon set' },
-  { name: 'PDF-Lib', version: '^1.17.9', license: 'MIT', description: 'Client-side PDF document manipulation' },
-  { name: 'JSZip', version: '^3.10.1', license: 'MIT', description: 'Local ZIP archive compression and extraction' },
-  { name: 'PapaParse', version: '^5.4.1', license: 'MIT', description: 'In-browser tabular CSV parser' },
+  { name: 'pdf-lib', version: '1.17.1', license: 'MIT', description: 'Creation, merging, splitting, reordering, and acroforms (PDF workspace)' },
+  { name: 'pdfjs-dist', version: '4.10.38', license: 'Apache-2.0', description: 'Mozilla PDF.js rendering engine for canvas previews & thumbnails' },
+  { name: 'mathjs', version: '14.9.1', license: 'Apache-2.0', description: 'Symbolic expression parser & high-precision math (Calculator workspace)' },
+  { name: 'exceljs', version: '4.4.0', license: 'MIT', description: 'XLSX spreadsheet parsing, workbook compilation, and cell formatting' },
+  { name: 'mammoth', version: '1.13.0', license: 'BSD-2-Clause', description: 'DOCX to HTML / clean plain text converter without Word dependencies' },
+  { name: 'adm-zip', version: '0.5.18', license: 'MIT', description: 'ZIP archive inspection with Zip-Slip path traversal prevention' },
+  { name: 'jszip', version: '3.10.2', license: 'MIT', description: 'In-memory ZIP archive generation & OpenXML container assembly' },
+  { name: 'diff', version: '7.0.0', license: 'BSD-3-Clause', description: 'Unified diff computation & character-level text comparison' },
+  { name: 'fast-xml-parser', version: '5.11.2', license: 'MIT', description: 'High-performance XML validation, formatting, and JSON parsing' },
+  { name: 'jsonpath-plus', version: '10.3.0', license: 'MIT', description: 'JSONPath query expression evaluator across structured JSON' },
+  { name: 'jsqr', version: '1.4.0', license: 'Apache-2.0', description: 'Offline QR code barcode scanner and matrix decoder from images' },
+  { name: 'qrcode', version: '1.5.4', license: 'MIT', description: 'Canvas and SVG 2D QR code generator (Developer workspace)' },
+  { name: 'exifreader', version: '4.46.0', license: 'MPL-2.0', description: 'Extracts camera EXIF tags, GPS coordinates, and lens metadata' },
+  { name: 'papaparse', version: '5.7.0', license: 'MIT', description: 'RFC 4180 compliant CSV parser and stream tokenizer' },
+  { name: 'yaml', version: '2.9.1', license: 'ISC', description: 'YAML 1.2 parser and stringifier with AST preservation' },
+  { name: 'pako', version: '3.0.2', license: 'MIT / Zlib', description: 'High-speed zlib/deflate compression and decompression' },
+  { name: 'cronstrue', version: '3.27.0', license: 'MIT', description: 'Translates cron schedule expressions into natural language' },
+  { name: 'lucide-react', version: '1.49.0', license: 'ISC', description: 'Geometric desktop icon set across workspaces' },
+  { name: 'react', version: '18.3.1', license: 'MIT', description: 'Declarative component framework' },
+  { name: 'react-dom', version: '18.3.1', license: 'MIT', description: 'DOM rendering backend for React UI' },
 ];
 
 export const AboutSection: React.FC = () => {
@@ -71,20 +84,30 @@ export const AboutSection: React.FC = () => {
       <div className="settings-row">
         <div className="settings-row-info">
           <label className="settings-label">Version</label>
-          <span className="settings-helper">Desktop release build</span>
+          <span className="settings-helper">Desktop release package</span>
         </div>
         <span style={{ fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-          v1.0.0 (October 2026)
+          v1.0.0
         </span>
       </div>
 
       <div className="settings-row">
         <div className="settings-row-info">
-          <label className="settings-label">Architecture</label>
-          <span className="settings-helper">Local Electron sandbox with strict context isolation</span>
+          <label className="settings-label">Build date</label>
+          <span className="settings-helper">Production compilation timestamp</span>
+        </div>
+        <span style={{ fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+          October 2026
+        </span>
+      </div>
+
+      <div className="settings-row">
+        <div className="settings-row-info">
+          <label className="settings-label">Architecture & Runtime</label>
+          <span className="settings-helper">Local Electron sandbox with strict context isolation & CSP</span>
         </div>
         <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-          Offline desktop bundle
+          Windows x64 (NSIS / Portable)
         </span>
       </div>
 
@@ -115,16 +138,44 @@ export const AboutSection: React.FC = () => {
         </Button>
       </div>
 
-      {/* ─── 4. Open-Source Bundled Libraries ─── */}
+      {/* ─── 4. Electron & Chromium License Notice ─── */}
+      <div style={{ marginTop: '28px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <FileText size={15} style={{ color: 'var(--text-muted)' }} />
+          <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>
+            Electron & Chromium runtime notice
+          </h3>
+        </div>
+        <div
+          style={{
+            padding: '12px 14px',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '12px',
+            color: 'var(--text-2)',
+            lineHeight: 1.6,
+          }}
+        >
+          <p style={{ margin: '0 0 6px 0' }}>
+            Toiloki bundles the <strong>Electron</strong> runtime (Copyright OpenJS Foundation and contributors, MIT License) and portions of <strong>The Chromium Authors</strong> (BSD-style license).
+          </p>
+          <p style={{ margin: 0 }}>
+            Chromium media capabilities utilize a dynamically linked <code>ffmpeg.dll</code> shared library licensed under the <strong>GNU Lesser General Public License (LGPL 2.1)</strong>. Dynamic linking allows end users to substitute this binary in the application directory.
+          </p>
+        </div>
+      </div>
+
+      {/* ─── 5. Open-Source Bundled Libraries ─── */}
       <div style={{ marginTop: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <FileText size={15} style={{ color: 'var(--text-muted)' }} />
           <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>
-            Open-source notices and bundled software
+            Bundled open-source libraries (20)
           </h3>
         </div>
         <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
-          Toiloki is built with modern, reliable open-source libraries. Each library retains its respective copyright notices and permissive licensing:
+          All processing is 100% offline. Each bundled library operates under a permissive open-source license:
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -145,6 +196,9 @@ export const AboutSection: React.FC = () => {
                 <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text)', marginRight: '8px' }}>
                   {lib.name}
                 </span>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginRight: '10px' }}>
+                  v{lib.version}
+                </span>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                   {lib.description}
                 </span>
@@ -158,6 +212,7 @@ export const AboutSection: React.FC = () => {
                   border: '1px solid var(--border)',
                   borderRadius: 'var(--radius-xs)',
                   color: 'var(--text-2)',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {lib.license}

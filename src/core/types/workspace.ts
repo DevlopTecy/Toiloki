@@ -26,7 +26,7 @@ export interface AlsoListedInRef {
 }
 
 export type FeatureKind = 'option' | 'mode' | 'action' | 'output' | 'batch';
-export type FeatureStatus = 'ready' | 'soon';
+export type FeatureStatus = 'ready' | 'beta' | 'soon';
 
 export interface FeatureOptionItem {
   label: string;
