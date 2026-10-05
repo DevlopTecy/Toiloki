@@ -94,8 +94,8 @@ export const DeveloperSection: React.FC<DeveloperSectionProps> = ({
           inset: 0;
           pointer-events: none;
           z-index: 9999;
-          background-image: linear-gradient(to right, rgba(245, 165, 36, 0.08) 1px, transparent 1px),
-                            linear-gradient(to bottom, rgba(245, 165, 36, 0.08) 1px, transparent 1px);
+          background-image: linear-gradient(to right, var(--accent-soft) 1px, transparent 1px),
+                            linear-gradient(to bottom, var(--accent-soft) 1px, transparent 1px);
           background-size: 8px 8px;
         }
       `;
@@ -113,7 +113,7 @@ export const DeveloperSection: React.FC<DeveloperSectionProps> = ({
       const style = document.createElement('style');
       style.id = 'dev-outline-style';
       style.textContent = `
-        * { outline: 1px solid rgba(59, 130, 246, 0.35) !important; }
+        * { outline: 1px solid var(--accent) !important; }
       `;
       document.head.appendChild(style);
     } else {
@@ -245,7 +245,7 @@ export const DeveloperSection: React.FC<DeveloperSectionProps> = ({
                               height: '20px',
                               borderRadius: '3px',
                               backgroundColor: String(val),
-                              border: '1px solid rgba(0,0,0,0.2)',
+                              border: '1px solid var(--border)',
                             }}
                           />
                         ) : (
@@ -273,7 +273,7 @@ export const DeveloperSection: React.FC<DeveloperSectionProps> = ({
           >
             <div style={{ backgroundColor: 'var(--surface)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Renderer FPS</div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: fpsCounter >= 55 ? 'var(--color-success)' : 'var(--color-danger)' }}>
+              <div style={{ fontSize: '24px', fontWeight: 700, color: fpsCounter >= 55 ? 'var(--success)' : 'var(--danger)' }}>
                 {fpsCounter} <span style={{ fontSize: '12px', fontWeight: 400 }}>fps</span>
               </div>
             </div>
@@ -287,7 +287,7 @@ export const DeveloperSection: React.FC<DeveloperSectionProps> = ({
 
             <div style={{ backgroundColor: 'var(--surface)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Long Tasks (&gt; 50ms)</div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-success)' }}>
+              <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--success)' }}>
                 0
               </div>
             </div>
@@ -381,7 +381,7 @@ export const DeveloperSection: React.FC<DeveloperSectionProps> = ({
           {Object.entries(settings.experimentalFlags || {}).map(([flagKey, enabled]) => (
             <div key={flagKey} className="settings-row">
               <div className="settings-row-info">
-                <label className="settings-label" style={{ fontFamily: 'var(--font-mono)' }}>{flagKey}</label>
+                <label className="settings-label">{flagKey}</label>
                 <span className="settings-helper">Experimental feature gate for local engine optimization.</span>
               </div>
               <label className="settings-switch">

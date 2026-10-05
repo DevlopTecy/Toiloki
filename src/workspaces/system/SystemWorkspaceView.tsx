@@ -149,8 +149,8 @@ function HostsFileView() {
             <span style={{ width: 120, fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--accent)' }}>
               {h.ip}
             </span>
-            <span style={{ flex: 1, fontWeight: 500, color: 'var(--text-primary)' }}>{h.host}</span>
-            <span style={{ fontSize: 11, color: h.enabled ? '#4ade80' : 'var(--text-tertiary)' }}>
+            <span style={{ flex: 1, fontWeight: 500, color: 'var(--text)' }}>{h.host}</span>
+            <span style={{ fontSize: 11, color: h.enabled ? 'var(--success)' : 'var(--text-muted)' }}>
               {h.enabled ? '● Active' : '○ Commented'}
             </span>
           </div>
@@ -240,10 +240,10 @@ function ProcessViewerView() {
       <div className="sys-env-table">
         {tasks.map((t) => (
           <div key={t.pid} className="sys-env-row">
-            <span style={{ width: 80, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-tertiary)' }}>PID {t.pid}</span>
-            <span style={{ flex: 1, fontWeight: 600, color: 'var(--text-primary)' }}>{t.name}</span>
+            <span style={{ width: 80, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>PID {t.pid}</span>
+            <span style={{ flex: 1, fontWeight: 600, color: 'var(--text)' }}>{t.name}</span>
             <span style={{ width: 100, fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{t.memory}</span>
-            <span style={{ width: 60, fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>{t.cpu}</span>
+            <span style={{ width: 60, fontFamily: 'var(--font-mono)', color: 'var(--text-2)' }}>{t.cpu}</span>
           </div>
         ))}
       </div>
@@ -255,7 +255,7 @@ function ProcessViewerView() {
 function StartupItemsView() {
   return (
     <SysCard title="Windows Startup & Launch Items Registry">
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0 }}>
         Inspect standard registry run keys (HKCU/HKLM Software\Microsoft\Windows\CurrentVersion\Run).
       </p>
     </SysCard>
@@ -268,13 +268,13 @@ function ClipboardHistoryView() {
   return (
     <SysCard title="Local Clipboard History (In-Memory)">
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{history.length} items cached</span>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{history.length} items cached</span>
         <button className="tool-btn secondary small-btn" onClick={() => setHistory([])}>Clear History</button>
       </div>
       <div className="sys-env-table">
         {history.map((item, i) => (
           <div key={i} className="sys-env-row">
-            <code style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-primary)' }}>{item}</code>
+            <code style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text)' }}>{item}</code>
             <CopyBtn text={item} />
           </div>
         ))}

@@ -2265,7 +2265,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                             >
                               <div className="format-tile-header">
                                 <span className="format-tile-ext">.{tile.label}</span>
-                                {imageFormat === tile.id && <Check size={14} style={{ color: 'var(--accent, #D4B06A)' }} />}
+                                {imageFormat === tile.id && <Check size={14} style={{ color: 'var(--accent)' }} />}
                               </div>
                               <span className="format-tile-desc">{tile.desc}</span>
                             </button>
@@ -2842,7 +2842,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                           >
                             <div className="format-tile-header">
                               <span className="format-tile-ext">.{tile.label}</span>
-                              {dataFormat === tile.id && <Check size={14} style={{ color: 'var(--accent, #D4B06A)' }} />}
+                              {dataFormat === tile.id && <Check size={14} style={{ color: 'var(--accent)' }} />}
                             </div>
                             <span className="format-tile-desc">{tile.desc}</span>
                           </button>
@@ -3391,7 +3391,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Path Traversal Safety</span>
-                          <span style={{ color: '#34D399', fontWeight: 600 }}>Zip Slip Protected</span>
+                          <span style={{ color: 'var(--success)', fontWeight: 600 }}>Zip Slip Protected</span>
                         </div>
                       </div>
                     </div>

@@ -68,9 +68,9 @@
   font-weight: 500;
   padding: 1px 7px;
   border-radius: 4px;
-  background: rgba(212, 176, 106, 0.12);
-  color: var(--accent, #D4B06A);
-  border: 1px solid rgba(212, 176, 106, 0.28);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
   margin-left: 8px;
   line-height: 1.35;
 }
@@ -99,8 +99,7 @@
   align-items: center;
   font-size: 10px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.01em;
   padding: 2px 6px;
   border-radius: 4px;
   background: color-mix(in srgb, var(--accent) 15%, transparent);
@@ -164,9 +163,9 @@
 }
 
 .header-info-btn {
-  border: 1px solid rgba(212, 176, 106, 0.3) !important;
-  color: var(--accent, #D4B06A) !important;
-  background: rgba(212, 176, 106, 0.08) !important;
+  border: 1px solid var(--accent-soft) !important;
+  color: var(--accent) !important;
+  background: var(--accent-soft) !important;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -176,8 +175,8 @@
 }
 
 .header-info-btn:hover {
-  background: rgba(212, 176, 106, 0.16) !important;
-  border-color: rgba(212, 176, 106, 0.55) !important;
+  background: var(--accent-soft) !important;
+  border-color: var(--accent-soft) !important;
   color: var(--text) !important;
 }
 

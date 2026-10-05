@@ -289,11 +289,11 @@ export const FilesCanvas: React.FC<FilesCanvasProps> = ({
               </div>
               <div className="archive-stat-item">
                 <span className="stat-label">Uncompressed Size</span>
-                <span className="stat-value font-mono">{archiveStats.totalUncompressed}</span>
+                <span className="stat-value">{archiveStats.totalUncompressed}</span>
               </div>
               <div className="archive-stat-item">
                 <span className="stat-label">Compressed Size</span>
-                <span className="stat-value font-mono">{archiveStats.totalCompressed}</span>
+                <span className="stat-value">{archiveStats.totalCompressed}</span>
               </div>
               <div className="archive-stat-item">
                 <span className="stat-label">Compression Ratio</span>

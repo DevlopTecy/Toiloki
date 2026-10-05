@@ -24,8 +24,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 6px 12px;
 }
@@ -40,7 +40,7 @@
 .file-name-text {
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -51,10 +51,10 @@
   font-size: 10.5px;
   font-family: var(--font-mono);
   padding: 1px 6px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .image-split-main {
@@ -66,8 +66,8 @@
 
 /* ─── Left Image Preview ─── */
 .image-preview-panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
@@ -79,13 +79,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: var(--bg-raised);
-  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
 .preview-res-label {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-family: var(--font-mono);
 }
 
@@ -96,10 +96,10 @@
 }
 
 .zoom-btn {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   width: 22px;
   height: 22px;
   display: flex;
@@ -110,15 +110,15 @@
 }
 
 .zoom-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--border-default);
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border);
 }
 
 .zoom-level-label {
   font-size: 10.5px;
   font-family: var(--font-mono);
-  color: var(--text-secondary);
+  color: var(--text-2);
   min-width: 32px;
   text-align: center;
 }
@@ -129,14 +129,14 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background-color: #07080A;
+  background-color: var(--bg);
   overflow: hidden;
   position: relative;
   min-height: 300px;
 }
 
 [data-theme='light'] .image-canvas-viewport {
-  background-color: #ECEEF1;
+  background-color: var(--bg);
 }
 
 .preview-rendered-img {
@@ -155,8 +155,8 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: var(--accent-amber);
-  color: var(--text-inverse);
+  background: var(--accent);
+  color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,8 +168,8 @@
 
 /* ─── Right Controls Panel ─── */
 .image-controls-panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 14px;
   display: flex;
@@ -182,11 +182,10 @@
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: normal;
   text-transform: none;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   padding-bottom: 6px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border);
   margin: 0;
 }
 
@@ -200,8 +199,7 @@
   font-size: 11px;
   text-transform: none;
   font-weight: 600;
-  letter-spacing: normal;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-family: var(--font-sans);
 }
 
@@ -226,7 +224,7 @@
 
 .input-field label {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-2);
 }
 
 .checkbox-control {
@@ -234,12 +232,12 @@
   align-items: center;
   gap: 8px;
   font-size: 11.5px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   cursor: pointer;
 }
 
 .checkbox-control input {
-  accent-color: var(--accent-amber);
+  accent-color: var(--accent);
 }
 
 .orientation-btns-row {
@@ -262,17 +260,17 @@
 
 .slider-header label {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-2);
 }
 
 .slider-val {
   font-size: 11px;
   font-family: var(--font-mono);
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .slider-row input[type='range'] {
-  accent-color: var(--accent-amber);
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
@@ -281,28 +279,28 @@
   justify-content: space-between;
   align-items: center;
   padding: 6px 10px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 11px;
 }
 
 .est-label {
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .est-val {
   font-family: var(--font-mono);
   font-weight: 600;
-  color: var(--color-success);
+  color: var(--success);
 }
 
 .exif-tags-table {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   max-height: 180px;
@@ -316,11 +314,11 @@
 }
 
 .exif-k {
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .exif-v {
-  color: var(--text-primary);
+  color: var(--text);
   font-family: var(--font-mono);
 }
 
@@ -329,8 +327,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 8px 12px;
   flex-wrap: wrap;
@@ -345,11 +343,11 @@
 
 .info-chip {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .info-chip strong {
-  color: var(--text-primary);
+  color: var(--text);
   font-family: var(--font-mono);
 }
 

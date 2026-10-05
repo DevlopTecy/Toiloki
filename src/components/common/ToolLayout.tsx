@@ -70,7 +70,7 @@ export const ToolLayout: React.FC<ToolLayoutProps> = ({
                 title={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
                 type="button"
               >
-                <Star size={15} fill={isFavorite ? 'var(--accent-amber)' : 'none'} />
+                <Star size={15} fill={isFavorite ? 'var(--accent)' : 'none'} />
               </button>
             )}
           </div>

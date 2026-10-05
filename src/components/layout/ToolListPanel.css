@@ -211,7 +211,7 @@
 }
 
 .tool-item-btn:hover {
-  background-color: rgba(128, 128, 128, 0.08);
+  background-color: var(--surface-hover);
   color: var(--text);
 }
 
@@ -243,21 +243,20 @@
   border-radius: 4px;
   margin-left: auto;
   line-height: 1.35;
-  letter-spacing: normal;
   text-transform: none;
   flex-shrink: 0;
 }
 
 .tool-status-soon {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-muted, #8A8F98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--surface-hover);
 }
 
 .tool-status-beta {
-  background: rgba(212, 176, 106, 0.15);
-  color: var(--accent, #D4B06A);
-  border: 1px solid rgba(212, 176, 106, 0.28);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent-soft);
 }
 
 .tool-list-single-tool-group {

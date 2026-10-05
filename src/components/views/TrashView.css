@@ -17,12 +17,11 @@
   font-weight: 650;
   color: var(--text);
   margin: 0 0 4px 0;
-  letter-spacing: -0.02em;
 }
 
 .trash-subtitle {
   font-size: 13.5px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   margin: 0;
 }
 
@@ -40,12 +39,11 @@
 }
 
 .trash-table th {
-  background-color: var(--surface-raised);
+  background-color: var(--surface);
   padding: 10px 14px;
   font-size: 12px;
   font-weight: 500;
   text-transform: none;
-  letter-spacing: normal;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border);
 }
@@ -63,7 +61,7 @@
 }
 
 .trash-table tr:hover td {
-  background-color: var(--hover-surface);
+  background-color: var(--surface-hover);
 }
 
 .trash-empty-state {

@@ -137,7 +137,7 @@ function PasswordGeneratorView() {
 
   React.useEffect(() => { generate(); }, [length, uppercase, lowercase, numbers, symbols, ambiguous, exclude]);
 
-  const strengthColors = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#22c55e'];
+  const strengthColors = ['var(--danger)', 'var(--warning)', 'var(--warning)', 'var(--success)', 'var(--success)'];
 
   return (
     <SecCard title="Password Generator">
@@ -156,7 +156,7 @@ function PasswordGeneratorView() {
       </div>
       <div className="control-group">
         <label className="control-label">Exclude characters:</label>
-        <input className="control-input" value={exclude} onChange={e => setExclude(e.target.value)} placeholder="e.g. oO0Iil1" style={{ fontFamily: 'var(--font-mono)' }} />
+        <input className="control-input" value={exclude} onChange={e => setExclude(e.target.value)} placeholder="e.g. oO0Iil1" />
       </div>
       {error && <div className="sec-error">{error}</div>}
       <div className="sec-password-display">
@@ -240,7 +240,7 @@ function PasswordStrengthView() {
     return r.success ? r.data : null;
   }, [password]);
 
-  const strengthColors = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#22c55e'];
+  const strengthColors = ['var(--danger)', 'var(--warning)', 'var(--warning)', 'var(--success)', 'var(--success)'];
 
   return (
     <SecCard title="Password Strength Checker">
@@ -251,7 +251,7 @@ function PasswordStrengthView() {
             value={password} onChange={e => setPassword(e.target.value)}
             placeholder="Enter a password to analyze…" style={{ width: '100%', fontFamily: 'var(--font-mono)', paddingRight: 72 }} />
           <button onClick={() => setShowPassword(s => !s)}
-            style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 12 }}>
+            style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12 }}>
             {showPassword ? 'Hide' : 'Show'}
           </button>
         </div>
@@ -268,20 +268,20 @@ function PasswordStrengthView() {
             <span className="sec-strength-label" style={{ color: strengthColors[result.score], fontSize: 16, fontWeight: 700 }}>{result.label}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-            <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '10px 14px' }}>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Entropy</div>
+            <div style={{ background: 'var(--surface)', borderRadius: 6, padding: '10px 14px' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Entropy</div>
               <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{result.entropy} bits</div>
             </div>
-            <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '10px 14px' }}>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Crack Time</div>
+            <div style={{ background: 'var(--surface)', borderRadius: 6, padding: '10px 14px' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Crack Time</div>
               <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-mono)', color: strengthColors[result.score] }}>{result.crackTime}</div>
             </div>
           </div>
           {result.suggestions.length > 0 && (
-            <div style={{ background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.2)', borderRadius: 6, padding: '12px 16px' }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#f87171', marginBottom: 8 }}>Suggestions</div>
+            <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger)', borderRadius: 6, padding: '12px 16px' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--danger)', marginBottom: 8 }}>Suggestions</div>
               {result.suggestions.map(s => (
-                <div key={s} style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>• {s}</div>
+                <div key={s} style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 4 }}>• {s}</div>
               ))}
             </div>
           )}
@@ -346,10 +346,10 @@ function TOTPView() {
           <div style={{ fontSize: 52, fontWeight: 800, fontFamily: 'var(--font-mono)', letterSpacing: '0.3em', color: 'var(--accent)', marginBottom: 8 }}>
             {result.code}
           </div>
-          <div style={{ height: 4, background: 'var(--bg-hover)', borderRadius: 2, margin: '0 auto 8px', maxWidth: 200, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${progress}%`, background: progress > 25 ? 'var(--accent)' : '#f87171', borderRadius: 2, transition: 'width 1s linear' }} />
+          <div style={{ height: 4, background: 'var(--surface-hover)', borderRadius: 2, margin: '0 auto 8px', maxWidth: 200, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${progress}%`, background: progress > 25 ? 'var(--accent)' : 'var(--danger)', borderRadius: 2, transition: 'width 1s linear' }} />
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             Expires in {result.secondsRemaining}s · Valid until {result.validUntil}
           </div>
           <CopyButton text={result.code} />
@@ -419,12 +419,12 @@ function ChecksumView() {
       {result && (
         <div className={`sec-checksum-result ${expectedHash ? (result.match ? 'match' : 'mismatch') : ''}`}>
           {expectedHash && (
-            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, color: result.match ? '#4ade80' : '#f87171' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, color: result.match ? 'var(--success)' : 'var(--danger)' }}>
               {result.match ? '✓ Checksum matches' : '✗ Checksum does NOT match'}
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12, wordBreak: 'break-all', flex: 1, color: 'var(--text-secondary)' }}>
+            <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12, wordBreak: 'break-all', flex: 1, color: 'var(--text-2)' }}>
               {result.actualHash}
             </code>
             <CopyButton text={result.actualHash} />
@@ -462,15 +462,15 @@ function TextRedactionView() {
             <option value="label">[LABEL]</option>
           </select>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 600, marginBottom: 8, marginTop: 12 }}>DETECT & MASK</div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 8, marginTop: 12 }}>DETECT & MASK</div>
         {[['Email addresses', maskEmails, setMaskEmails], ['Phone numbers', maskPhones, setMaskPhones], ['SSN (US)', maskSSN, setMaskSSN], ['Credit cards', maskCreditCards, setMaskCreditCards], ['IP addresses', maskIPs, setMaskIPs]].map(([label, val, setter]: any) => (
           <label key={label} className="sec-checkbox-label" style={{ marginBottom: 8, display: 'block' }}>
             <input type="checkbox" checked={val} onChange={e => setter(e.target.checked)} /> {label}
           </label>
         ))}
         {result && (
-          <div style={{ marginTop: 16, padding: '8px 10px', background: 'var(--bg-raised)', borderRadius: 6, fontSize: 12 }}>
-            <div style={{ color: 'var(--text-tertiary)' }}>Redactions</div>
+          <div style={{ marginTop: 16, padding: '8px 10px', background: 'var(--surface)', borderRadius: 6, fontSize: 12 }}>
+            <div style={{ color: 'var(--text-muted)' }}>Redactions</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{result.redactionCount}</div>
           </div>
         )}
@@ -487,7 +487,7 @@ function TextRedactionView() {
             {result && <CopyButton text={result.redacted} />}
           </div>
           <textarea className="code-editor" readOnly value={result?.redacted || ''}
-            style={{ width: '100%', minHeight: 200, resize: 'vertical', color: 'var(--text-secondary)' }} />
+            style={{ width: '100%', minHeight: 200, resize: 'vertical', color: 'var(--text-2)' }} />
         </div>
       </div>
     </div>

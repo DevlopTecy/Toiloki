@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   height: 34px;
-  background-color: var(--surface-raised);
+  background-color: var(--surface);
   border-bottom: 1px solid var(--border);
   padding: 0 10px;
   gap: 4px;
@@ -23,7 +23,7 @@
   padding: 0 10px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-2);
   background-color: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
@@ -36,7 +36,7 @@
 
 .toiloki-tab-item:hover {
   color: var(--text);
-  background-color: var(--hover-surface);
+  background-color: var(--surface-hover);
 }
 
 .toiloki-tab-item.active {
@@ -54,7 +54,7 @@
   left: 6px;
   right: 6px;
   height: 2px;
-  background-color: var(--color-accent);
+  background-color: var(--accent);
   border-radius: 1px;
 }
 
@@ -85,7 +85,7 @@
 }
 
 .toiloki-tab-close:hover {
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: var(--surface-hover);
   color: var(--text);
 }
 
@@ -105,5 +105,5 @@
 
 .toiloki-new-tab-btn:hover {
   color: var(--text);
-  background-color: var(--hover-surface);
+  background-color: var(--surface-hover);
 }

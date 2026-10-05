@@ -322,7 +322,7 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
           )}
 
           <button className="canvas-tool-btn" onClick={copyToClipboard} title="Copy all text">
-            {copied ? <Check size={13} style={{ color: '#34d399' }} /> : <Copy size={13} />}
+            {copied ? <Check size={13} style={{ color: 'var(--success)' }} /> : <Copy size={13} />}
             <span>{copied ? 'Copied' : 'Copy'}</span>
           </button>
 
@@ -488,7 +488,7 @@ export const TextCanvas: React.FC<TextCanvasProps> = ({
                 })
               ) : (
                 <div className="diff-no-changes">
-                  <CheckCircle2 size={32} style={{ color: 'var(--accent, #D4B06A)' }} />
+                  <CheckCircle2 size={32} style={{ color: 'var(--accent)' }} />
                   <h4>No Differences Detected</h4>
                   <p>The current text is identical to the baseline.</p>
                 </div>

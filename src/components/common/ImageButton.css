@@ -44,6 +44,6 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: var(--text-inverse) !important;
+  color: var(--on-accent) !important;
   font-weight: 600;
 }

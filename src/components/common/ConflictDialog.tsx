@@ -24,7 +24,7 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
       isOpen={isOpen}
       onClose={onCancel}
       title="File Already Exists"
-      icon={<AlertCircle size={18} color="var(--color-warning)" />}
+      icon={<AlertCircle size={18} color="var(--warning)" />}
       width="440px"
       footer={
         <button className="tool-btn secondary" onClick={onCancel} type="button">
@@ -33,8 +33,8 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
-          A file named <strong style={{ color: 'var(--text-primary)' }}>"{fileName}"</strong> already
+        <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-2)' }}>
+          A file named <strong style={{ color: 'var(--text)' }}>"{fileName}"</strong> already
           exists in the destination directory. How would you like to proceed?
         </p>
 
@@ -45,9 +45,9 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
             onClick={onReplace}
             type="button"
           >
-            <FileX size={15} color="var(--color-danger)" />
+            <FileX size={15} color="var(--danger)" />
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Replace Existing File</div>
+              <div style={{ fontWeight: 600, color: 'var(--text)' }}>Replace Existing File</div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Overwrite the file with new output</div>
             </div>
           </button>
@@ -60,7 +60,7 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
           >
             <RefreshCw size={15} color="var(--accent-blue)" />
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Create New Name</div>
+              <div style={{ fontWeight: 600, color: 'var(--text)' }}>Create New Name</div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Auto-append sequential number (e.g. file (1).ext)</div>
             </div>
           </button>
@@ -71,9 +71,9 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
             onClick={onChooseLocation}
             type="button"
           >
-            <FolderOpen size={15} color="var(--text-secondary)" />
+            <FolderOpen size={15} color="var(--text-2)" />
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Choose Another Location</div>
+              <div style={{ fontWeight: 600, color: 'var(--text)' }}>Choose Another Location</div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Browse to select a different save folder</div>
             </div>
           </button>

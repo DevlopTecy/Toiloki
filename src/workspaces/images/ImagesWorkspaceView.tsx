@@ -693,7 +693,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
                   <div className="control-group-block">
                     <span className="group-heading">Contact Sheet Layout</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', marginTop: '6px' }}>
-                      <label style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Columns:</label>
+                      <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Columns:</label>
                       {[2, 3, 4, 5].map((cols) => (
                         <button
                           key={cols}
@@ -739,7 +739,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
                 {utilityId === 'img-before-after' && (
                   <div className="control-group-block">
                     <span className="group-heading">Comparison Setup</span>
-                    <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: 1.5, margin: '4px 0 8px 0' }}>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.5, margin: '4px 0 8px 0' }}>
                       Loaded {files.length} images. Click below to generate pixel-level difference analysis highlighting altered areas.
                     </p>
                   </div>
@@ -936,7 +936,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
                         onClick={handleStripExif}
                         type="button"
                       >
-                        <ShieldCheck size={12} color="var(--color-success)" />
+                        <ShieldCheck size={12} color="var(--success)" />
                         <span>Strip EXIF</span>
                       </button>
                     </div>
@@ -1015,15 +1015,15 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
             />
 
             {diffMeta && (
-              <div style={{ marginTop: '12px', padding: '10px 14px', background: 'rgba(212, 176, 106, 0.12)', border: '1px solid var(--accent-amber-border)', borderRadius: 'var(--radius-sm)', color: 'var(--accent-amber)', fontSize: '12px', fontWeight: 600 }}>
+              <div style={{ marginTop: '12px', padding: '10px 14px', background: 'var(--accent-soft)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--accent)', fontSize: '12px', fontWeight: 600 }}>
                 {diffMeta}
               </div>
             )}
 
             {spriteCss && (
-              <div style={{ marginTop: '16px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '14px' }}>
+              <div style={{ marginTop: '16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>Generated CSS Coordinates:</span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)' }}>Generated CSS Coordinates:</span>
                   <button
                     className="tool-btn secondary small-btn"
                     onClick={() => navigator.clipboard.writeText(spriteCss)}
@@ -1031,7 +1031,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
                     Copy CSS
                   </button>
                 </div>
-                <pre style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '11px', fontFamily: 'var(--font-mono)', overflowX: 'auto', color: 'var(--text-primary)' }}>
+                <pre style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '11px', fontFamily: 'var(--font-mono)', overflowX: 'auto', color: 'var(--text)' }}>
                   {spriteCss}
                 </pre>
               </div>

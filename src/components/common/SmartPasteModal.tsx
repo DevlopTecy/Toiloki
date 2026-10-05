@@ -82,7 +82,7 @@ export const SmartPasteModal: React.FC<SmartPasteModalProps> = ({
         {/* Header */}
         <div className="smart-paste-header">
           <div className="smart-paste-title-area">
-            <Clipboard size={16} style={{ color: 'var(--color-accent)' }} />
+            <Clipboard size={16} style={{ color: 'var(--accent)' }} />
             <h3 className="smart-paste-title">Smart Paste</h3>
             {detection && detection.formatId !== 'unknown' && (
               <span className="smart-paste-format-badge">{detection.badgeText}</span>

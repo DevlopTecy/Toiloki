@@ -23,18 +23,18 @@
   gap: 12px;
   padding: 10px 14px;
   border-radius: var(--radius-sm);
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
 .validation-status-banner.is-valid {
-  border-color: rgba(74, 222, 128, 0.22);
-  background: rgba(74, 222, 128, 0.05);
+  border-color: var(--success);
+  background: var(--success-bg);
 }
 
 .validation-status-banner.is-invalid {
-  border-color: rgba(248, 113, 113, 0.22);
-  background: rgba(248, 113, 113, 0.05);
+  border-color: var(--danger);
+  background: var(--danger-bg);
 }
 
 .validation-status-texts {
@@ -46,17 +46,17 @@
 .validation-main-title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .validation-sub-text {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-2);
 }
 
 .validation-location {
   font-size: 10.5px;
-  color: var(--color-danger);
+  color: var(--danger);
   margin-top: 2px;
 }
 
@@ -73,8 +73,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 6px 12px;
   flex-wrap: wrap;
@@ -87,25 +87,25 @@
   flex: 1;
   min-width: 180px;
   max-width: 300px;
-  background: var(--bg-input);
+  background: var(--surface);
   padding: 4px 10px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border);
 }
 
 .filter-input-wrap:focus-within {
-  border-color: var(--accent-amber);
+  border-color: var(--accent);
 }
 
 .filter-icon {
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .table-search-input {
   background: none;
   border: none;
   font-size: 11.5px;
-  color: var(--text-primary);
+  color: var(--text);
   width: 100%;
 }
 
@@ -122,7 +122,7 @@
 
 .col-label {
   font-size: 10.5px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -134,9 +134,9 @@
   font-family: var(--font-mono);
   padding: 1px 6px;
   border-radius: var(--radius-xs);
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -150,8 +150,8 @@
 
 .type-badge {
   font-size: 8.5px;
-  color: var(--text-tertiary);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  background: var(--surface-hover);
   padding: 1px 3px;
   border-radius: 2px;
 }
@@ -164,14 +164,14 @@
 
 .row-count-badge {
   font-size: 10.5px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-family: var(--font-mono);
 }
 
 /* ─── Interactive Table (34px Row Height) ─── */
 .data-table-scroll-wrapper {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   max-height: 480px;
   overflow: auto;
@@ -187,14 +187,13 @@
 .interactive-data-table th {
   height: 32px;
   padding: 0 12px;
-  background: var(--bg-input);
+  background: var(--surface);
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 500;
   text-transform: none;
-  letter-spacing: normal;
   font-family: var(--font-sans);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   cursor: pointer;
@@ -203,12 +202,12 @@
 }
 
 .interactive-data-table th:hover {
-  background: var(--bg-raised);
-  color: var(--text-primary);
+  background: var(--surface);
+  color: var(--text);
 }
 
 .interactive-data-table th.sorted-col {
-  color: var(--accent-amber);
+  color: var(--accent);
 }
 
 .th-content {
@@ -221,16 +220,16 @@
 .interactive-data-table td {
   height: 34px;
   padding: 0 12px;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
   font-family: var(--font-mono);
   font-size: 11px;
   white-space: nowrap;
 }
 
 .interactive-data-table tr:hover td {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: var(--surface-hover);
+  color: var(--text);
 }
 
 /* ─── Converter Selectors Bar ─── */
@@ -238,8 +237,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 8px 12px;
 }
@@ -253,12 +252,12 @@
 
 .selector-group label {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
 .arrow-icon {
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .view-mode-bar {
@@ -270,8 +269,8 @@
 /* ─── Monospace Editor & Tree View ─── */
 .code-editor-box,
 .tree-view-card {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
@@ -285,7 +284,7 @@
 .tree-content-block {
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--text-primary);
+  color: var(--text);
   margin: 0;
   max-height: 280px;
   overflow-y: auto;
@@ -297,22 +296,21 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: var(--bg-raised);
-  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
 .editor-lang-badge {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: normal;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: none;
   font-family: var(--font-sans);
 }
 
 .editor-lines-badge {
   font-size: 10px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-family: var(--font-mono);
 }
 
@@ -323,7 +321,7 @@
   padding: 12px;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--text-primary);
+  color: var(--text);
   line-height: 1.5;
   border: none;
   resize: vertical;

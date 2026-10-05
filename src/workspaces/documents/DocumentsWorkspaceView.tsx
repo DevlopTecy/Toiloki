@@ -458,7 +458,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
 
               <div style={{ display: 'flex', gap: '6px' }}>
                 <button className="tool-btn secondary" onClick={() => handleCopyText(editorText)}>
-                  {copied ? <Check size={13} color="var(--color-success)" /> : <Copy size={13} />}
+                  {copied ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
                   <span>{copied ? 'Copied' : 'Copy MD'}</span>
                 </button>
                 <button className="tool-btn primary" onClick={handleExportDocx}>
@@ -483,10 +483,10 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                     height: '360px',
                     overflowY: 'auto',
                     padding: '16px',
-                    background: 'var(--bg-panel)',
-                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
                     borderRadius: 'var(--radius-md)',
-                    color: 'var(--text-primary)',
+                    color: 'var(--text)',
                     fontSize: '13px',
                     lineHeight: 1.7,
                   }}
@@ -502,7 +502,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
           <div className="doc-editor-pane">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Format:</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Format:</span>
                 {(['markdown', 'numbered', 'bullets', 'html'] as const).map((fmt) => (
                   <button
                     key={fmt}
@@ -515,7 +515,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                 ))}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Max Depth:</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Max Depth:</span>
                 {[2, 3, 4].map((d) => (
                   <button
                     key={d}
@@ -536,14 +536,14 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                 Insert at Document Top
               </button>
               <button className="tool-btn primary" onClick={() => handleCopyText(generatedToc)}>
-                {copied ? <Check size={13} color="var(--color-success)" /> : <Copy size={13} />}
+                {copied ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
                 <span>{copied ? 'Copied TOC' : 'Copy TOC'}</span>
               </button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>
               <div>
-                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px', display: 'block' }}>
+                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>
                   Source Document Text:
                 </label>
                 <textarea
@@ -554,7 +554,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                 />
               </div>
               <div>
-                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px', display: 'block' }}>
+                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>
                   Generated Table of Contents:
                 </label>
                 <textarea
@@ -573,7 +573,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
           <div className="doc-editor-pane">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px', display: 'block' }}>
+                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>
                   Document Template (Use {'{{field}}'} placeholders):
                 </label>
                 <textarea
@@ -584,7 +584,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                 />
               </div>
               <div>
-                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px', display: 'block' }}>
+                <label className="editor-label" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>
                   Recipient Records (CSV format with headers):
                 </label>
                 <textarea
@@ -602,14 +602,14 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                 <span>Execute Mail Merge</span>
               </button>
               {mergedDocs.length > 0 && (
-                <span style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: 600 }}>
+                <span style={{ fontSize: '11px', color: 'var(--success)', fontWeight: 600 }}>
                   ✓ Merged {mergedDocs.length} personalized documents
                 </span>
               )}
             </div>
 
             {mergedDocs.length > 0 && (
-              <div style={{ marginTop: '12px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '14px' }}>
+              <div style={{ marginTop: '12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {mergedDocs.map((_, i) => (
@@ -624,7 +624,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                     ))}
                   </div>
                   <button className="tool-btn secondary" onClick={() => handleCopyText(mergedDocs[activeMergedIndex])}>
-                    {copied ? <Check size={13} color="var(--color-success)" /> : <Copy size={13} />}
+                    {copied ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
                     <span>Copy Document #{activeMergedIndex + 1}</span>
                   </button>
                 </div>
@@ -636,7 +636,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                     fontFamily: 'var(--font-mono)',
                     fontSize: '12px',
                     whiteSpace: 'pre-wrap',
-                    color: 'var(--text-primary)',
+                    color: 'var(--text)',
                   }}
                 >
                   {mergedDocs[activeMergedIndex]}
@@ -649,9 +649,9 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
         {/* 4. Batch Find & Replace */}
         {utilityId === 'doc-batch-find-replace' && !outputResult && (
           <div className="doc-editor-pane">
-            <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '12px' }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>Replacement Rules:</span>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text)' }}>Replacement Rules:</span>
                 <button
                   type="button"
                   className="tool-btn secondary"
@@ -670,7 +670,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
 
               {batchRules.map((rule, idx) => (
                 <div key={rule.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', width: '20px' }}>#{idx + 1}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', width: '20px' }}>#{idx + 1}</span>
                   <input
                     type="text"
                     placeholder="Find pattern..."
@@ -682,16 +682,16 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                     }}
                     style={{
                       flex: '1 1 140px',
-                      background: 'var(--bg-input)',
-                      border: '1px solid var(--border-subtle)',
-                      color: 'var(--text-primary)',
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text)',
                       padding: '4px 8px',
                       borderRadius: '4px',
                       fontFamily: 'var(--font-mono)',
                       fontSize: '11px',
                     }}
                   />
-                  <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>→</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>→</span>
                   <input
                     type="text"
                     placeholder="Replace with..."
@@ -703,16 +703,16 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                     }}
                     style={{
                       flex: '1 1 140px',
-                      background: 'var(--bg-input)',
-                      border: '1px solid var(--border-subtle)',
-                      color: 'var(--text-primary)',
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text)',
                       padding: '4px 8px',
                       borderRadius: '4px',
                       fontFamily: 'var(--font-mono)',
                       fontSize: '11px',
                     }}
                   />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-tertiary)', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={rule.matchCase}
@@ -724,7 +724,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                     />
                     Case
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-tertiary)', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={rule.matchWholeWord}
@@ -736,7 +736,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                     />
                     Whole
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-tertiary)', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={rule.isRegex}
@@ -766,7 +766,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                   <span>Execute All Rules</span>
                 </button>
                 {batchResultReport && (
-                  <span style={{ fontSize: '11px', color: 'var(--accent-amber)', fontWeight: 600 }}>{batchResultReport}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 600 }}>{batchResultReport}</span>
                 )}
               </div>
             </div>
@@ -792,8 +792,8 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
             />
 
             {officeMeta && (
-              <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
-                <h4 style={{ fontSize: '13px', color: 'var(--text-primary)', marginBottom: '12px' }}>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
+                <h4 style={{ fontSize: '13px', color: 'var(--text)', marginBottom: '12px' }}>
                   Document Metadata Properties:
                 </h4>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', marginBottom: '16px' }}>

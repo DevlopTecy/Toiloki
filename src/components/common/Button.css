@@ -65,7 +65,7 @@
 /* 1. Primary: Orange Accent Fill, Dark Text */
 .toiloki-btn-primary {
   background-color: var(--accent);
-  color: var(--text-inverse);
+  color: var(--on-accent);
   border: 1px solid var(--accent);
 }
 

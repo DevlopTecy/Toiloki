@@ -491,7 +491,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
 
                         <div className="info-table-row">
                           <span className="info-th">MIME Type</span>
-                          <span className="info-td font-mono">{item.typeInfo.mime}</span>
+                          <span className="info-td">{item.typeInfo.mime}</span>
                           <button
                             className="copy-mini-btn"
                             onClick={() => copyToClipboard(item.typeInfo.mime, `mime-${idx}`)}
@@ -587,7 +587,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
 
           {deleteNotice && (
             <div className="delete-notice-banner">
-              <CheckCircle size={14} color="var(--color-success)" />
+              <CheckCircle size={14} color="var(--success)" />
               <span>{deleteNotice}</span>
             </div>
           )}
@@ -635,7 +635,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
                 <div key={hash} className="dup-group-box">
                   <div className="dup-group-header">
                     <div className="dup-group-title">
-                      <ShieldCheck size={15} color="var(--color-success)" />
+                      <ShieldCheck size={15} color="var(--success)" />
                       <span>Group #{i + 1} ({group.files.length} copies)</span>
                       <span className="dup-group-size">
                         Total: {(group.totalSize / 1024).toFixed(1)} KB
@@ -713,7 +713,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
               <div className={`comp-banner ${compareResult.identical ? 'match' : 'mismatch'}`}>
                 {compareResult.identical ? (
                   <>
-                    <CheckCircle size={20} color="var(--color-success)" />
+                    <CheckCircle size={20} color="var(--success)" />
                     <div>
                       <h4 className="comp-title">Files are 100% Identical</h4>
                       <p className="comp-sub">
@@ -723,7 +723,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
                   </>
                 ) : (
                   <>
-                    <XCircle size={20} color="var(--color-danger)" />
+                    <XCircle size={20} color="var(--danger)" />
                     <div>
                       <h4 className="comp-title">Files Differ</h4>
                       <p className="comp-sub">
@@ -890,7 +890,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
 
                     {archiveSuccessBytes && (
                       <div className="zip-success-note">
-                        <CheckCircle size={14} color="var(--color-success)" />
+                        <CheckCircle size={14} color="var(--success)" />
                         <span>
                           Created archive ({(archiveSuccessBytes / 1024).toFixed(1)} KB)
                         </span>

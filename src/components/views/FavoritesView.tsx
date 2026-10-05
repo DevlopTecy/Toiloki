@@ -119,7 +119,7 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({ onSelectUtility })
                     onClick={(e) => handleRemoveFavorite(e, fav.utilityId)}
                     title="Remove from favorites"
                   >
-                    <Star size={16} fill="var(--color-warning)" color="var(--color-warning)" />
+                    <Star size={16} fill="var(--warning)" color="var(--warning)" />
                   </button>
                 </div>
               </div>

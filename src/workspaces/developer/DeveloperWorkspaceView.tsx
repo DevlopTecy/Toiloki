@@ -661,16 +661,16 @@ function QRGeneratorView({ utilityId }: { utilityId: string }) {
         <button className="btn-primary" onClick={generate} disabled={loading}>
           {loading ? 'Generating…' : 'Generate QR Code'}
         </button>
-        {error && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginTop: 8 }}>{error}</div>}
+        {error && <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 8 }}>{error}</div>}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
         {qrDataUrl ? (
           <>
-            <img src={qrDataUrl} alt="QR Code" style={{ border: '1px solid var(--border-default)', borderRadius: 8 }} />
+            <img src={qrDataUrl} alt="QR Code" style={{ border: '1px solid var(--border)', borderRadius: 8 }} />
             <button className="btn-secondary" onClick={downloadQR} style={{ width: '100%' }}>Download PNG</button>
           </>
         ) : (
-          <div style={{ width: size, height: size, background: 'var(--bg-raised)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: 12 }}>
+          <div style={{ width: size, height: size, background: 'var(--surface)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
             QR preview
           </div>
         )}
@@ -708,42 +708,42 @@ function CronExplainerView() {
     <div style={{ padding: '24px 32px', flex: 1, overflow: 'auto' }}>
       <div className="control-group" style={{ maxWidth: 500 }}>
         <label className="control-label">Cron Expression (5 fields):</label>
-        <input className="control-input" style={{ fontFamily: 'var(--font-mono)', fontSize: 18, letterSpacing: '0.1em' }}
+        <input className="control-input" style={{ fontSize: 18 }}
           value={expr} onChange={e => setExpr(e.target.value)} placeholder="* * * * *" />
-        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>
           min  hour  day  month  weekday
         </div>
       </div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
         {presets.map(p => (
           <button key={p.value} onClick={() => setExpr(p.value)}
-            style={{ fontSize: 11, padding: '3px 8px', background: expr === p.value ? 'var(--accent)' : 'var(--bg-raised)', color: expr === p.value ? 'var(--bg)' : 'var(--text-secondary)', border: '1px solid var(--border-default)', borderRadius: 4, cursor: 'pointer' }}>
+            style={{ fontSize: 11, padding: '3px 8px', background: expr === p.value ? 'var(--accent)' : 'var(--surface)', color: expr === p.value ? 'var(--on-accent)' : 'var(--text-2)', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer' }}>
             {p.label}
           </button>
         ))}
       </div>
-      {err && <div style={{ color: 'var(--accent-red)', fontSize: 13 }}>{err}</div>}
+      {err && <div style={{ color: 'var(--danger)', fontSize: 13 }}>{err}</div>}
       {result && (
         <div style={{ display: 'flex', gap: 24 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '16px 20px', marginBottom: 16 }}>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Human Readable</div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>{result.human}</div>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '16px 20px', marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Human Readable</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text)' }}>{result.human}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
               {Object.entries(result.parts).map(([field, val]) => (
-                <div key={field} style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '8px 10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: 2 }}>{field}</div>
+                <div key={field} style={{ background: 'var(--surface)', borderRadius: 6, padding: '8px 10px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 2 }}>{field}</div>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, color: 'var(--accent)' }}>{val}</div>
                 </div>
               ))}
             </div>
           </div>
           <div style={{ width: 280 }}>
-            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 8 }}>NEXT 10 RUNS</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>NEXT 10 RUNS</div>
             {result.nextRuns.slice(0, 10).map((run, i) => (
-              <div key={i} style={{ padding: '5px 0', borderBottom: '1px solid var(--border-subtle)', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
-                <span style={{ color: 'var(--text-tertiary)', marginRight: 8 }}>{i + 1}.</span>{run}
+              <div key={i} style={{ padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--text-2)' }}>
+                <span style={{ color: 'var(--text-muted)', marginRight: 8 }}>{i + 1}.</span>{run}
               </div>
             ))}
           </div>
@@ -782,17 +782,17 @@ function PxRemView() {
           <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 8 }}>
             {result.result}{dir === 'pxToRem' ? 'rem' : 'px'}
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginBottom: 20 }}>{result.formula}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: 20 }}>{result.formula}</div>
           <table style={{ borderCollapse: 'collapse', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
             <thead>
               <tr>
-                <th style={{ padding: '6px 16px 6px 0', textAlign: 'left', color: 'var(--text-secondary)' }}>px</th>
-                <th style={{ padding: '6px 16px', textAlign: 'left', color: 'var(--text-secondary)' }}>rem</th>
+                <th style={{ padding: '6px 16px 6px 0', textAlign: 'left', color: 'var(--text-2)' }}>px</th>
+                <th style={{ padding: '6px 16px', textAlign: 'left', color: 'var(--text-2)' }}>rem</th>
               </tr>
             </thead>
             <tbody>
               {result.scale.map(row => (
-                <tr key={row.px} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                <tr key={row.px} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '4px 16px 4px 0' }}>{row.px}px</td>
                   <td style={{ padding: '4px 16px', color: 'var(--accent)' }}>{row.rem}rem</td>
                 </tr>
@@ -820,12 +820,12 @@ function ChmodView() {
   }, [mode]);
 
   const PermBox = ({ label, perm }: { label: string; perm: { read: boolean; write: boolean; execute: boolean } }) => (
-    <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '12px 16px', textAlign: 'center' }}>
-      <div style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, marginBottom: 8 }}>{label}</div>
+    <div style={{ background: 'var(--surface)', borderRadius: 6, padding: '12px 16px', textAlign: 'center' }}>
+      <div style={{ fontSize: 11, color: 'var(--text-2)', fontWeight: 600, marginBottom: 8 }}>{label}</div>
       {[['r', perm.read, 'Read'], ['w', perm.write, 'Write'], ['x', perm.execute, 'Execute']].map(([sym, on, name]) => (
         <div key={sym as string} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-          <div style={{ width: 18, height: 18, borderRadius: 3, background: on ? 'var(--accent)' : 'var(--bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: on ? 'var(--bg)' : 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>{on ? sym : '—'}</div>
-          <span style={{ fontSize: 12, color: on ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>{name as string}</span>
+          <div style={{ width: 18, height: 18, borderRadius: 3, background: on ? 'var(--accent)' : 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: on ? 'var(--bg)' : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{on ? sym : '—'}</div>
+          <span style={{ fontSize: 12, color: on ? 'var(--text)' : 'var(--text-muted)' }}>{name as string}</span>
         </div>
       ))}
     </div>
@@ -835,17 +835,17 @@ function ChmodView() {
     <div style={{ padding: '24px 32px', flex: 1 }}>
       <div className="control-group" style={{ maxWidth: 300 }}>
         <label className="control-label">Mode (octal or symbolic):</label>
-        <input className="control-input" style={{ fontFamily: 'var(--font-mono)', fontSize: 18 }}
+        <input className="control-input" style={{ fontSize: 18 }}
           value={mode} onChange={e => setMode(e.target.value)} placeholder="755 or rwxr-xr-x" />
       </div>
-      {err && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginBottom: 12 }}>{err}</div>}
+      {err && <div style={{ color: 'var(--danger)', fontSize: 12, marginBottom: 12 }}>{err}</div>}
       {result && (
         <>
           <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{result.octal}</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'var(--text-secondary)' }}>{result.symbolic}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'var(--text-2)' }}>{result.symbolic}</div>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 16 }}>Bitmask: {result.bitmask}</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>Bitmask: {result.bitmask}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, maxWidth: 480 }}>
             <PermBox label="Owner" perm={result.owner} />
             <PermBox label="Group" perm={result.group} />
@@ -879,9 +879,9 @@ function UserAgentView() {
       {result && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, maxWidth: 600 }}>
           {[['Browser', result.browser], ['Operating System', result.os], ['Rendering Engine', result.engine], ['Device Type', result.device]].map(([label, val]) => (
-            <div key={label} style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '10px 14px' }}>
-              <div style={{ fontSize: 10, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{val || 'Unknown'}</div>
+            <div key={label} style={{ background: 'var(--surface)', borderRadius: 6, padding: '10px 14px' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{val || 'Unknown'}</div>
             </div>
           ))}
         </div>
@@ -921,7 +921,7 @@ function GitignoreView() {
   return (
     <div style={{ padding: '24px 32px', flex: 1, display: 'flex', gap: 24 }}>
       <div style={{ width: 200 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>Select Technologies</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>Select Technologies</div>
         {techs.map(t => (
           <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, cursor: 'pointer', fontSize: 13 }}>
             <input type="checkbox" checked={selected.includes(t.id)} onChange={() => toggle(t.id)} />
@@ -931,7 +931,7 @@ function GitignoreView() {
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>.gitignore preview</span>
+          <span style={{ fontSize: 12, color: 'var(--text-2)' }}>.gitignore preview</span>
           <button className="btn-primary" onClick={download}>Download .gitignore</button>
         </div>
         <textarea className="code-editor" readOnly value={output} style={{ flex: 1, minHeight: 400, fontFamily: 'var(--font-mono)', fontSize: 12 }} />
@@ -964,30 +964,30 @@ function EnvDiffView() {
       {result && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           {result.missingInFirst.length > 0 && (
-            <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '12px 16px' }}>
-              <div style={{ fontSize: 11, color: '#f87171', fontWeight: 600, marginBottom: 8 }}>MISSING IN .env ({result.missingInFirst.length})</div>
-              {result.missingInFirst.map(k => <div key={k} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: '#f87171' }}>{k}</div>)}
+            <div style={{ background: 'var(--surface)', borderRadius: 6, padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 600, marginBottom: 8 }}>MISSING IN .env ({result.missingInFirst.length})</div>
+              {result.missingInFirst.map(k => <div key={k} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--danger)' }}>{k}</div>)}
             </div>
           )}
           {result.missingInSecond.length > 0 && (
-            <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '12px 16px' }}>
-              <div style={{ fontSize: 11, color: '#facc15', fontWeight: 600, marginBottom: 8 }}>MISSING IN TEMPLATE ({result.missingInSecond.length})</div>
-              {result.missingInSecond.map(k => <div key={k} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: '#facc15' }}>{k}</div>)}
+            <div style={{ background: 'var(--surface)', borderRadius: 6, padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: 'var(--warning)', fontWeight: 600, marginBottom: 8 }}>MISSING IN TEMPLATE ({result.missingInSecond.length})</div>
+              {result.missingInSecond.map(k => <div key={k} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--warning)' }}>{k}</div>)}
             </div>
           )}
           {result.commonKeys.length > 0 && (
-            <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '12px 16px' }}>
-              <div style={{ fontSize: 11, color: '#4ade80', fontWeight: 600, marginBottom: 8 }}>SHARED KEYS ({result.commonKeys.length})</div>
-              {result.commonKeys.slice(0, 10).map(k => <div key={k} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-secondary)' }}>{k}</div>)}
+            <div style={{ background: 'var(--surface)', borderRadius: 6, padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: 'var(--success)', fontWeight: 600, marginBottom: 8 }}>SHARED KEYS ({result.commonKeys.length})</div>
+              {result.commonKeys.slice(0, 10).map(k => <div key={k} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-2)' }}>{k}</div>)}
             </div>
           )}
           {result.differing.length > 0 && (
-            <div style={{ background: 'var(--bg-raised)', borderRadius: 6, padding: '12px 16px' }}>
-              <div style={{ fontSize: 11, color: '#60a5fa', fontWeight: 600, marginBottom: 8 }}>DIFFERING VALUES ({result.differing.length})</div>
+            <div style={{ background: 'var(--surface)', borderRadius: 6, padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: 'var(--cat-documents)', fontWeight: 600, marginBottom: 8 }}>DIFFERING VALUES ({result.differing.length})</div>
               {result.differing.map(d => (
                 <div key={d.key} style={{ marginBottom: 4 }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-primary)', fontWeight: 600 }}>{d.key}</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-tertiary)' }}>{d.val1 || '(empty)'} → {d.val2 || '(empty)'}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>{d.key}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>{d.val1 || '(empty)'} → {d.val2 || '(empty)'}</div>
                 </div>
               ))}
             </div>

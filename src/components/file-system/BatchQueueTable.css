@@ -3,8 +3,8 @@
    ═══════════════════════════════════════════════════ */
 
 .batch-queue-container {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
@@ -16,8 +16,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 14px;
-  background: var(--bg-raised);
-  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
 .batch-header-left {
@@ -30,13 +30,13 @@
   font-family: var(--font-display);
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   letter-spacing: 0.01em;
 }
 
 .batch-counts {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-family: var(--font-mono);
 }
 
@@ -62,13 +62,13 @@
 
 /* Primary Button: Amber filled, black text */
 .batch-btn.primary {
-  background: var(--accent-amber);
-  color: var(--text-inverse);
+  background: var(--accent);
+  color: var(--on-accent);
   font-weight: 600;
 }
 
 .batch-btn.primary:hover:not(:disabled) {
-  background: var(--accent-amber-hover);
+  background: var(--accent-hover);
 }
 
 .batch-btn.primary:disabled {
@@ -77,25 +77,25 @@
 }
 
 .batch-btn.danger {
-  background: rgba(248, 113, 113, 0.08);
-  border: 1px solid rgba(248, 113, 113, 0.22);
-  color: var(--color-danger);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  color: var(--danger);
 }
 
 .batch-btn.danger:hover {
-  background: rgba(248, 113, 113, 0.16);
+  background: var(--danger-bg);
 }
 
 .batch-btn.secondary {
-  background: var(--bg-raised);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
 }
 
 .batch-btn.secondary:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--border-default);
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border);
 }
 
 .batch-btn.text {
@@ -104,7 +104,7 @@
 }
 
 .batch-btn.text:hover:not(:disabled) {
-  color: var(--color-danger);
+  color: var(--danger);
 }
 
 /* ─── Table Structure (34px Row Height) ─── */
@@ -127,10 +127,9 @@
   font-weight: 500;
   color: var(--text-muted);
   text-transform: none;
-  letter-spacing: normal;
   font-family: var(--font-sans);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-input);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
   position: sticky;
   top: 0;
   z-index: 2;
@@ -139,8 +138,8 @@
 .batch-table td {
   height: 34px;
   padding: 0 12px;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
   font-size: 12px;
 }
 
@@ -149,7 +148,7 @@
 }
 
 .batch-row:hover td {
-  background: var(--bg-hover);
+  background: var(--surface-hover);
 }
 
 .col-file {
@@ -163,12 +162,12 @@
 }
 
 .file-icon {
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
 .file-name {
-  color: var(--text-primary);
+  color: var(--text);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -180,7 +179,7 @@
   width: 12%;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .col-status {
@@ -200,18 +199,18 @@
 .progress-track {
   flex: 1;
   height: 2px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-hover);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
 
 [data-theme='light'] .progress-track {
-  background: rgba(0, 0, 0, 0.10);
+  background: var(--surface-hover);
 }
 
 .progress-fill {
   height: 100%;
-  background: var(--accent-amber);
+  background: var(--accent);
   border-radius: var(--radius-full);
   transition: width 150ms ease;
 }
@@ -219,7 +218,7 @@
 .progress-num {
   font-size: 10.5px;
   font-family: var(--font-mono);
-  color: var(--accent-amber);
+  color: var(--accent);
   min-width: 28px;
 }
 
@@ -236,11 +235,11 @@
 }
 
 .result-text.success {
-  color: var(--color-success);
+  color: var(--success);
 }
 
 .result-text.error {
-  color: var(--color-danger);
+  color: var(--danger);
 }
 
 .result-text.muted {
@@ -248,7 +247,7 @@
 }
 
 .result-text.active {
-  color: var(--accent-amber);
+  color: var(--accent);
 }
 
 .col-action {
@@ -260,7 +259,7 @@
   background: none;
   border: none;
   font-size: 13px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   cursor: pointer;
   padding: 2px 4px;
   line-height: 1;
@@ -269,6 +268,6 @@
 }
 
 .row-remove-btn:hover {
-  color: var(--color-danger);
-  background: rgba(248, 113, 113, 0.1);
+  color: var(--danger);
+  background: var(--danger-bg);
 }

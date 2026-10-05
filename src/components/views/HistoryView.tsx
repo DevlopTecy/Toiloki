@@ -99,9 +99,9 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onOpenUtility }) => {
                     <span className="truncate-text">{rec.input}</span>
                   </td>
                   <td className="col-output" title={rec.output}>
-                    <span className="truncate-text font-mono">{rec.output}</span>
+                    <span className="truncate-text">{rec.output}</span>
                     {rec.outputExists === false && (
-                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--accent-warning)', marginTop: '2px' }}>
+                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--warning)', marginTop: '2px' }}>
                         (Result no longer exists)
                       </span>
                     )}

@@ -22,7 +22,7 @@
 
 .history-subtitle {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   margin-top: 2px;
 }
 
@@ -33,11 +33,11 @@
 }
 
 .history-filter-box input {
-  background-color: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 4px 10px;
-  color: var(--text-primary);
+  color: var(--text);
   font-size: 12px;
   outline: none;
   width: 180px;
@@ -45,27 +45,27 @@
 }
 
 .history-filter-box input:focus {
-  border-color: var(--accent-amber);
+  border-color: var(--accent);
 }
 
 .clear-history-btn {
   display: flex;
   align-items: center;
   gap: 5px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 4px 10px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-size: 11.5px;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .clear-history-btn:hover {
-  background-color: rgba(248, 113, 113, 0.08);
-  color: var(--color-danger);
-  border-color: rgba(248, 113, 113, 0.22);
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .history-empty {
@@ -75,22 +75,22 @@
   justify-content: center;
   padding: 48px 20px;
   text-align: center;
-  background-color: var(--bg-panel);
-  border: 1px dashed var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px dashed var(--border);
   border-radius: var(--radius-md);
   gap: 8px;
 }
 
 .history-empty p {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   margin: 0;
 }
 
 /* ─── History Table (34px Row Height) ─── */
 .history-table-wrapper {
-  background-color: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -108,18 +108,17 @@
   font-weight: 500;
   color: var(--text-muted);
   text-transform: none;
-  letter-spacing: normal;
   font-family: var(--font-sans);
-  background-color: var(--bg-input);
-  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
 .history-table td {
   height: 34px;
   padding: 0 12px;
   font-size: 12px;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
 }
 
 .history-table-row:last-child td {
@@ -127,7 +126,7 @@
 }
 
 .history-table-row:hover td {
-  background-color: var(--bg-hover);
+  background-color: var(--surface-hover);
 }
 
 .col-status {
@@ -136,7 +135,7 @@
 
 .col-tool {
   width: 180px;
-  color: var(--text-primary);
+  color: var(--text);
   font-weight: 500;
 }
 
@@ -166,7 +165,7 @@
 
 .font-muted {
   font-size: 10.5px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .col-date {
@@ -189,24 +188,24 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: var(--bg-raised);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   padding: 2px 7px;
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .hist-action-btn:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--border-default);
+  background-color: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border);
 }
 
 .hist-action-btn.delete:hover {
-  color: var(--color-danger);
-  background-color: rgba(248, 113, 113, 0.08);
-  border-color: rgba(248, 113, 113, 0.22);
+  color: var(--danger);
+  background-color: var(--danger-bg);
+  border-color: var(--danger);
 }

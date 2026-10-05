@@ -65,7 +65,7 @@ export const TrashView: React.FC = () => {
           </p>
         </div>
         {items.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={handlePurgeAll} style={{ color: 'var(--color-danger)' }}>
+          <Button variant="ghost" size="sm" onClick={handlePurgeAll} style={{ color: 'var(--danger)' }}>
             <Trash2 size={13} style={{ marginRight: '6px' }} />
             Empty Trash ({items.length})
           </Button>
@@ -100,12 +100,12 @@ export const TrashView: React.FC = () => {
                 <tr key={item.id}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <FileText size={14} style={{ color: 'var(--color-accent)' }} />
+                      <FileText size={14} style={{ color: 'var(--accent)' }} />
                       <span style={{ fontWeight: 600 }}>{item.fileName}</span>
                     </div>
                   </td>
                   <td>
-                    <code style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                    <code style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-2)' }}>
                       {item.originalPath}
                     </code>
                   </td>
@@ -114,7 +114,7 @@ export const TrashView: React.FC = () => {
                       style={{
                         fontSize: '11px',
                         fontFamily: 'var(--font-mono)',
-                        backgroundColor: 'var(--surface-raised)',
+                        backgroundColor: 'var(--surface)',
                         padding: '2px 6px',
                         borderRadius: '3px',
                       }}

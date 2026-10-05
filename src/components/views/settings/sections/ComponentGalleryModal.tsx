@@ -177,14 +177,14 @@ export const ComponentGalleryModal: React.FC<ComponentGalleryModalProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div
                 style={{
-                  backgroundColor: 'rgba(74, 222, 128, 0.10)',
-                  border: '1px solid rgba(74, 222, 128, 0.25)',
+                  backgroundColor: 'var(--success-bg)',
+                  border: '1px solid var(--success)',
                   borderRadius: 'var(--radius-sm)',
                   padding: '10px 14px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  color: 'var(--color-success)',
+                  color: 'var(--success)',
                   fontSize: '12.5px',
                 }}
               >
@@ -193,14 +193,14 @@ export const ComponentGalleryModal: React.FC<ComponentGalleryModalProps> = ({
 
               <div
                 style={{
-                  backgroundColor: 'rgba(239, 68, 68, 0.10)',
-                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  backgroundColor: 'var(--danger-bg)',
+                  border: '1px solid var(--danger)',
                   borderRadius: 'var(--radius-sm)',
                   padding: '10px 14px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  color: 'var(--color-danger)',
+                  color: 'var(--danger)',
                   fontSize: '12.5px',
                 }}
               >

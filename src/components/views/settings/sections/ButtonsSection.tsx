@@ -25,16 +25,16 @@ const ACTION_ICONS = [
 ];
 
 const CARD_ITEMS = [
-  { id: 'pdf', label: 'PDF Workspace', categoryColor: 'var(--cat-pdf, #EF4444)' },
-  { id: 'documents', label: 'Documents', categoryColor: 'var(--cat-documents, #3B82F6)' },
-  { id: 'images', label: 'Images', categoryColor: 'var(--cat-images, #22C55E)' },
-  { id: 'data', label: 'Data & Sheets', categoryColor: 'var(--cat-data, #F59E0B)' },
-  { id: 'text', label: 'Text & Formatting', categoryColor: 'var(--cat-text, #8B5CF6)' },
-  { id: 'developer', label: 'Developer Utilities', categoryColor: 'var(--cat-developer, #F97316)' },
-  { id: 'calculator', label: 'Calculators & Units', categoryColor: 'var(--cat-calculator, #EAB308)' },
-  { id: 'files', label: 'Files & Archives', categoryColor: 'var(--cat-files, #3B82F6)' },
-  { id: 'hero', label: 'Home Hero Banner', categoryColor: 'var(--accent, #F5A524)' },
-  { id: 'button-skin', label: 'Primary Button Skin', categoryColor: 'var(--accent, #F5A524)' },
+  { id: 'pdf', label: 'PDF Workspace', categoryColor: 'var(--cat-pdf)' },
+  { id: 'documents', label: 'Documents', categoryColor: 'var(--cat-documents)' },
+  { id: 'images', label: 'Images', categoryColor: 'var(--cat-images)' },
+  { id: 'data', label: 'Data & Sheets', categoryColor: 'var(--cat-data)' },
+  { id: 'text', label: 'Text & Formatting', categoryColor: 'var(--cat-text)' },
+  { id: 'developer', label: 'Developer Utilities', categoryColor: 'var(--cat-developer)' },
+  { id: 'calculator', label: 'Calculators & Units', categoryColor: 'var(--cat-calculator)' },
+  { id: 'files', label: 'Files & Archives', categoryColor: 'var(--cat-files)' },
+  { id: 'hero', label: 'Home Hero Banner', categoryColor: 'var(--accent)' },
+  { id: 'button-skin', label: 'Primary Button Skin', categoryColor: 'var(--accent)' },
 ];
 
 export const ButtonsSection: React.FC = () => {
@@ -449,7 +449,7 @@ export const ButtonsSection: React.FC = () => {
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  background: `linear-gradient(to right, rgba(var(--surface-rgb, 26,26,26), ${selectedCardConfig.scrim ?? 0.85}) 0%, transparent 100%)`,
+                  background: `linear-gradient(to right, rgba(var(--surface-rgb), ${selectedCardConfig.scrim ?? 0.85}) 0%, transparent 100%)`,
                 }}
               />
               <div
@@ -479,13 +479,13 @@ export const ButtonsSection: React.FC = () => {
                 gap: '8px',
                 padding: '8px 12px',
                 borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'rgba(74, 222, 128, 0.08)',
-                border: '1px solid rgba(74, 222, 128, 0.25)',
+                backgroundColor: 'var(--success-bg)',
+                border: '1px solid var(--success)',
                 fontSize: '11.5px',
                 color: 'var(--text-2)',
               }}
             >
-              <ShieldCheck size={16} color="var(--color-success)" />
+              <ShieldCheck size={16} color="var(--success)" />
               <span>
                 <strong>Readability verified:</strong> Scrim opacity {Math.round((selectedCardConfig.scrim ?? 0.85) * 100)}% satisfies WCAG AA (4.5:1).
               </span>

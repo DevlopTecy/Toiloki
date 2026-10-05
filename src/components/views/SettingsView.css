@@ -22,22 +22,22 @@
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
 }
 
 .settings-subtitle {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   margin: 0;
 }
 
 .settings-body-layout {
   display: flex;
   gap: 0;
-  background-color: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   min-height: 480px;
@@ -46,8 +46,8 @@
 /* ─── Settings Nav Sidebar ─── */
 .settings-nav-pane {
   width: 190px;
-  background-color: var(--bg-panel);
-  border-right: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border-right: 1px solid var(--border);
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
@@ -62,7 +62,7 @@
   background: transparent;
   border: none;
   border-radius: var(--radius-sm);
-  color: var(--text-secondary);
+  color: var(--text-2);
   font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
@@ -72,13 +72,13 @@
 }
 
 .settings-nav-btn:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
+  background-color: var(--surface-hover);
+  color: var(--text);
 }
 
 .settings-nav-btn.active {
-  background-color: var(--bg-selected);
-  color: var(--text-primary);
+  background-color: var(--accent-soft);
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -89,7 +89,7 @@
   top: 6px;
   bottom: 6px;
   width: 2px;
-  background: var(--accent-amber);
+  background: var(--accent);
   border-radius: 0 2px 2px 0;
 }
 
@@ -112,13 +112,13 @@
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--text-secondary);
+  color: var(--text-2);
   margin: 0 0 2px 0;
 }
 
 .section-subtext {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   margin: -12px 0 4px 0;
 }
 
@@ -127,14 +127,14 @@
   align-items: center;
   gap: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
 }
 
 .setting-row-label {
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-2);
   min-width: 120px;
 }
 
@@ -150,12 +150,12 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--text-primary);
+  color: var(--text);
   cursor: pointer;
 }
 
 .theme-radio-label input[type='radio'] {
-  accent-color: var(--accent-amber);
+  accent-color: var(--accent);
   width: 14px;
   height: 14px;
   cursor: pointer;
@@ -170,16 +170,16 @@
 
 .density-select {
   padding: 4px 10px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--text);
   font-size: 12px;
   cursor: pointer;
 }
 
 .density-select:focus {
-  border-color: var(--accent-amber);
+  border-color: var(--accent);
 }
 
 /* ─── Accent Swatches ─── */
@@ -193,9 +193,9 @@
   width: 22px;
   height: 22px;
   border-radius: var(--radius-xs);
-  border: 1px dashed var(--border-default);
+  border: 1px dashed var(--border);
   background: transparent;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -205,7 +205,7 @@
 }
 
 .accent-swatch-add:hover {
-  color: var(--text-primary);
+  color: var(--text);
   border-color: var(--border-strong);
 }
 
@@ -213,7 +213,7 @@
   width: 22px;
   height: 22px;
   border-radius: var(--radius-xs);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: transform var(--transition-fast);
 }
@@ -223,7 +223,7 @@
 }
 
 .accent-swatch.is-active {
-  box-shadow: 0 0 0 2px var(--bg-panel), 0 0 0 3px var(--accent-amber);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--accent);
 }
 
 .setting-item {
@@ -232,7 +232,7 @@
   align-items: center;
   gap: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border);
 }
 
 .setting-item.full-width {
@@ -250,26 +250,26 @@
 .setting-label {
   font-size: 12.5px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .setting-hint {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .setting-control {
   min-width: 200px;
   padding: 5px 10px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--text);
   font-size: 12px;
 }
 
 .setting-control:focus {
-  border-color: var(--accent-amber);
+  border-color: var(--accent);
 }
 
 /* ─── Switch & Checkbox ─── */
@@ -279,11 +279,11 @@
   gap: 8px;
   cursor: pointer;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-2);
 }
 
 .switch-label input {
-  accent-color: var(--accent-amber);
+  accent-color: var(--accent);
   width: 14px;
   height: 14px;
   cursor: pointer;
@@ -300,31 +300,31 @@
   font-family: var(--font-mono);
   font-size: 11.5px;
   padding: 5px 10px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .path-input:focus {
-  border-color: var(--accent-amber);
+  border-color: var(--accent);
 }
 
 .path-browse-btn {
-  background-color: var(--bg-raised);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 5px 12px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   font-size: 11.5px;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .path-browse-btn:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--border-default);
+  background-color: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border);
 }
 
 /* ─── Actions Buttons ─── */
@@ -332,11 +332,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: var(--bg-raised);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 6px 12px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -344,15 +344,15 @@
 }
 
 .settings-action-btn:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--border-default);
+  background-color: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border);
 }
 
 .settings-action-btn.danger:hover {
-  background-color: rgba(248, 113, 113, 0.08);
-  color: var(--color-danger);
-  border-color: rgba(248, 113, 113, 0.22);
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 /* ─── Privacy Banner ─── */
@@ -360,8 +360,8 @@
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  background-color: rgba(74, 222, 128, 0.05);
-  border: 1px solid rgba(74, 222, 128, 0.18);
+  background-color: var(--success-bg);
+  border: 1px solid var(--success-bg);
   border-radius: var(--radius-sm);
   padding: 14px 16px;
 }
@@ -370,21 +370,21 @@
   margin: 0 0 3px 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-success);
+  color: var(--success);
 }
 
 .priv-text {
   margin: 0;
   font-size: 11.5px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   line-height: 1.5;
 }
 
 .status-locked-pill {
   font-size: 11px;
   font-weight: 500;
-  color: var(--text-tertiary);
-  background-color: var(--bg-hover);
+  color: var(--text-muted);
+  background-color: var(--surface-hover);
   padding: 2px 7px;
   border-radius: var(--radius-xs);
   text-transform: none;
@@ -394,8 +394,8 @@
 
 /* ─── Diagnostics ─── */
 .system-diagnostics-card {
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 12px 14px;
   display: flex;
@@ -408,7 +408,7 @@
   margin: 0;
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-2);
   text-transform: none;
   letter-spacing: 0;
   font-family: var(--font-sans);
@@ -425,11 +425,11 @@
   flex-direction: column;
   gap: 2px;
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .diag-item code {
-  color: var(--text-primary);
+  color: var(--text);
   font-family: var(--font-mono);
   font-size: 10.5px;
 }

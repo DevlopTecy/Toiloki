@@ -6,8 +6,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 14px;
   transition: border-color var(--transition-fast);
@@ -29,16 +29,15 @@
 .processing-operation-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   margin: 0;
   line-height: 1.3;
 }
 
 .processing-state-badge {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: none;
-  letter-spacing: normal;
   font-weight: 500;
   font-family: var(--font-sans);
 }
@@ -46,10 +45,10 @@
 .processing-batch-badge {
   font-size: 10px;
   padding: 1px 6px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-family: var(--font-mono);
   white-space: nowrap;
 }
@@ -60,22 +59,21 @@
   gap: 6px;
   font-size: 11px;
   padding: 4px 8px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
 }
 
 .processing-file-row .file-label {
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   flex-shrink: 0;
   text-transform: none;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: normal;
 }
 
 .processing-file-row .file-name {
-  color: var(--text-primary);
+  color: var(--text);
   font-family: var(--font-mono);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -86,29 +84,29 @@
 .processing-progress-track {
   width: 100%;
   height: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-hover);
   border-radius: var(--radius-full);
   overflow: hidden;
   position: relative;
 }
 
 [data-theme='light'] .processing-progress-track {
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--surface-hover);
 }
 
 .processing-progress-fill {
   height: 100%;
-  background: var(--accent-amber);
+  background: var(--accent);
   border-radius: var(--radius-full);
   transition: width 180ms ease;
 }
 
 .processing-progress-fill.state-completed {
-  background: var(--color-success);
+  background: var(--success);
 }
 
 .processing-progress-fill.state-failed {
-  background: var(--color-danger);
+  background: var(--danger);
 }
 
 .processing-progress-fill.state-cancelled {
@@ -116,7 +114,7 @@
 }
 
 .processing-progress-fill.state-waiting {
-  background: var(--color-warning);
+  background: var(--warning);
 }
 
 .processing-footer-row {
@@ -128,7 +126,7 @@
 }
 
 .processing-stage-text {
-  color: var(--text-secondary);
+  color: var(--text-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -137,7 +135,7 @@
 .processing-percent-text {
   font-family: var(--font-mono);
   font-weight: 600;
-  color: var(--accent-amber);
+  color: var(--accent);
   flex-shrink: 0;
 }
 
@@ -145,19 +143,19 @@
   display: flex;
   justify-content: flex-end;
   padding-top: 6px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border);
 }
 
 .state-icon.processing {
-  color: var(--accent-amber);
+  color: var(--accent);
 }
 
 .state-icon.completed {
-  color: var(--color-success);
+  color: var(--success);
 }
 
 .state-icon.failed {
-  color: var(--color-danger);
+  color: var(--danger);
 }
 
 .state-icon.cancelled {
@@ -165,11 +163,11 @@
 }
 
 .state-icon.waiting {
-  color: var(--color-warning);
+  color: var(--warning);
 }
 
 .state-icon.preparing {
-  color: var(--accent-amber);
+  color: var(--accent);
 }
 
 @keyframes spin {

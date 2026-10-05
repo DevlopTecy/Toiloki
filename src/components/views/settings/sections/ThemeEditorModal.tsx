@@ -309,12 +309,12 @@ export const ThemeEditorModal: React.FC<ThemeEditorModalProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.30)',
+                  backgroundColor: 'var(--danger-bg)',
+                  border: '1px solid var(--danger)',
                   borderRadius: 'var(--radius-sm)',
                   padding: '8px 12px',
                   fontSize: '12px',
-                  color: 'var(--color-danger)',
+                  color: 'var(--danger)',
                 }}
               >
                 <AlertTriangle size={15} />

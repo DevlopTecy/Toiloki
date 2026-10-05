@@ -36,8 +36,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .toiloki-dialog-title-group {
@@ -50,13 +50,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent-amber);
+  color: var(--accent);
 }
 
 .toiloki-dialog-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   margin: 0;
 }
 
@@ -72,21 +72,21 @@
 }
 
 .toiloki-dialog-close-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
+  color: var(--text);
+  background: var(--surface-hover);
 }
 
 .toiloki-dialog-body {
   padding: 16px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   font-size: 12.5px;
   line-height: 1.55;
 }
 
 .toiloki-dialog-footer {
   padding: 10px 16px;
-  border-top: 1px solid var(--border-subtle);
-  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
   display: flex;
   align-items: center;
   justify-content: flex-end;

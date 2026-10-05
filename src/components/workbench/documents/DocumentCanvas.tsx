@@ -205,7 +205,7 @@ export const DocumentCanvas: React.FC<DocumentCanvasProps> = ({
             <button className="doc-tool-btn" onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))} title="Zoom out">
               <ZoomOut size={14} />
             </button>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted, #6B7280)', minWidth: '36px', textAlign: 'center' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', minWidth: '36px', textAlign: 'center' }}>
               {Math.round(zoom * 100)}%
             </span>
             <button className="doc-tool-btn" onClick={() => setZoom((z) => Math.min(2, z + 0.1))} title="Zoom in">
@@ -246,7 +246,7 @@ export const DocumentCanvas: React.FC<DocumentCanvasProps> = ({
           <div className="doc-diff-pane">
             <div className="doc-diff-pane-header">
               <span>{secondFile?.name || 'Document B'}</span>
-              <span style={{ color: 'var(--accent, #D4B06A)' }}>Modified</span>
+              <span style={{ color: 'var(--accent)' }}>Modified</span>
             </div>
             <div className="doc-diff-pane-body">
               {diffLines?.map((item, idx) => (

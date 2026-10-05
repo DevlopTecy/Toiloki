@@ -204,11 +204,11 @@ export const PdfTrayCanvas: React.FC<PdfTrayCanvasProps> = ({
             </div>
             <div className="res-stat-item">
               <span className="stat-label">Words Added:</span>
-              <strong style={{ color: '#10b981' }}>+{compareResult.diffSummary.addedWords}</strong>
+              <strong style={{ color: 'var(--success)' }}>+{compareResult.diffSummary.addedWords}</strong>
             </div>
             <div className="res-stat-item">
               <span className="stat-label">Words Removed:</span>
-              <strong style={{ color: '#ef4444' }}>-{compareResult.diffSummary.removedWords}</strong>
+              <strong style={{ color: 'var(--danger)' }}>-{compareResult.diffSummary.removedWords}</strong>
             </div>
           </div>
         </div>

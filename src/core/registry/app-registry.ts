@@ -33,6 +33,7 @@ import {
   DollarSign,
   Download,
   Edit3,
+  Eraser,
   Eye,
   EyeOff,
   FileCheck,
@@ -126,7 +127,6 @@ import {
   Variable,
   Video,
   Volume2,
-  Wand2,
   Wifi,
   WrapText,
   Wrench,
@@ -2363,7 +2363,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
             name: 'Text Cleanup',
             description: 'Strip duplicate spaces, blank lines, and line breaks.',
             engineId: 'text',
-            icon: Wand2,
+            icon: Eraser,
             status: 'soon',
             template: 'text',
             acceptedFormats: ['.txt', '.md', '.html', '.rtf'],
@@ -4444,7 +4444,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
             name: 'Format Values',
             description: 'Trim, uppercase, lowercase, or pad cell values.',
             engineId: 'data',
-            icon: Wand2,
+            icon: Sliders,
             status: 'soon',
             template: 'table',
             acceptedFormats: ['.csv', '.json'],
@@ -5128,7 +5128,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         id: 'text-transformer',
         name: 'Transformer',
         description: 'Case conversions, line sorting, reversing, and deduplication.',
-        icon: Wand2,
+        icon: RefreshCw,
         badgeGradient: '',
         utilities: [
           {
@@ -5517,7 +5517,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         id: 'text-cleaner',
         name: 'Cleaner',
         description: 'Remove extra spaces, blank lines, and normalize line endings.',
-        icon: Wand2,
+        icon: Eraser,
         badgeGradient: '',
         utilities: [
           {
@@ -5959,7 +5959,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         id: 'text-generator',
         name: 'Generators',
         description: 'Generate filler text, placeholder copy, and dummy prose.',
-        icon: Wand2,
+        icon: FileCode,
         badgeGradient: 'var(--badge-text)',
         utilities: [
           {
@@ -6435,7 +6435,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         id: 'dev-generators',
         name: 'Generators',
         description: 'Generate UUIDs, random strings, timestamps, and test data.',
-        icon: Wand2,
+        icon: Binary,
         badgeGradient: '',
         utilities: [
           {
@@ -9190,14 +9190,14 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     name: 'Security & Privacy',
     description: 'Local encryption, password generators, secure shredding, and zero-knowledge privacy tools.',
     icon: ShieldCheck,
-    badgeGradient: 'var(--badge-security, linear-gradient(135deg, #10B981, #059669))',
+    badgeGradient: 'var(--badge-security)',
     groups: [
       {
         id: 'sec-credentials',
         name: 'Credentials & Keys',
         description: 'Generate high-entropy secrets, master passphrases, and cryptographic key pairs.',
         icon: Key,
-        badgeGradient: 'var(--badge-security, linear-gradient(135deg, #10B981, #059669))',
+        badgeGradient: 'var(--badge-security)',
         utilities: [
           {
             id: 'sec-password-generator',
@@ -9434,7 +9434,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         name: 'Encryption & Hashing',
         description: 'Local file encryption, cryptographic hash calculation, and checksum matching.',
         icon: Lock,
-        badgeGradient: 'var(--badge-security, linear-gradient(135deg, #10B981, #059669))',
+        badgeGradient: 'var(--badge-security)',
         utilities: [
           {
             id: 'sec-hash-hmac',
@@ -9558,7 +9558,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         name: 'Data Sanitization & Shredding',
         description: 'Multi-pass secure shredding, bulk metadata stripping, and sensitive text redaction.',
         icon: Trash2,
-        badgeGradient: 'var(--badge-security, linear-gradient(135deg, #10B981, #059669))',
+        badgeGradient: 'var(--badge-security)',
         utilities: [
           {
             id: 'sec-secure-shred',
@@ -9685,14 +9685,14 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     name: 'Audio & Video',
     description: 'Local audio conversion, video clipping, waveform trimming, and media format optimization.',
     icon: Video,
-    badgeGradient: 'var(--badge-media, linear-gradient(135deg, #EC4899, #BE185D))',
+    badgeGradient: 'var(--badge-media)',
     groups: [
       {
         id: 'media-audio',
         name: 'Audio Tools',
         description: 'Encode, trim, merge, fade, and edit metadata on local audio tracks.',
         icon: Music,
-        badgeGradient: 'var(--badge-media, linear-gradient(135deg, #EC4899, #BE185D))',
+        badgeGradient: 'var(--badge-media)',
         utilities: [
           {
             id: 'audio-converter',
@@ -9893,7 +9893,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         name: 'Video Tools',
         description: 'Compress video sizes, trim scenes, extract audio, and create animated GIFs.',
         icon: Film,
-        badgeGradient: 'var(--badge-media, linear-gradient(135deg, #EC4899, #BE185D))',
+        badgeGradient: 'var(--badge-media)',
         utilities: [
           {
             id: 'video-converter',
@@ -10173,14 +10173,14 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     name: 'Network & Web',
     description: 'Local networking utilities, URL composition, CIDR calculators, and web metadata generators.',
     icon: Globe,
-    badgeGradient: 'var(--badge-network, linear-gradient(135deg, #3B82F6, #1D4ED8))',
+    badgeGradient: 'var(--badge-network)',
     groups: [
       {
         id: 'net-url-web',
         name: 'Web & URL',
         description: 'Build URLs, look up MIME types, compose cURL requests, and generate web tags.',
         icon: Link,
-        badgeGradient: 'var(--badge-network, linear-gradient(135deg, #3B82F6, #1D4ED8))',
+        badgeGradient: 'var(--badge-network)',
         utilities: [
           {
             id: 'net-url-builder',
@@ -10379,7 +10379,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         name: 'IP & Network Tools',
         description: 'Subnet calculations, local port listeners, DNS record syntax, and MAC lookups.',
         icon: Network,
-        badgeGradient: 'var(--badge-network, linear-gradient(135deg, #3B82F6, #1D4ED8))',
+        badgeGradient: 'var(--badge-network)',
         utilities: [
           {
             id: 'net-subnet-cidr',
@@ -10582,14 +10582,14 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     name: 'Color & Design',
     description: 'Palette generation, WCAG contrast verification, SVG optimization, and design token pipelines.',
     icon: Palette,
-    badgeGradient: 'var(--badge-design, linear-gradient(135deg, #8B5CF6, #6D28D9))',
+    badgeGradient: 'var(--badge-design)',
     groups: [
       {
         id: 'design-color',
         name: 'Color Utilities',
         description: 'Convert color models, check accessibility, build gradients, and simulate color blindness.',
         icon: Palette,
-        badgeGradient: 'var(--badge-design, linear-gradient(135deg, #8B5CF6, #6D28D9))',
+        badgeGradient: 'var(--badge-design)',
         utilities: [
           {
             id: 'design-color-converter',
@@ -10826,7 +10826,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         name: 'Design Assets & CSS',
         description: 'Optimize vector graphics, build layered shadows, format icons, and generate design tokens.',
         icon: Box,
-        badgeGradient: 'var(--badge-design, linear-gradient(135deg, #8B5CF6, #6D28D9))',
+        badgeGradient: 'var(--badge-design)',
         utilities: [
           {
             id: 'design-css-shadow-gen',
@@ -11067,14 +11067,14 @@ export const WORKSPACES: WorkspaceDefinition[] = [
     name: 'System & Maintenance',
     description: 'Inspect disk usage trees, find duplicate bloat, clean temporary caches, and review system configuration.',
     icon: Cpu,
-    badgeGradient: 'var(--badge-system, linear-gradient(135deg, #64748B, #334155))',
+    badgeGradient: 'var(--badge-system)',
     groups: [
       {
         id: 'sys-storage',
         name: 'Disk & Storage Tools',
         description: 'Visualize storage usage, locate enormous files, and purge temp folders with restorable safety.',
         icon: HardDrive,
-        badgeGradient: 'var(--badge-system, linear-gradient(135deg, #64748B, #334155))',
+        badgeGradient: 'var(--badge-system)',
         utilities: [
           {
             id: 'sys-disk-usage-tree',
@@ -11235,7 +11235,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
         name: 'System Diagnostics & Environment',
         description: 'Read-only inspection of host specs, environment variables, startup tasks, and active processes.',
         icon: Activity,
-        badgeGradient: 'var(--badge-system, linear-gradient(135deg, #64748B, #334155))',
+        badgeGradient: 'var(--badge-system)',
         utilities: [
           {
             id: 'sys-system-info-report',

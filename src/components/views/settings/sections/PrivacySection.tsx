@@ -52,15 +52,15 @@ export const PrivacySection: React.FC<PrivacySectionProps> = ({
           display: 'flex',
           alignItems: 'flex-start',
           gap: '14px',
-          backgroundColor: 'rgba(74, 222, 128, 0.08)',
-          border: '1px solid rgba(74, 222, 128, 0.25)',
+          backgroundColor: 'var(--success-bg)',
+          border: '1px solid var(--success)',
           borderRadius: 'var(--radius-md)',
           padding: '16px 20px',
         }}
       >
-        <ShieldCheck size={26} color="var(--color-success)" style={{ marginTop: '2px', flexShrink: 0 }} />
+        <ShieldCheck size={26} color="var(--success)" style={{ marginTop: '2px', flexShrink: 0 }} />
         <div>
-          <h4 style={{ margin: '0 0 4px 0', fontSize: '13.5px', fontWeight: 600, color: 'var(--color-success)' }}>
+          <h4 style={{ margin: '0 0 4px 0', fontSize: '13.5px', fontWeight: 600, color: 'var(--success)' }}>
             100% Local Execution Guarantee
           </h4>
           <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-2)', lineHeight: 1.5 }}>
@@ -130,14 +130,14 @@ export const PrivacySection: React.FC<PrivacySectionProps> = ({
             </Button>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+              <span style={{ fontSize: '12px', color: 'var(--danger)' }}>
                 Are you sure?
               </span>
               <Button
                 variant="primary"
                 size="sm"
                 onClick={handleConfirmClear}
-                style={{ backgroundColor: 'var(--color-danger)' }}
+                style={{ backgroundColor: 'var(--danger)' }}
               >
                 Yes, clear data
               </Button>
@@ -152,7 +152,7 @@ export const PrivacySection: React.FC<PrivacySectionProps> = ({
           )}
 
           {clearedNotice && (
-            <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-success)', marginTop: '6px' }}>
+            <span style={{ display: 'block', fontSize: '11px', color: 'var(--success)', marginTop: '6px' }}>
               ✓ {clearedNotice}
             </span>
           )}

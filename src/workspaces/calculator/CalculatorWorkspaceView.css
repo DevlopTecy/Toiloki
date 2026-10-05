@@ -79,7 +79,6 @@
   line-height: 44px;
   color: var(--text);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -187,7 +186,7 @@
 /* Equals Button: Accent Filled, Dark Text */
 .calc-btn.equals {
   background-color: var(--accent);
-  color: var(--text-inverse);
+  color: var(--on-accent);
   border-color: var(--accent);
   font-weight: 600;
 }
@@ -229,7 +228,7 @@
 .calc-tape-clear-btn {
   background: none;
   border: none;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-size: 10.5px;
   cursor: pointer;
   padding: 2px 5px;
@@ -237,7 +236,7 @@
 }
 
 .calc-tape-clear-btn:hover {
-  color: var(--color-danger);
+  color: var(--danger);
 }
 
 .calc-tape-list {
@@ -252,32 +251,32 @@
 .calc-tape-item {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   padding: 5px 8px;
   border-radius: var(--radius-xs);
   cursor: pointer;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   transition: all var(--transition-fast);
 }
 
 .calc-tape-item:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--border-default);
+  background-color: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border);
 }
 
 .calc-tape-empty {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-align: center;
   padding: 20px 0;
 }
 
 /* ─── Form Cards for other tools ─── */
 .calc-form-card {
-  background-color: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 16px;
   display: flex;
@@ -289,15 +288,14 @@
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: normal;
   text-transform: none;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   margin: 0;
 }
 
 .calc-helper-note {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   margin: 0;
 }
 
@@ -307,24 +305,24 @@
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-2);
 }
 
 .pct-equals {
   font-weight: 600;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .pct-val {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   font-family: var(--font-mono);
   font-size: 13px;
 }
 
 .pct-divider {
   height: 1px;
-  background-color: var(--border-subtle);
+  background-color: var(--border);
   margin: 6px 0;
 }
 
@@ -350,8 +348,8 @@
 .stat-pill {
   flex: 1;
   min-width: 120px;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   padding: 8px 12px;
   display: flex;
@@ -361,9 +359,8 @@
 
 .stat-pill-label {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: none;
-  letter-spacing: normal;
   font-family: var(--font-sans);
 }
 
@@ -371,15 +368,15 @@
   font-size: 14px;
   font-weight: 600;
   font-family: var(--font-mono);
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .stat-pill-val.highlight {
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .stat-pill-val.green {
-  color: var(--color-success);
+  color: var(--success);
 }
 
 /* ─── Ratio ─── */
@@ -388,7 +385,7 @@
   align-items: center;
   gap: 10px;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--text-2);
 }
 
 .ratio-term {
@@ -402,13 +399,13 @@
 .ratio-equal {
   font-weight: 600;
   margin-top: 14px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .ratio-result-badge {
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
   font-family: var(--font-mono);
   font-weight: 600;
   padding: 5px 12px;
@@ -429,14 +426,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background-color: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   gap: 12px;
 }
 
 .constant-row:hover {
-  background-color: var(--bg-hover);
+  background-color: var(--surface-hover);
 }
 
 .const-sym-col {
@@ -449,7 +446,7 @@
 .const-sym {
   font-size: 14px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text);
   font-family: var(--font-mono);
   width: 24px;
   text-align: center;
@@ -458,13 +455,13 @@
 .const-name {
   font-size: 11.5px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .const-desc-col {
   flex: 1;
   font-size: 10.5px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .const-val-col {
@@ -473,7 +470,7 @@
   gap: 6px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-2);
 }
 
 /* ─── Fractions ─── */
@@ -499,7 +496,7 @@
 
 .frac-bar {
   height: 2px;
-  background-color: var(--border-medium);
+  background-color: var(--border-strong);
   border-radius: 1px;
 }
 
@@ -512,8 +509,8 @@
 .frac-res-box {
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   padding: 6px 12px;
   align-items: center;
@@ -522,13 +519,13 @@
 .frac-val-main {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   font-family: var(--font-mono);
 }
 
 .frac-val-dec {
   font-size: 10px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 /* ─── Statistics Grid ─── */
@@ -540,8 +537,8 @@
 }
 
 .stat-card-item {
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   padding: 8px 10px;
   display: flex;
@@ -551,7 +548,7 @@
 
 .stat-title {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: none;
   font-family: var(--font-sans);
 }
@@ -560,7 +557,7 @@
   font-size: 13px;
   font-weight: 600;
   font-family: var(--font-mono);
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 /* ─── Unit Converter ─── */
@@ -569,7 +566,7 @@
   gap: 4px;
   flex-wrap: wrap;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border);
 }
 
 .unit-cat-btn {
@@ -577,7 +574,7 @@
   border: 1px solid transparent;
   border-radius: var(--radius-xs);
   padding: 4px 10px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
@@ -585,14 +582,14 @@
 }
 
 .unit-cat-btn:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
+  background-color: var(--surface-hover);
+  color: var(--text);
 }
 
 .unit-cat-btn.active {
-  background-color: var(--accent-amber-subtle);
-  color: var(--text-primary);
-  border-color: var(--accent-amber-border);
+  background-color: var(--accent-soft);
+  color: var(--text);
+  border-color: var(--border);
   font-weight: 600;
 }
 
@@ -661,8 +658,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   padding: 6px 12px;
   min-height: 38px;
@@ -671,6 +668,6 @@
 .converted-num {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   font-family: var(--font-mono);
 }

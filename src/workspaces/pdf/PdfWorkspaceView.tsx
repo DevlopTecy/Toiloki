@@ -1823,7 +1823,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
             <div className="matches-list">
               {searchMatches.map((m, idx) => (
                 <div key={idx} className="match-row">
-                  <CheckCircle2 size={14} color="var(--color-success)" />
+                  <CheckCircle2 size={14} color="var(--success)" />
                   <span>{m}</span>
                 </div>
               ))}

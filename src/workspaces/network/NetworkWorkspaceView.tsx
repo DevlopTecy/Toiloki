@@ -139,7 +139,7 @@ function MimeLookupView() {
           </div>
           <div className="net-stat-card">
             <span className="net-stat-label">Category</span>
-            <span className="net-stat-val" style={{ color: 'var(--text-primary)' }}>{res.category}</span>
+            <span className="net-stat-val" style={{ color: 'var(--text)' }}>{res.category}</span>
           </div>
         </div>
       )}
@@ -185,7 +185,7 @@ function CurlBuilderView() {
       </div>
       <div className="control-group">
         <label className="control-label">Bearer Token:</label>
-        <input className="control-input" value={token} onChange={(e) => setToken(e.target.value)} style={{ fontFamily: 'var(--font-mono)' }} />
+        <input className="control-input" value={token} onChange={(e) => setToken(e.target.value)} />
       </div>
       {method !== 'GET' && (
         <div className="control-group">
@@ -213,7 +213,7 @@ function SubnetCidrView() {
     <NetCard title="IPv4 Subnet & CIDR Mask Calculator">
       <div className="control-group">
         <label className="control-label">IPv4 Address / CIDR Prefix:</label>
-        <input className="control-input" value={cidrInput} onChange={(e) => setCidrInput(e.target.value)} placeholder="e.g. 10.0.0.0/16 or 192.168.1.1/24" style={{ maxWidth: 300, fontFamily: 'var(--font-mono)' }} />
+        <input className="control-input" value={cidrInput} onChange={(e) => setCidrInput(e.target.value)} placeholder="e.g. 10.0.0.0/16 or 192.168.1.1/24" style={{ maxWidth: 300 }} />
       </div>
       {res && (
         <div className="net-grid-2" style={{ marginTop: 16 }}>
@@ -251,7 +251,7 @@ function IpConverterView() {
     <NetCard title="IP Address Representations (Integer, Hex, Binary)">
       <div className="control-group">
         <label className="control-label">IPv4 Address:</label>
-        <input className="control-input" value={ip} onChange={(e) => setIp(e.target.value)} style={{ maxWidth: 260, fontFamily: 'var(--font-mono)' }} />
+        <input className="control-input" value={ip} onChange={(e) => setIp(e.target.value)} style={{ maxWidth: 260 }} />
       </div>
       {res && (
         <div className="net-grid-2" style={{ marginTop: 16 }}>
@@ -369,7 +369,7 @@ function LocalPortView() {
         {ports.map((p) => (
           <div key={p.port} className="net-stat-card">
             <span className="net-stat-label">PORT {p.port}</span>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{p.name}</div>
             <span style={{ fontSize: 11, color: 'var(--accent)' }}>{p.type}</span>
           </div>
         ))}
@@ -420,7 +420,7 @@ function MacVendorView() {
     <NetCard title="MAC Address OUI & Vendor Inspector">
       <div className="control-group">
         <label className="control-label">MAC Address:</label>
-        <input className="control-input" value={mac} onChange={(e) => setMac(e.target.value)} style={{ maxWidth: 280, fontFamily: 'var(--font-mono)' }} />
+        <input className="control-input" value={mac} onChange={(e) => setMac(e.target.value)} style={{ maxWidth: 280 }} />
       </div>
       <div className="net-grid-2" style={{ marginTop: 16 }}>
         <div className="net-stat-card">
@@ -429,7 +429,7 @@ function MacVendorView() {
         </div>
         <div className="net-stat-card">
           <span className="net-stat-label">Transmission Type</span>
-          <span className="net-stat-val" style={{ color: 'var(--text-primary)' }}>Unicast (Standard)</span>
+          <span className="net-stat-val" style={{ color: 'var(--text)' }}>Unicast (Standard)</span>
         </div>
       </div>
     </NetCard>

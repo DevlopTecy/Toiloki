@@ -23,7 +23,7 @@
 .field-label {
   font-size: 11px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-2);
 }
 
 .editor-label-bar {
@@ -41,8 +41,7 @@
 .editor-tag {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: normal;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: none;
   font-family: var(--font-sans);
 }
@@ -50,7 +49,7 @@
 .editor-line-count {
   font-size: 10.5px;
   font-family: var(--font-mono);
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .editor-actions-strip {
@@ -62,8 +61,8 @@
 /* ─── Editor with Gutter ─── */
 .editor-with-gutter {
   display: flex;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -72,8 +71,8 @@
   display: flex;
   flex-direction: column;
   padding: 12px 8px;
-  background: var(--bg-input);
-  border-right: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
   user-select: none;
   min-width: 34px;
   text-align: right;
@@ -82,7 +81,7 @@
 .gutter-num {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   line-height: 1.5;
   height: 18px;
 }
@@ -95,7 +94,7 @@
   padding: 12px;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--text-primary);
+  color: var(--text);
   line-height: 1.5;
   resize: vertical;
   outline: none;
@@ -108,8 +107,8 @@
 
 .jwt-input-area {
   height: 75px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -120,8 +119,8 @@
 }
 
 .formatted-result-box {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
@@ -133,8 +132,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: var(--bg-raised);
-  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
 .result-view-toggle {
@@ -146,8 +145,7 @@
 .result-label-tag {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: normal;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: none;
   font-family: var(--font-sans);
 }
@@ -156,8 +154,8 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   padding: 1px;
 }
@@ -170,7 +168,7 @@
   font-size: 10px;
   background: none;
   border: none;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   border-radius: 2px;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -178,8 +176,8 @@
 }
 
 .pill-btn.active {
-  background: var(--accent-amber-subtle);
-  color: var(--text-primary);
+  background: var(--accent-soft);
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -194,7 +192,7 @@
   padding: 12px;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--text-primary);
+  color: var(--text);
   line-height: 1.5;
   max-height: 280px;
   overflow-y: auto;
@@ -211,8 +209,8 @@
 }
 
 .jwt-segment-card {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 12px;
   display: flex;
@@ -229,8 +227,7 @@
 .jwt-card-badge {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: normal;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: none;
   font-family: var(--font-sans);
 }
@@ -238,7 +235,7 @@
 .copy-mini-btn {
   background: none;
   border: none;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -247,17 +244,17 @@
 }
 
 .copy-mini-btn:hover {
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .algo-badge {
   font-size: 10px;
   font-family: var(--font-mono);
-  background: var(--bg-input);
-  color: var(--text-secondary);
+  background: var(--surface);
+  color: var(--text-2);
   padding: 1px 5px;
   border-radius: var(--radius-xs);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border);
 }
 
 .exp-badge {
@@ -269,23 +266,23 @@
 }
 
 .exp-badge.expired {
-  background: rgba(248, 113, 113, 0.08);
-  color: var(--color-danger);
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .exp-badge.valid {
-  background: rgba(74, 222, 128, 0.08);
-  color: var(--color-success);
+  background: var(--success-bg);
+  color: var(--success);
 }
 
 .jwt-code-pre {
-  background: var(--bg-input);
+  background: var(--surface);
   padding: 8px 10px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border);
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--text-primary);
+  color: var(--text);
   max-height: 220px;
   overflow-y: auto;
   margin: 0;
@@ -293,7 +290,7 @@
 
 .jwt-time-info {
   font-size: 10px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-family: var(--font-mono);
 }
 
@@ -305,8 +302,8 @@
 
 .encode-area {
   height: 90px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -315,8 +312,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 6px 12px;
   flex-wrap: wrap;
@@ -324,12 +321,12 @@
 
 .gen-controls-bar label {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-2);
 }
 
 .uuid-list-card {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
@@ -341,12 +338,11 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: var(--bg-raised);
+  background: var(--surface);
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: none;
-  letter-spacing: normal;
   font-family: var(--font-sans);
 }
 
@@ -360,12 +356,12 @@
 }
 
 .uuid-row-item {
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   padding: 4px 8px;
   border-radius: var(--radius-xs);
   font-size: 11.5px;
-  color: var(--text-primary);
+  color: var(--text);
   font-family: var(--font-mono);
 }
 
@@ -374,19 +370,19 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 6px 10px;
 }
 
 .regex-inputs-strip:focus-within {
-  border-color: var(--text-primary);
+  border-color: var(--text);
 }
 
 .regex-slash {
   font-family: var(--font-mono);
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -396,7 +392,7 @@
   border: none;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--text-primary);
+  color: var(--text);
   outline: none;
 }
 
@@ -404,24 +400,24 @@
   width: 40px;
   background: transparent;
   border: none;
-  border-left: 1px solid var(--border-subtle);
+  border-left: 1px solid var(--border);
   padding-left: 6px;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--text-secondary);
+  color: var(--text-2);
   outline: none;
 }
 
 .regex-text-area {
   height: 90px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
 .regex-matches-panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 10px 12px;
   display: flex;
@@ -431,7 +427,7 @@
 
 .matches-count-label {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-family: var(--font-mono);
 }
 
@@ -444,8 +440,8 @@
 }
 
 .regex-match-chip {
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   padding: 2px 6px;
   border-radius: var(--radius-xs);
   display: flex;
@@ -456,12 +452,12 @@
 .chip-match-text {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .chip-match-index {
   font-size: 9.5px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-family: var(--font-mono);
 }
 
@@ -483,14 +479,14 @@
   align-items: center;
   height: 34px;
   gap: 12px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   padding: 0 10px;
 }
 
 .status-row:hover {
-  background: var(--bg-hover);
+  background: var(--surface-hover);
 }
 
 .status-num-badge {
@@ -504,18 +500,18 @@
 }
 
 .code-2xx {
-  background: rgba(74, 222, 128, 0.08);
-  color: var(--color-success);
+  background: var(--success-bg);
+  color: var(--success);
 }
 
 .code-4xx {
-  background: var(--accent-amber-subtle);
-  color: var(--text-primary);
+  background: var(--accent-soft);
+  color: var(--text);
 }
 
 .code-5xx {
-  background: rgba(248, 113, 113, 0.08);
-  color: var(--color-danger);
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .status-details {
@@ -527,10 +523,10 @@
 .status-label-bold {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .status-desc-text {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-2);
 }

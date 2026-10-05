@@ -162,14 +162,14 @@ export const HistoryPrivacySection: React.FC<HistoryPrivacySectionProps> = ({
             </Button>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: 'var(--color-danger, #ef4444)' }}>
+              <span style={{ fontSize: '12px', color: 'var(--danger)' }}>
                 Are you sure?
               </span>
               <Button
                 variant="primary"
                 size="sm"
                 onClick={handleConfirmClear}
-                style={{ backgroundColor: 'var(--color-danger, #ef4444)' }}
+                style={{ backgroundColor: 'var(--danger)' }}
               >
                 Confirm wipe
               </Button>

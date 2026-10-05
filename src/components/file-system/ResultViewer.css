@@ -4,7 +4,7 @@
 
 .toiloki-result-panel {
   background: var(--success-bg);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 16px;
   display: flex;
@@ -55,12 +55,12 @@
 }
 
 .icon-success {
-  color: var(--color-success);
+  color: var(--success);
   flex-shrink: 0;
 }
 
 .icon-warning {
-  color: var(--color-warning);
+  color: var(--warning);
   flex-shrink: 0;
 }
 
@@ -68,14 +68,14 @@
   font-family: var(--font-display);
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   margin: 0;
   line-height: 1.3;
 }
 
 .result-elapsed {
   font-size: 10.5px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   font-family: var(--font-mono);
   margin-left: 6px;
 }
@@ -99,13 +99,13 @@
 
 .batch-pill.success {
   background: var(--success-bg);
-  color: var(--color-success);
+  color: var(--success);
   border: 1px solid var(--border);
 }
 
 .batch-pill.danger {
   background: var(--danger-bg);
-  color: var(--color-danger);
+  color: var(--danger);
   border: 1px solid var(--border);
 }
 
@@ -114,8 +114,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -129,9 +129,8 @@
 
 .meta-label {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: none;
-  letter-spacing: normal;
   font-weight: 600;
   font-family: var(--font-sans);
 }
@@ -140,7 +139,7 @@
   font-size: 11.5px;
   font-family: var(--font-mono);
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -149,7 +148,7 @@
 .action-icon-btn {
   background: none;
   border: none;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   cursor: pointer;
   padding: 3px 5px;
   display: flex;
@@ -159,19 +158,19 @@
 }
 
 .action-icon-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
+  color: var(--text);
+  background: var(--surface-hover);
 }
 
 .format-tag {
   font-size: 10px;
   font-family: var(--font-mono);
   font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--bg-raised);
+  color: var(--text-2);
+  background: var(--surface);
   padding: 1px 6px;
   border-radius: var(--radius-xs);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border);
 }
 
 .result-metrics-row {
@@ -182,8 +181,8 @@
 }
 
 .metric-cell {
-  background: var(--bg-raised);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 6px 10px;
   display: flex;
@@ -193,19 +192,18 @@
 }
 
 .metric-cell.highlight-save {
-  border-color: rgba(74, 222, 128, 0.22);
-  background: rgba(74, 222, 128, 0.05);
+  border-color: var(--success);
+  background: var(--success-bg);
 }
 
 .metric-cell.highlight-save .metric-number {
-  color: var(--color-success);
+  color: var(--success);
 }
 
 .metric-tag {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   text-transform: none;
-  letter-spacing: normal;
   font-weight: 600;
   font-family: var(--font-sans);
 }
@@ -214,7 +212,7 @@
   font-size: 12px;
   font-weight: 600;
   font-family: var(--font-mono);
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .result-action-controls {
@@ -230,20 +228,19 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .saved-label {
   font-weight: 600;
   text-transform: none;
   font-size: 11px;
-  letter-spacing: normal;
   font-family: var(--font-sans);
 }
 
 .saved-text {
   font-family: var(--font-mono);
-  color: var(--text-secondary);
+  color: var(--text-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -274,7 +271,6 @@
   font-size: 11px;
   font-weight: 600;
   text-transform: none;
-  letter-spacing: normal;
   color: var(--text-muted);
   padding: 4px 8px;
 }
@@ -294,8 +290,8 @@
 }
 
 .send-to-item-btn:hover {
-  background-color: var(--hover-surface);
-  border-color: rgba(212, 176, 106, 0.3);
+  background-color: var(--surface-hover);
+  border-color: var(--accent-soft);
 }
 
 .send-to-item-title {

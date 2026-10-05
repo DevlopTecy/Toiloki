@@ -116,11 +116,11 @@ export const FilesSection: React.FC<FilesSectionProps> = ({
         <div className="settings-row-info">
           <label className="settings-label">Output naming template</label>
           <span className="settings-helper">
-            Tokens: <code style={{ fontFamily: 'var(--font-mono)' }}>&#123;name&#125;</code>,{' '}
-            <code style={{ fontFamily: 'var(--font-mono)' }}>&#123;tool&#125;</code>,{' '}
-            <code style={{ fontFamily: 'var(--font-mono)' }}>&#123;date&#125;</code>,{' '}
-            <code style={{ fontFamily: 'var(--font-mono)' }}>&#123;time&#125;</code>,{' '}
-            <code style={{ fontFamily: 'var(--font-mono)' }}>&#123;counter&#125;</code>
+            Tokens: <code>{'{name}'}</code>,{' '}
+            <code>{'{tool}'}</code>,{' '}
+            <code>{'{date}'}</code>,{' '}
+            <code>{'{time}'}</code>,{' '}
+            <code>{'{counter}'}</code>
           </span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '340px' }}>
@@ -218,7 +218,7 @@ export const FilesSection: React.FC<FilesSectionProps> = ({
         </div>
         <Button variant="secondary" size="sm" onClick={handleClearCache}>
           {cacheCleared ? (
-            <Check size={13} style={{ marginRight: '6px', color: 'var(--color-success, #22c55e)' }} />
+            <Check size={13} style={{ marginRight: '6px', color: 'var(--success)' }} />
           ) : (
             <Trash2 size={13} style={{ marginRight: '6px' }} />
           )}

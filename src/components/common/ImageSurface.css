@@ -8,7 +8,7 @@
   overflow: hidden;
   border-radius: 14px; /* Radius 14px per spec */
   background-color: var(--surface);
-  border: 1px solid var(--image-card-border, rgba(255, 255, 255, 0.10));
+  border: 1px solid var(--image-card-border);
   box-sizing: border-box;
   transition:
     border-color var(--dur-fast, 120ms) var(--ease-standard, ease),
@@ -19,7 +19,7 @@
 
 /* Hover and Press micro-interactions (enabled when interactive) */
 .image-surface.is-interactive:hover {
-  border-color: var(--image-card-border-hover, rgba(255, 255, 255, 0.20));
+  border-color: var(--image-card-border-hover);
   transform: translateY(-2px);
 }
 
@@ -121,9 +121,9 @@
   /* Left-to-right gradient from surface at 92% to 0-30% */
   background: linear-gradient(
     to right,
-    rgba(var(--surface-rgb, 26, 26, 26), 0.94) 0%,
-    rgba(var(--surface-rgb, 26, 26, 26), 0.88) 45%,
-    rgba(var(--surface-rgb, 26, 26, 26), var(--scrim-strength-art, 0.20)) 100%
+    rgba(var(--surface-rgb), 0.94) 0%,
+    rgba(var(--surface-rgb), 0.88) 45%,
+    rgba(var(--surface-rgb), var(--scrim-strength-art)) 100%
   );
 }
 

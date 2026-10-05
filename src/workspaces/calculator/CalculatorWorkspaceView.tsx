@@ -947,9 +947,9 @@ function CalcCard({ title, children }: { title: string; children: React.ReactNod
 
 function ResultRow({ label, value, mono = true }: { label: string; value: string | number; mono?: boolean }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-      <span style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{label}</span>
-      <span style={{ color: 'var(--text-primary)', fontFamily: mono ? 'var(--font-mono)' : undefined, fontWeight: 600, fontSize: 13 }}>{value}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+      <span style={{ color: 'var(--text-2)', fontSize: 13 }}>{label}</span>
+      <span style={{ color: 'var(--text)', fontFamily: mono ? 'var(--font-mono)' : undefined, fontWeight: 600, fontSize: 13 }}>{value}</span>
     </div>
   );
 }
@@ -1139,9 +1139,9 @@ function LoanEMICalc() {
           <ResultRow label="Principal" value={`₹${fmt(result.principal)}`} />
           <ResultRow label="Total interest" value={`₹${fmt(result.totalInterest)}`} />
           <ResultRow label="Total amount" value={`₹${fmt(result.totalAmount)}`} />
-          <div style={{ marginTop: 8, padding: '8px 12px', background: 'var(--bg-raised)', borderRadius: 6 }}>
-            <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Interest / Principal ratio</div>
-            <div style={{ height: 8, background: 'var(--bg-hover)', borderRadius: 4, marginTop: 4, overflow: 'hidden' }}>
+          <div style={{ marginTop: 8, padding: '8px 12px', background: 'var(--surface)', borderRadius: 6 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Interest / Principal ratio</div>
+            <div style={{ height: 8, background: 'var(--surface-hover)', borderRadius: 4, marginTop: 4, overflow: 'hidden' }}>
               <div style={{ height: '100%', background: 'var(--accent)', borderRadius: 4, width: `${Math.min(100, (result.principal / result.totalAmount) * 100)}%` }} />
             </div>
           </div>
@@ -1178,19 +1178,19 @@ function AmortizationCalc() {
           <>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
                   {['Mo.', 'EMI', 'Principal', 'Interest', 'Balance'].map(h => (
-                    <th key={h} style={{ textAlign: 'right', padding: '6px 8px', color: 'var(--text-secondary)', fontSize: 11 }}>{h}</th>
+                    <th key={h} style={{ textAlign: 'right', padding: '6px 8px', color: 'var(--text-2)', fontSize: 11 }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {displayRows.map(row => (
-                  <tr key={row.month} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <tr key={row.month} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '5px 8px', textAlign: 'right' }}>{row.month}</td>
                     <td style={{ padding: '5px 8px', textAlign: 'right' }}>{fmt(row.emi)}</td>
                     <td style={{ padding: '5px 8px', textAlign: 'right', color: 'var(--accent)' }}>{fmt(row.principal)}</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'right', color: 'var(--text-secondary)' }}>{fmt(row.interest)}</td>
+                    <td style={{ padding: '5px 8px', textAlign: 'right', color: 'var(--text-2)' }}>{fmt(row.interest)}</td>
                     <td style={{ padding: '5px 8px', textAlign: 'right' }}>{fmt(row.balance)}</td>
                   </tr>
                 ))}
@@ -1319,7 +1319,7 @@ function GSTVATCalc() {
           <ResultRow label="Tax amount" value={`₹${fmt(result.gstAmount)}`} />
           {result.cgst !== undefined && <ResultRow label="CGST (½)" value={`₹${fmt(result.cgst)}`} />}
           {result.sgst !== undefined && <ResultRow label="SGST (½)" value={`₹${fmt(result.sgst)}`} />}
-          <div style={{ borderTop: '2px solid var(--border-default)', marginTop: 8, paddingTop: 8 }}>
+          <div style={{ borderTop: '2px solid var(--border)', marginTop: 8, paddingTop: 8 }}>
             <ResultRow label="Total" value={`₹${fmt(result.totalAmount)}`} />
           </div>
         </div>
@@ -1371,7 +1371,7 @@ function TipSplitCalc() {
           onChange={e => setTipPct(Number(e.target.value))} style={{ width: '100%' }} />
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           {[0, 5, 10, 15, 18, 20, 25].map(v => (
-            <button key={v} style={{ fontSize: 11, padding: '2px 6px', background: tipPct === v ? 'var(--accent)' : 'var(--bg-raised)', color: tipPct === v ? 'var(--bg)' : 'var(--text-secondary)', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+            <button key={v} style={{ fontSize: 11, padding: '2px 6px', background: tipPct === v ? 'var(--accent)' : 'var(--surface)', color: tipPct === v ? 'var(--bg)' : 'var(--text-2)', border: 'none', borderRadius: 4, cursor: 'pointer' }}
               onClick={() => setTipPct(v)}>{v}%</button>
           ))}
         </div>
@@ -1402,10 +1402,10 @@ function BMICalc() {
   }, [weight, height, unit]);
 
   const bmiColors: Record<string, string> = {
-    'Underweight': '#60a5fa',
-    'Normal weight': '#4ade80',
-    'Overweight': '#facc15',
-    'Obese': '#f87171',
+    'Underweight': 'var(--cat-documents)',
+    'Normal weight': 'var(--success)',
+    'Overweight': 'var(--warning)',
+    'Obese': 'var(--danger)',
   };
 
   return (
@@ -1462,8 +1462,8 @@ function BMRCalc() {
           <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
             BMR: {result.bmr} kcal/day
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>Formula: {result.formula}</div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>TDEE (Total Daily Energy Expenditure):</div>
+          <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 8 }}>Formula: {result.formula}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>TDEE (Total Daily Energy Expenditure):</div>
           {Object.entries(result.tdee).map(([level, kcal]) => (
             <ResultRow key={level} label={level} value={`${kcal} kcal`} mono={false} />
           ))}
@@ -1503,7 +1503,7 @@ function NumberBaseCalc() {
         </div>
         <div className="control-group">
           <label className="control-label">Value:</label>
-          <input className="control-input" style={{ fontFamily: 'var(--font-mono)' }} value={value} onChange={e => setValue(e.target.value)} />
+          <input className="control-input" value={value} onChange={e => setValue(e.target.value)} />
         </div>
         <div className="control-group">
           <label className="control-label">To Base:</label>
@@ -1515,7 +1515,7 @@ function NumberBaseCalc() {
           </select>
         </div>
       </div>
-      {err && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginTop: 8 }}>{err}</div>}
+      {err && <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 8 }}>{err}</div>}
       {result && (
         <div style={{ marginTop: 16 }}>
           <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
@@ -1556,10 +1556,10 @@ function RomanNumeralCalc() {
       </div>
       <div className="control-group">
         <label className="control-label">{dir === 'toRoman' ? 'Number (1–3999)' : 'Roman Numeral'}:</label>
-        <input className="control-input" style={{ fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}
+        <input className="control-input"
           value={input} onChange={e => setInput(e.target.value)} />
       </div>
-      {err && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginTop: 8 }}>{err}</div>}
+      {err && <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 8 }}>{err}</div>}
       {result && !err && (
         <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginTop: 16 }}>
           {result}
@@ -1588,10 +1588,10 @@ function NumberToWordsCalc() {
         <label className="control-label">Number:</label>
         <input type="number" className="control-input" value={num} onChange={e => setNum(Number(e.target.value))} />
       </div>
-      {err && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginTop: 8 }}>{err}</div>}
+      {err && <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 8 }}>{err}</div>}
       {result && !err && (
-        <div style={{ marginTop: 16, padding: '12px 16px', background: 'var(--bg-raised)', borderRadius: 6 }}>
-          <div style={{ fontSize: 16, color: 'var(--text-primary)', lineHeight: 1.6, textTransform: 'capitalize' }}>{result}</div>
+        <div style={{ marginTop: 16, padding: '12px 16px', background: 'var(--surface)', borderRadius: 6 }}>
+          <div style={{ fontSize: 16, color: 'var(--text)', lineHeight: 1.6, textTransform: 'capitalize' }}>{result}</div>
         </div>
       )}
     </CalcCard>

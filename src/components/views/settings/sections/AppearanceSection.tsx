@@ -424,7 +424,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                 onClick={() => handleSelectAccent(preset.id, hex)}
                 title={`${preset.name} (${hex})`}
               >
-                {isSelected && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+                {isSelected && <Check size={13} color="var(--on-accent)" strokeWidth={3} />}
               </button>
             );
           })}
@@ -444,7 +444,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               onChange={(e) => handleSelectAccent('custom', e.target.value)}
               style={{ opacity: 0, position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: 'pointer' }}
             />
-            {currentAccentId === 'custom' && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+            {currentAccentId === 'custom' && <Check size={13} color="var(--on-accent)" strokeWidth={3} />}
           </label>
         </div>
       </div>
@@ -769,7 +769,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                 {bgConfig.imageUrl ? 'Change image...' : 'Pick local image...'}
               </Button>
               {bgConfig.imageUrl && (
-                <Button variant="ghost" size="sm" onClick={handleRemoveBgImage} style={{ color: 'var(--color-danger, #ef4444)' }}>
+                <Button variant="ghost" size="sm" onClick={handleRemoveBgImage} style={{ color: 'var(--danger)' }}>
                   <Trash2 size={13} style={{ marginRight: '4px' }} />
                   Remove wallpaper
                 </Button>
@@ -1164,7 +1164,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => updateCardPicture(selectedCardId, { assetId: undefined })}
-                  style={{ color: 'var(--color-danger, #ef4444)' }}
+                  style={{ color: 'var(--danger)' }}
                 >
                   <RefreshCw size={13} style={{ marginRight: '4px' }} />
                   Reset to default

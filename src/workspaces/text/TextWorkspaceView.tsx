@@ -439,7 +439,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
       ];
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontWeight: 600 }}>Filter:</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>Filter:</span>
           {filters.map((f) => (
             <button
               key={f.id}
@@ -458,7 +458,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Separator:</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Separator:</span>
             {(['-', '_', '.'] as const).map((sep) => (
               <button
                 key={sep}
@@ -471,16 +471,16 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Max Chars:</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Max Chars:</span>
             <input
               type="number"
               value={slugMaxLen}
               onChange={(e) => setSlugMaxLen(Math.max(10, parseInt(e.target.value) || 60))}
               style={{
                 width: '60px',
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-primary)',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                color: 'var(--text)',
                 padding: '2px 6px',
                 borderRadius: '4px',
                 fontSize: '11px',
@@ -494,7 +494,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
     if (utilityId === 'text-natural-sort' || utilityId === 'sort-lines') {
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Order:</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Order:</span>
           <button
             type="button"
             className={`segmented-chip-btn ${sortDir === 'asc' ? 'active' : ''}`}
@@ -517,7 +517,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Delim:</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Delim:</span>
             {[
               { id: ',', label: 'Comma' },
               { id: '\t', label: 'Tab' },
@@ -535,7 +535,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Format:</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Format:</span>
             {(['markdown', 'ascii', 'json'] as const).map((fmt) => (
               <button
                 key={fmt}
@@ -563,7 +563,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '1 1 200px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Pattern:</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Pattern:</span>
             <input
               type="text"
               value={regexPattern}
@@ -571,9 +571,9 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
               placeholder="e.g. \b\d{4}\b"
               style={{
                 flex: 1,
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-primary)',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                color: 'var(--text)',
                 padding: '3px 8px',
                 borderRadius: '4px',
                 fontFamily: 'var(--font-mono)',
@@ -582,7 +582,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '1 1 200px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Replace:</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Replace:</span>
             <input
               type="text"
               value={regexReplacement}
@@ -590,9 +590,9 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
               placeholder="replacement string"
               style={{
                 flex: 1,
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-primary)',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                color: 'var(--text)',
                 padding: '3px 8px',
                 borderRadius: '4px',
                 fontFamily: 'var(--font-mono)',
@@ -601,16 +601,16 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Flags:</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Flags:</span>
             <input
               type="text"
               value={regexFlags}
               onChange={(e) => setRegexFlags(e.target.value)}
               style={{
                 width: '50px',
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-primary)',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                color: 'var(--text)',
                 padding: '3px 8px',
                 borderRadius: '4px',
                 fontFamily: 'var(--font-mono)',
@@ -619,7 +619,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
             />
           </div>
           {regexMatches !== null && (
-            <span style={{ fontSize: '11px', color: 'var(--accent-amber)', fontWeight: 600 }}>
+            <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 600 }}>
               {regexMatches} match{regexMatches === 1 ? '' : 'es'}
             </span>
           )}
@@ -654,7 +654,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Count:</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Count:</span>
             <input
               type="number"
               min={1}
@@ -663,9 +663,9 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
               onChange={(e) => setLoremCount(Math.min(50, Math.max(1, parseInt(e.target.value) || 1)))}
               style={{
                 width: '60px',
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-primary)',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                color: 'var(--text)',
                 padding: '2px 6px',
                 borderRadius: '4px',
                 fontSize: '11px',

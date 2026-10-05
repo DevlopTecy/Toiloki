@@ -41,7 +41,7 @@ export const ChainsModal: React.FC<ChainsModalProps> = ({
         {/* Header */}
         <div className="chains-modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Link size={16} style={{ color: 'var(--color-accent)' }} />
+            <Link size={16} style={{ color: 'var(--accent)' }} />
             <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 650, color: 'var(--text)' }}>
               Presets & Execution Chains
             </h3>
@@ -107,7 +107,7 @@ export const ChainsModal: React.FC<ChainsModalProps> = ({
             ))
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 8px 0' }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-2)', margin: '0 0 8px 0' }}>
                 Per-utility presets save common parameter configurations for one-click re-use.
               </p>
               {['format-json-code', 'img-resize', 'compress-image', 'compress-pdf', 'case-conversion'].map(
@@ -117,7 +117,7 @@ export const ChainsModal: React.FC<ChainsModalProps> = ({
                     <div
                       key={utilId}
                       style={{
-                        backgroundColor: 'var(--surface-raised)',
+                        backgroundColor: 'var(--surface)',
                         border: '1px solid var(--border)',
                         borderRadius: 'var(--radius-sm)',
                         padding: '10px 14px',
@@ -127,7 +127,7 @@ export const ChainsModal: React.FC<ChainsModalProps> = ({
                         style={{
                           fontSize: '12px',
                           fontWeight: 650,
-                          color: 'var(--color-accent)',
+                          color: 'var(--accent)',
                           marginBottom: '6px',
                           fontFamily: 'var(--font-mono)',
                         }}

@@ -28,7 +28,6 @@
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.04em;
   color: var(--text);
   line-height: 1;
 }
@@ -38,7 +37,6 @@
   font-family: var(--font-sans);
   font-weight: 500;
   color: var(--text-muted);
-  letter-spacing: 0.02em;
   padding: 1px 4px;
   line-height: 1;
 }
@@ -138,6 +136,6 @@
 }
 
 .window-control-btn.close:hover {
-  background-color: #E5484D;
-  color: #FFFFFF;
+  background-color: var(--danger);
+  color: var(--on-accent);
 }

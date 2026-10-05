@@ -28,19 +28,19 @@ interface DashboardHomeProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  pdf: 'var(--cat-pdf, #EF4444)',
-  documents: 'var(--cat-documents, #3B82F6)',
-  images: 'var(--cat-images, #22C55E)',
-  data: 'var(--cat-data, #F59E0B)',
-  text: 'var(--cat-text, #8B5CF6)',
-  developer: 'var(--cat-developer, #F97316)',
-  calculator: 'var(--cat-calculator, #EAB308)',
-  files: 'var(--cat-files, #3B82F6)',
-  security: 'var(--cat-security, #10B981)',
-  media: 'var(--cat-media, #EC4899)',
-  network: 'var(--cat-network, #06B6D4)',
-  design: 'var(--cat-design, #8B5CF6)',
-  system: 'var(--cat-system, #64748B)',
+  pdf: 'var(--cat-pdf)',
+  documents: 'var(--cat-documents)',
+  images: 'var(--cat-images)',
+  data: 'var(--cat-data)',
+  text: 'var(--cat-text)',
+  developer: 'var(--cat-developer)',
+  calculator: 'var(--cat-calculator)',
+  files: 'var(--cat-files)',
+  security: 'var(--cat-security)',
+  media: 'var(--cat-media)',
+  network: 'var(--cat-network)',
+  design: 'var(--cat-design)',
+  system: 'var(--cat-system)',
 };
 
 export const DashboardHome: React.FC<DashboardHomeProps> = ({
@@ -252,9 +252,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                           }}
                         >
                           {isSuccess ? (
-                            <CheckCircle2 size={16} color="#FFFFFF" />
+                            <CheckCircle2 size={16} color="var(--on-accent)" />
                           ) : (
-                            <AlertCircle size={16} color="#FFFFFF" />
+                            <AlertCircle size={16} color="var(--on-accent)" />
                           )}
                         </div>
                       ) : (
@@ -370,7 +370,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                           background: `linear-gradient(180deg, color-mix(in srgb, ${catColor} 92%, white 8%) 0%, ${catColor} 100%)`,
                         }}
                       >
-                        <Icon size={18} color="#FFFFFF" />
+                        <Icon size={18} color="var(--on-accent)" />
                       </div>
                     ) : (
                       <span className={`qa-tag ${qa.badgeClass}`}>{qa.workspaceId}</span>
@@ -410,7 +410,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
             const soon = uniqueUtils.filter((u) => u.status === 'soon').length;
             const utilityCount = ready + beta;
             const tooltip = `${ready} ready · ${beta} beta · ${soon} coming soon`;
-            const categoryColor = CATEGORY_COLORS[ws.id] || 'var(--cat-system, #64748B)';
+            const categoryColor = CATEGORY_COLORS[ws.id] || 'var(--cat-system)';
             const pictureConfig = activeTheme.buttons?.pictures?.[ws.id];
 
             return (

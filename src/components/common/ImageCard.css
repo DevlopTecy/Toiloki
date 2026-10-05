@@ -36,7 +36,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #FFFFFF !important;
+  color: var(--text) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   flex-shrink: 0;
   transition: transform var(--dur-fast, 120ms) var(--ease-standard, ease);
@@ -49,8 +49,8 @@
 .image-card-icon-tile svg {
   width: 24px;
   height: 24px;
-  stroke: #FFFFFF !important;
-  color: #FFFFFF !important;
+  stroke: var(--text) !important;
+  color: var(--text) !important;
 }
 
 /* Tool count badge on image card */
@@ -59,7 +59,7 @@
   font-family: var(--font-mono, monospace);
   font-weight: 500;
   color: var(--text-2);
-  background: rgba(var(--surface-rgb, 26, 26, 26), 0.65);
+  background: rgba(var(--surface-rgb), 0.65);
   backdrop-filter: blur(8px);
   padding: 3px 8px;
   border-radius: var(--radius-full, 9999px);
@@ -109,8 +109,8 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--image-card-chevron-bg, rgba(255, 255, 255, 0.10));
-  border: 1px solid var(--image-card-chevron-border, rgba(255, 255, 255, 0.12));
+  background: var(--image-card-chevron-bg);
+  border: 1px solid var(--image-card-chevron-border);
   color: var(--text);
   display: flex;
   align-items: center;
@@ -129,7 +129,7 @@
 
 /* Chevron background goes to 16% and chevron nudges 2px right on card hover */
 .image-card-launcher:hover .image-card-chevron-btn {
-  background: var(--image-card-chevron-bg-hover, rgba(255, 255, 255, 0.16));
+  background: var(--image-card-chevron-bg-hover);
 }
 
 .image-card-launcher:hover .image-card-chevron-icon {

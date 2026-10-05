@@ -26,7 +26,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       isOpen={isOpen}
       onClose={onCancel}
       title={title}
-      icon={<AlertTriangle size={18} color={confirmVariant === 'danger' ? 'var(--color-danger)' : 'var(--color-warning)'} />}
+      icon={<AlertTriangle size={18} color={confirmVariant === 'danger' ? 'var(--danger)' : 'var(--warning)'} />}
       width="380px"
       footer={
         <>
@@ -43,7 +43,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         </>
       }
     >
-      <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+      <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-2)', lineHeight: 1.5 }}>
         {message}
       </p>
     </Dialog>

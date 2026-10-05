@@ -171,15 +171,15 @@ function ContrastCheckerView() {
       <div className="design-controls-row">
         <div className="control-group" style={{ flex: 1 }}>
           <label className="control-label">Foreground Text Color:</label>
-          <input className="control-input" value={text} onChange={(e) => setText(e.target.value)} style={{ fontFamily: 'var(--font-mono)' }} />
+          <input className="control-input" value={text} onChange={(e) => setText(e.target.value)} />
         </div>
         <div className="control-group" style={{ flex: 1 }}>
           <label className="control-label">Background Color:</label>
-          <input className="control-input" value={bg} onChange={(e) => setBg(e.target.value)} style={{ fontFamily: 'var(--font-mono)' }} />
+          <input className="control-input" value={bg} onChange={(e) => setBg(e.target.value)} />
         </div>
       </div>
 
-      <div style={{ background: bg, color: text, padding: '24px', borderRadius: 8, marginTop: 12, border: '1px solid var(--border-default)' }}>
+      <div style={{ background: bg, color: text, padding: '24px', borderRadius: 8, marginTop: 12, border: '1px solid var(--border)' }}>
         <h4 style={{ margin: 0, fontSize: 20 }}>Preview Sample Text</h4>
         <p style={{ margin: '8px 0 0', fontSize: 14 }}>
           The quick brown fox jumps over the lazy dog. Local desktop utility contrast inspection.
@@ -233,7 +233,7 @@ function GradientGeneratorView() {
           <input type="range" min={0} max={360} value={deg} onChange={(e) => setDeg(Number(e.target.value))} style={{ width: '100%' }} />
         </div>
       </div>
-      <div style={{ height: 120, borderRadius: 8, background: css, marginTop: 16, border: '1px solid var(--border-default)' }} />
+      <div style={{ height: 120, borderRadius: 8, background: css, marginTop: 16, border: '1px solid var(--border)' }} />
       <div className="design-code-snippet">
         <code>background: {css};</code>
         <CopyBtn text={`background: ${css};`} />
@@ -251,7 +251,7 @@ function ColorBlindnessView() {
     <DesignCard title="Color Blindness Vision Simulator">
       <div className="control-group">
         <label className="control-label">Test Color:</label>
-        <input className="control-input" value={color} onChange={(e) => setColor(e.target.value)} style={{ fontFamily: 'var(--font-mono)', maxWidth: 200 }} />
+        <input className="control-input" value={color} onChange={(e) => setColor(e.target.value)} style={{ maxWidth: 200 }} />
       </div>
       <div className="design-grid-outputs" style={{ marginTop: 16 }}>
         {types.map((t) => {
@@ -295,7 +295,7 @@ function ShadowGeneratorView() {
         </div>
       </div>
       <div style={{ padding: 40, display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: 140, height: 100, background: 'var(--bg-surface)', borderRadius: 8, boxShadow: shadow.replace('box-shadow:\n  ', '').replace(/;$/, '') }} />
+        <div style={{ width: 140, height: 100, background: 'var(--surface)', borderRadius: 8, boxShadow: shadow.replace('box-shadow:\n  ', '').replace(/;$/, '') }} />
       </div>
       <div className="design-code-snippet">
         <pre><code>{shadow}</code></pre>
@@ -336,9 +336,9 @@ function TypeScaleView() {
       </div>
       <div style={{ marginTop: 16 }}>
         {steps.map((s) => (
-          <div key={s.step} style={{ display: 'flex', alignItems: 'baseline', gap: 16, padding: '8px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-            <span style={{ width: 80, fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)' }}>{s.label} ({s.px}px)</span>
-            <span style={{ fontSize: `${s.rem}rem`, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div key={s.step} style={{ display: 'flex', alignItems: 'baseline', gap: 16, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+            <span style={{ width: 80, fontSize: 11, color: 'var(--text-muted)' }}>{s.label} ({s.px}px)</span>
+            <span style={{ fontSize: `${s.rem}rem`, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               The quick brown fox
             </span>
           </div>
@@ -361,7 +361,7 @@ function SvgOptimizerView() {
       </div>
       {res && (
         <div style={{ marginTop: 12 }}>
-          <div style={{ display: 'flex', gap: 16, marginBottom: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'flex', gap: 16, marginBottom: 8, fontSize: 12, color: 'var(--text-2)' }}>
             <span>Original: <strong>{res.originalSize} B</strong></span>
             <span>Optimized: <strong>{res.newSize} B</strong></span>
             <span style={{ color: 'var(--accent)' }}>Saved: <strong>{res.savedPercent}%</strong></span>
@@ -422,9 +422,9 @@ function FontInspectorView() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
         {['Inter (Standard UI)', 'JetBrains Mono (Monospace)', 'Segoe UI', 'system-ui'].map((font) => (
-          <div key={font} style={{ padding: '12px 16px', background: 'var(--bg-raised)', borderRadius: 6 }}>
-            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>{font}</div>
-            <div style={{ fontFamily: font, fontSize: 16, color: 'var(--text-primary)' }}>{sample}</div>
+          <div key={font} style={{ padding: '12px 16px', background: 'var(--surface)', borderRadius: 6 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{font}</div>
+            <div style={{ fontFamily: font, fontSize: 16, color: 'var(--text)' }}>{sample}</div>
           </div>
         ))}
       </div>
@@ -437,14 +437,14 @@ function FaviconGeneratorView() {
   const sizes = [16, 32, 48, 64, 128, 192, 512];
   return (
     <DesignCard title="Favicon & Icon Package Generator">
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0 }}>
         Generates standard multi-resolution web icons (favicon.ico, apple-touch-icon.png, android-chrome).
       </p>
       <div className="design-grid-outputs" style={{ marginTop: 16 }}>
         {sizes.map((s) => (
           <div key={s} className="design-color-box">
             <span className="design-format-tag">{s}×{s}</span>
-            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>icon-{s}.png</span>
+            <span style={{ fontSize: 12, color: 'var(--text-2)' }}>icon-{s}.png</span>
           </div>
         ))}
       </div>
@@ -457,7 +457,7 @@ function ImagePaletteView() {
   const samplePalette = ['#12141A', '#1C2028', '#D4B06A', '#F4F5F7', '#6B7280'];
   return (
     <DesignCard title="Image Color Palette Extractor">
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0 }}>
         Extract dominant color swatches and frequency distribution from images offline.
       </p>
       <div className="palette-strip" style={{ marginTop: 16 }}>

@@ -326,7 +326,7 @@ export const DropAnywhereOverlay: React.FC<DropAnywhereOverlayProps> = ({
         </div>
 
         <div className="drop-anywhere-footer">
-          <ShieldCheck size={14} style={{ color: 'var(--color-accent)' }} />
+          <ShieldCheck size={14} style={{ color: 'var(--accent)' }} />
           <span>Files stay strictly on your local machine. 100% offline & private.</span>
         </div>
       </div>

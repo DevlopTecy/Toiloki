@@ -245,7 +245,7 @@ function VideoCompressorView() {
 function VideoTrimmerView() {
   return (
     <MediaCard title="Video Trimmer & Clip Slicer">
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0 }}>
         Slice start and end points without re-encoding using fast keyframe extraction.
       </p>
     </MediaCard>
@@ -276,7 +276,7 @@ function VideoToGifView() {
 function ExtractAudioView() {
   return (
     <MediaCard title="Extract Audio Track from Video (MP4 → WAV/MP3)">
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0 }}>
         Demuxes audio streams from MP4, WebM, and MKV files locally into clean audio files.
       </p>
     </MediaCard>
@@ -287,7 +287,7 @@ function ExtractAudioView() {
 function FrameExtractorView() {
   return (
     <MediaCard title="Video Frame Sequence Extractor">
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0 }}>
         Extract high-resolution video frames at intervals (e.g. 1 frame/sec) as a PNG/JPEG ZIP archive.
       </p>
     </MediaCard>

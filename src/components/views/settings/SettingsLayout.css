@@ -127,7 +127,7 @@
   font-weight: 600;
   color: var(--text);
   margin: 0 0 4px 0;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
 }
 
 .settings-section-desc {
@@ -364,7 +364,7 @@
 
 .toiloki-switch input:checked+.toiloki-switch-track .toiloki-switch-thumb {
   transform: translateX(16px);
-  background-color: var(--on-accent, #ffffff);
+  background-color: var(--on-accent);
 }
 
 .toiloki-switch input:focus-visible+.toiloki-switch-track {
@@ -414,14 +414,14 @@
 }
 
 .color-mode-tile-preview.tile-light {
-  background-color: #f8fafc;
+  background-color: var(--bg);
 }
 
 .color-mode-tile-preview.tile-light .mini-sidebar {
   width: 25%;
   height: 100%;
-  background-color: #e2e8f0;
-  border-right: 1px solid #cbd5e1;
+  background-color: var(--sidebar);
+  border-right: 1px solid var(--border);
 }
 
 .color-mode-tile-preview.tile-light .mini-canvas {
@@ -435,19 +435,19 @@
 .color-mode-tile-preview.tile-light .mini-bar {
   height: 4px;
   width: 60%;
-  background-color: #94a3b8;
+  background-color: var(--text-muted);
   border-radius: 2px;
 }
 
 .color-mode-tile-preview.tile-dark {
-  background-color: #121316;
+  background-color: var(--bg);
 }
 
 .color-mode-tile-preview.tile-dark .mini-sidebar {
   width: 25%;
   height: 100%;
-  background-color: #1c1d22;
-  border-right: 1px solid #2e3038;
+  background-color: var(--sidebar);
+  border-right: 1px solid var(--border);
 }
 
 .color-mode-tile-preview.tile-dark .mini-canvas {
@@ -461,7 +461,7 @@
 .color-mode-tile-preview.tile-dark .mini-bar {
   height: 4px;
   width: 60%;
-  background-color: #4b5563;
+  background-color: var(--text-muted);
   border-radius: 2px;
 }
 
@@ -472,14 +472,14 @@
 .color-mode-tile-preview.tile-system .split-left {
   width: 50%;
   height: 100%;
-  background-color: #f8fafc;
-  border-right: 1px solid #cbd5e1;
+  background-color: var(--bg);
+  border-right: 1px solid var(--border);
 }
 
 .color-mode-tile-preview.tile-system .split-right {
   width: 50%;
   height: 100%;
-  background-color: #121316;
+  background-color: var(--bg);
 }
 
 .color-mode-tile-footer {
@@ -647,5 +647,5 @@
 }
 
 .theme-dropdown-item.is-danger {
-  color: var(--color-danger, #ef4444);
+  color: var(--danger);
 }

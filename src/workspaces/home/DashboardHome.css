@@ -244,7 +244,7 @@
 }
 
 .run-status-icon.failed {
-  color: var(--color-danger);
+  color: var(--danger);
 }
 
 .run-details {
@@ -427,13 +427,13 @@
 .quick-action-card.image-style-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--image-card-border, rgba(255, 255, 255, 0.10));
+  border: 1px solid var(--image-card-border);
   border-radius: 14px;
   min-height: 100px;
 }
 
 .quick-action-card.image-style-card:hover {
-  border-color: var(--image-card-border-hover, rgba(255, 255, 255, 0.20));
+  border-color: var(--image-card-border-hover);
   transform: translateY(-1px);
 }
 
@@ -503,8 +503,8 @@
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  background: rgba(212, 176, 106, 0.12);
-  color: var(--accent, #d4b06a);
+  background: var(--accent-soft);
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -524,12 +524,12 @@
 }
 
 .savings-highlight {
-  color: var(--accent, #d4b06a);
+  color: var(--accent);
 }
 
 .savings-subtext {
   font-size: 12px;
-  color: var(--text-muted, #8a8f98);
+  color: var(--text-muted);
 }
 
 .savings-badge {
@@ -537,9 +537,9 @@
   font-weight: 500;
   padding: 3px 8px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-hover);
   border: 1px solid var(--border);
-  color: var(--text-muted, #8a8f98);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -558,7 +558,7 @@
 }
 
 .qa-grip-handle {
-  color: var(--text-muted, #8a8f98);
+  color: var(--text-muted);
   opacity: 0;
   transition: opacity 120ms ease;
   margin-right: -2px;

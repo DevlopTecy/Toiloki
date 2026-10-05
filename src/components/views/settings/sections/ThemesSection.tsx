@@ -394,7 +394,7 @@ export const ThemesSection: React.FC = () => {
                     <button
                       type="button"
                       className="settings-ghost-reset-btn"
-                      style={{ fontSize: '11px', padding: '2px 6px', color: 'var(--color-danger)' }}
+                      style={{ fontSize: '11px', padding: '2px 6px', color: 'var(--danger)' }}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (window.confirm(`Delete custom theme "${theme.name}"?`)) {

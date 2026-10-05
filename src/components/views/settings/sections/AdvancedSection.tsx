@@ -102,8 +102,8 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
           inset: 0;
           pointer-events: none;
           z-index: 9999;
-          background-image: linear-gradient(to right, rgba(212, 176, 106, 0.08) 1px, transparent 1px),
-                            linear-gradient(to bottom, rgba(212, 176, 106, 0.08) 1px, transparent 1px);
+          background-image: linear-gradient(to right, var(--accent-soft) 1px, transparent 1px),
+                            linear-gradient(to bottom, var(--accent-soft) 1px, transparent 1px);
           background-size: 8px 8px;
         }
       `;
@@ -121,7 +121,7 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
       const style = document.createElement('style');
       style.id = 'dev-outlines-style';
       style.textContent = `
-        * { outline: 1px solid rgba(239, 68, 68, 0.25) !important; }
+        * { outline: 1px solid var(--danger) !important; }
       `;
       document.head.appendChild(style);
     } else {
@@ -210,7 +210,7 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
           />
           <Button variant="secondary" size="sm" onClick={handleExportPortable}>
             {exported ? (
-              <Check size={13} style={{ marginRight: '5px', color: 'var(--color-success, #22c55e)' }} />
+              <Check size={13} style={{ marginRight: '5px', color: 'var(--success)' }} />
             ) : (
               <Download size={13} style={{ marginRight: '5px' }} />
             )}
@@ -330,7 +330,7 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
                 />
                 <Button variant="secondary" size="sm" onClick={handleCopyJson}>
                   {copiedJson ? (
-                    <Check size={12} style={{ marginRight: '4px', color: 'var(--color-success, #22c55e)' }} />
+                    <Check size={12} style={{ marginRight: '4px', color: 'var(--success)' }} />
                   ) : (
                     <Copy size={12} style={{ marginRight: '4px' }} />
                   )}
@@ -394,7 +394,7 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
                   textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: '24px', fontWeight: 700, color: fpsCounter >= 55 ? 'var(--color-success, #22c55e)' : 'var(--accent)' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700, color: fpsCounter >= 55 ? 'var(--success)' : 'var(--accent)' }}>
                   {fpsCounter}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>FPS Live Refresh</div>
@@ -476,7 +476,7 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
           <label className="settings-label">Reset all application preferences</label>
           <span className="settings-helper">Restores theme, fonts, density, paths, and limits to factory defaults.</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleResetDefaults} style={{ color: 'var(--color-danger, #ef4444)' }}>
+        <Button variant="ghost" size="sm" onClick={handleResetDefaults} style={{ color: 'var(--danger)' }}>
           {resetDone ? <Check size={13} style={{ marginRight: '6px' }} /> : <RotateCcw size={13} style={{ marginRight: '6px' }} />}
           {resetDone ? 'Reset complete' : 'Restore factory defaults'}
         </Button>

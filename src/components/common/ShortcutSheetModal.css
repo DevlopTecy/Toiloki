@@ -15,8 +15,8 @@
   width: 540px;
   max-width: calc(100vw - 32px);
   max-height: 80vh;
-  background: var(--bg-surface, #1e1e1e);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
   display: flex;
@@ -40,8 +40,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
-  background: var(--bg-panel-header, rgba(255, 255, 255, 0.02));
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .shortcut-title-group {
@@ -54,8 +54,8 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: rgba(212, 176, 106, 0.12);
-  color: var(--accent, #d4b06a);
+  background: var(--accent-soft);
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -65,20 +65,19 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-primary, #ffffff);
-  letter-spacing: -0.01em;
+  color: var(--text);
 }
 
 .shortcut-modal-subtitle {
   margin: 2px 0 0 0;
   font-size: 12px;
-  color: var(--text-muted, rgba(255, 255, 255, 0.5));
+  color: var(--text-muted);
 }
 
 .shortcut-close-btn {
   background: transparent;
   border: none;
-  color: var(--text-muted, rgba(255, 255, 255, 0.5));
+  color: var(--text-muted);
   cursor: pointer;
   padding: 6px;
   border-radius: 6px;
@@ -89,8 +88,8 @@
 }
 
 .shortcut-close-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-primary, #ffffff);
+  background: var(--surface-hover);
+  color: var(--text);
 }
 
 .shortcut-modal-body {
@@ -111,16 +110,15 @@
   margin: 0;
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--accent, #d4b06a);
+  letter-spacing: 0.01em;
+  color: var(--accent);
 }
 
 .shortcut-rows-list {
   display: flex;
   flex-direction: column;
-  background: var(--bg-card, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -130,7 +128,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.04));
+  border-bottom: 1px solid var(--border);
   font-size: 13px;
 }
 
@@ -139,7 +137,7 @@
 }
 
 .shortcut-desc {
-  color: var(--text-secondary, #cccccc);
+  color: var(--text-2);
 }
 
 .shortcut-keys-group {
@@ -150,7 +148,7 @@
 
 .shortcut-plus {
   font-size: 11px;
-  color: var(--text-muted, rgba(255, 255, 255, 0.4));
+  color: var(--text-muted);
 }
 
 .shortcut-kbd {
@@ -160,17 +158,17 @@
   font-family: inherit;
   font-weight: 500;
   line-height: 1.4;
-  color: var(--text-primary, #ffffff);
-  background: var(--bg-surface-elevated, #2a2a2a);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 4px;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 .shortcut-modal-footer {
   padding: 12px 20px;
-  background: var(--bg-panel-header, rgba(255, 255, 255, 0.02));
-  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -178,7 +176,7 @@
 
 .shortcut-footer-hint {
   font-size: 12px;
-  color: var(--text-muted, rgba(255, 255, 255, 0.45));
+  color: var(--text-muted);
 }
 
 .shortcut-kbd-inline {
@@ -186,9 +184,9 @@
   padding: 1px 5px;
   font-size: 10px;
   font-family: inherit;
-  color: var(--text-secondary, #cccccc);
-  background: var(--bg-surface-elevated, #2a2a2a);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
+  color: var(--text-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 3px;
   margin: 0 2px;
 }

@@ -31,9 +31,9 @@ export const ContrastBadge: React.FC<ContrastBadgeProps> = ({
         borderRadius: 'var(--radius-xs)',
         fontSize: '11px',
         fontFamily: 'var(--font-mono)',
-        backgroundColor: passes ? 'rgba(74, 222, 128, 0.12)' : 'rgba(239, 68, 68, 0.14)',
-        border: `1px solid ${passes ? 'rgba(74, 222, 128, 0.28)' : 'rgba(239, 68, 68, 0.32)'}`,
-        color: passes ? 'var(--color-success)' : 'var(--color-danger)',
+        backgroundColor: passes ? 'var(--success-bg)' : 'var(--danger-bg)',
+        border: `1px solid ${passes ? 'var(--success)' : 'var(--danger)'}`,
+        color: passes ? 'var(--success)' : 'var(--danger)',
       }}
       title={`${label ? `${label}: ` : ''}${result.ratio}:1 (${result.score}) against ${bgColor}`}
     >
@@ -50,8 +50,8 @@ export const ContrastBadge: React.FC<ContrastBadgeProps> = ({
           }}
           style={{
             marginLeft: '4px',
-            background: 'var(--color-danger)',
-            color: '#FFFFFF',
+            background: 'var(--danger)',
+            color: 'var(--on-accent)',
             border: 'none',
             borderRadius: '2px',
             padding: '1px 5px',

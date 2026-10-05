@@ -115,7 +115,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
     JSON.stringify({ name: 'Toiloki', version: '1.0.0', features: ['offline', 'privacy'], settings: { darkTheme: true } }, null, 2)
   );
   const [jsonDiffRight, setJsonDiffRight] = useState(
-    JSON.stringify({ name: 'Toiloki Suite', version: '2.0.0', features: ['offline', 'privacy', 'speed'], settings: { darkTheme: true, accentColor: '#D4B06A' } }, null, 2)
+    JSON.stringify({ name: 'Toiloki Suite', version: '2.0.0', features: ['offline', 'privacy', 'speed'], settings: { darkTheme: true, accentColor: 'orange' } }, null, 2)
   );
   const [diffReport, setDiffReport] = useState<{
     added: Array<{ path: string; value: any }>;
@@ -659,8 +659,8 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
             )}
 
             {utilityId === 'data-jsonpath-query' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontWeight: 600 }}>JSONPath Expression:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>JSONPath Expression:</span>
                 <input
                   type="text"
                   className="control-input"
@@ -673,17 +673,17 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
             )}
 
             {utilityId === 'data-join-csv' && (
-              <div style={{ display: 'flex', gap: '12px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Key A:</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Key A:</span>
                   <input type="text" className="control-input" style={{ width: '80px' }} value={joinKeyA} onChange={(e) => setJoinKeyA(e.target.value)} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Key B:</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Key B:</span>
                   <input type="text" className="control-input" style={{ width: '80px' }} value={joinKeyB} onChange={(e) => setJoinKeyB(e.target.value)} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Join Type:</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Join Type:</span>
                   {(['inner', 'left', 'outer'] as const).map((t) => (
                     <button key={t} type="button" className={`segmented-chip-btn ${joinType === t ? 'active' : ''}`} onClick={() => setJoinType(t)}>
                       {t.toUpperCase()}
@@ -694,17 +694,17 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
             )}
 
             {utilityId === 'data-pivot-groupby' && (
-              <div style={{ display: 'flex', gap: '12px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Group By Column:</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Group By Column:</span>
                   <input type="text" className="control-input" style={{ width: '120px' }} value={pivotGroupCol} onChange={(e) => setPivotGroupCol(e.target.value)} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Aggregate Column:</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Aggregate Column:</span>
                   <input type="text" className="control-input" style={{ width: '120px' }} value={pivotAggCol} onChange={(e) => setPivotAggCol(e.target.value)} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Function:</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Function:</span>
                   {(['count', 'sum', 'avg', 'min', 'max'] as const).map((fn) => (
                     <button key={fn} type="button" className={`segmented-chip-btn ${pivotFunc === fn ? 'active' : ''}`} onClick={() => setPivotFunc(fn)}>
                       {fn.toUpperCase()}
@@ -715,9 +715,9 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
             )}
 
             {utilityId === 'data-split-csv' && (
-              <div style={{ display: 'flex', gap: '12px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Split By:</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Split By:</span>
                   <button type="button" className={`segmented-chip-btn ${splitMode === 'column' ? 'active' : ''}`} onClick={() => setSplitMode('column')}>
                     Category Column
                   </button>
@@ -727,12 +727,12 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
                 </div>
                 {splitMode === 'column' ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Column Name:</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Column Name:</span>
                     <input type="text" className="control-input" style={{ width: '120px' }} value={splitCol} onChange={(e) => setSplitCol(e.target.value)} />
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Rows Per File:</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Rows Per File:</span>
                     <input type="number" min={1} className="control-input" style={{ width: '80px' }} value={splitChunkSize} onChange={(e) => setSplitChunkSize(Math.max(1, parseInt(e.target.value) || 1))} />
                   </div>
                 )}
@@ -740,9 +740,9 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
             )}
 
             {utilityId === 'data-sql-csv' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px' }}>
                 <Terminal size={14} className="text-accent" />
-                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontWeight: 600 }}>SQL:</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>SQL:</span>
                 <input
                   type="text"
                   className="control-input"
@@ -755,8 +755,8 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
             )}
 
             {utilityId === 'data-json-to-typescript' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontWeight: 600 }}>Root Interface Name:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>Root Interface Name:</span>
                 <input
                   type="text"
                   className="control-input"
@@ -854,16 +854,16 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
             />
 
             {splitChunksResult && (
-              <div style={{ marginTop: '16px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
-                <h4 style={{ fontSize: '13px', color: 'var(--text-primary)', marginBottom: '10px' }}>
+              <div style={{ marginTop: '16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
+                <h4 style={{ fontSize: '13px', color: 'var(--text)', marginBottom: '10px' }}>
                   Split File Chunks ({splitChunksResult.length} files):
                 </h4>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '8px' }}>
                   {splitChunksResult.map((c, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--bg-canvas)', borderRadius: 'var(--radius-sm)' }}>
                       <div>
-                        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{c.name}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{c.rowCount} records</div>
+                        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)' }}>{c.name}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{c.rowCount} records</div>
                       </div>
                       <button className="tool-btn secondary small-btn" onClick={() => handleCopyText(c.csv)}>
                         Copy

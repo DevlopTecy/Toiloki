@@ -245,7 +245,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
         return <MediaWorkspaceView {...commonProps} />;
       default:
         return (
-          <div style={{ padding: '32px', color: 'var(--text-secondary)' }}>
+          <div style={{ padding: '32px', color: 'var(--text-2)' }}>
             Select a utility to begin.
           </div>
         );
