@@ -53,7 +53,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [customThemes, setCustomThemes] = useState<AppTheme[]>(() => {
     try {
       const saved = localStorage.getItem(CUSTOM_THEMES_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const fallback = BUILTIN_THEMES[0];
+          return parsed.map((t) => ({
+            ...t,
+            tokens: t.tokens && t.tokens.dark && t.tokens.light ? t.tokens : fallback.tokens,
+          }));
+        }
+      }
     } catch (e) {
       console.error('Failed to load custom themes:', e);
     }

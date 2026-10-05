@@ -101,7 +101,7 @@ export const ThemesSection: React.FC = () => {
         >
           {allThemes.filter((t) => t.isPreset).map((theme) => {
             const isSelected = selectedThemeId === theme.id;
-            const tokens = theme.tokens[resolvedMode] || theme.tokens.dark;
+            const tokens = theme.tokens?.[resolvedMode] || theme.tokens?.dark || theme.tokens?.light || {};
 
             return (
               <div
@@ -267,7 +267,7 @@ export const ThemesSection: React.FC = () => {
           >
             {customThemes.map((theme) => {
               const isSelected = selectedThemeId === theme.id;
-              const tokens = theme.tokens[resolvedMode] || theme.tokens.dark;
+              const tokens = theme.tokens?.[resolvedMode] || theme.tokens?.dark || theme.tokens?.light || {};
 
               return (
                 <div

@@ -861,7 +861,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         >
           {allThemes.map((theme) => {
             const isSelected = selectedThemeId === theme.id;
-            const tokens = theme.tokens[resolvedMode] || theme.tokens.dark;
+            const tokens = theme.tokens?.[resolvedMode] || theme.tokens?.dark || theme.tokens?.light || {};
             const isMenuOpen = openMenuThemeId === theme.id;
 
             return (
