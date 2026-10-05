@@ -24,19 +24,23 @@ import { SettingsService, AppSettings } from '../core/services/settings.service'
 import { WorkbenchShell } from '../components/workbench/WorkbenchShell';
 
 interface WorkspaceViewProps {
+  tabId?: string;
   workspace: WorkspaceDefinition;
   initialGroupId?: string;
   initialUtilityId?: string;
   initialFeatureId?: string;
   onBackToHome: () => void;
+  onUtilityChange?: (groupId: string, utilityId: string, featureId?: string) => void;
 }
 
 export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
+  tabId,
   workspace,
   initialGroupId,
   initialUtilityId,
   initialFeatureId,
   onBackToHome,
+  onUtilityChange,
 }) => {
   // Helper to load last-used utility per category
   const getInitialSelection = () => {
@@ -130,6 +134,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     setActiveGroup(group);
     setActiveUtility(utility);
     setActiveFeatureId(null);
+    onUtilityChange?.(group.id, utility.id);
     const url = new URL(window.location.href);
     url.searchParams.delete('feature');
     url.searchParams.set('nav', workspace.id);
@@ -146,6 +151,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
 
   const handleFeatureSelect = (featureId: string) => {
     setActiveFeatureId(featureId);
+    onUtilityChange?.(activeGroup.id, activeUtility.id, featureId);
     const url = new URL(window.location.href);
     url.searchParams.set('feature', featureId);
     window.history.replaceState({}, '', url.toString());
@@ -255,6 +261,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
   if (settings.layout === 'workbench' && (workspace.workbench === 'file' || workspace.workbench === 'editor' || workspace.workbench === 'standalone')) {
     return (
       <WorkbenchShell
+        tabId={tabId}
         workspace={workspace}
         activeGroup={activeGroup}
         activeUtility={activeUtility}

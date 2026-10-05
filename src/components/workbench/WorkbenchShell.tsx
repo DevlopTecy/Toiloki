@@ -3,6 +3,7 @@ import { PDFDocument } from 'pdf-lib';
 import Papa from 'papaparse';
 import { WorkspaceDefinition, GroupDefinition, UtilityDefinition } from '../../core/types/workspace';
 import { SettingsService } from '../../core/services/settings.service';
+import { SessionStore } from '../../core/services/session.service';
 import { FileDropzone, SelectedFile } from '../file-system/FileDropzone';
 import {
   ChevronDown,
@@ -69,6 +70,7 @@ interface VersionItem {
 }
 
 interface WorkbenchShellProps {
+  tabId?: string;
   workspace: WorkspaceDefinition;
   activeGroup: GroupDefinition;
   activeUtility: UtilityDefinition;
@@ -76,6 +78,7 @@ interface WorkbenchShellProps {
 }
 
 export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
+  tabId,
   workspace,
   activeGroup,
   activeUtility,
@@ -211,6 +214,56 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
     setStatusMessage('');
     setErrorMessage('Operation was cancelled by user.');
   }, []);
+
+  // Synchronize active workbench session state to SessionStore
+  useEffect(() => {
+    const effectiveTabId = tabId || `tab_${workspace.id}`;
+    if (files.length === 0) {
+      SessionStore.clearSession(effectiveTabId, workspace.id);
+    } else {
+      SessionStore.saveSession(effectiveTabId, workspace.id, {
+        groupId: activeGroup.id,
+        utilityId: activeUtility.id,
+        files: files.map((f) => ({
+          name: f.name,
+          size: f.size || (f.buffer ? f.buffer.byteLength : 0),
+          type: f.file?.type || '',
+        })),
+        versionStack: versionStack.map((v) => ({
+          id: v.id,
+          name: v.name,
+          timestamp: v.timestamp,
+        })),
+        versionIndex,
+        options: {
+          imageFormat,
+          imageQuality,
+          dataFormat,
+          dataViewMode,
+          textViewMode,
+          docPageSize,
+          docFontTheme,
+          docTargetFormat,
+        },
+      });
+    }
+  }, [
+    files,
+    versionStack,
+    versionIndex,
+    tabId,
+    workspace.id,
+    activeGroup.id,
+    activeUtility.id,
+    imageFormat,
+    imageQuality,
+    dataFormat,
+    dataViewMode,
+    textViewMode,
+    docPageSize,
+    docFontTheme,
+    docTargetFormat,
+  ]);
 
   // Sync format preselection when clicking format-specific converter utilities
   useEffect(() => {

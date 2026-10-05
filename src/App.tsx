@@ -16,6 +16,7 @@ import { TrashView } from './components/views/TrashView';
 import { ToastProvider, useToast } from './core/context/ToastContext';
 import { ThemeProvider } from './core/theme/ThemeContext';
 import { SettingsService } from './core/services/settings.service';
+import { SessionStore } from './core/services/session.service';
 import { MigrationService } from './core/services/migration.service';
 import { PipeService } from './core/services/pipe.service';
 import { WORKSPACES, findUtilityByFeatureId } from './core/registry/app-registry';
@@ -122,6 +123,28 @@ const AppContent: React.FC = () => {
 
     window.addEventListener('toiloki-navigate-utility', handleNavigateUtility);
     return () => window.removeEventListener('toiloki-navigate-utility', handleNavigateUtility);
+  }, []);
+
+  // Listen to session updates to reflect dot indicator and file presence on tabs
+  useEffect(() => {
+    const handleSessionUpdated = (e: any) => {
+      const { tabId, workspaceId, hasFiles, fileCount } = e.detail || {};
+      setTabs((currentTabs) =>
+        currentTabs.map((t) => {
+          if (t.id === tabId || (workspaceId && t.workspaceId === workspaceId)) {
+            return {
+              ...t,
+              hasFiles: Boolean(hasFiles),
+              fileCount: typeof fileCount === 'number' ? fileCount : hasFiles ? 1 : 0,
+            };
+          }
+          return t;
+        })
+      );
+    };
+
+    window.addEventListener('toiloki-session-updated', handleSessionUpdated);
+    return () => window.removeEventListener('toiloki-session-updated', handleSessionUpdated);
   }, []);
 
   // Listen to Electron appBridge events ("Open with Toiloki", Tray shortcuts, Global hotkey)
@@ -366,6 +389,7 @@ const AppContent: React.FC = () => {
     const newTabs = tabs.filter((t) => t.id !== tabIdToClose);
     const resolvedTabs = newTabs.length > 0 ? newTabs : [{ id: 'tab-home', workspaceId: 'home' as const, title: 'Home' }];
 
+    SessionStore.clearSession(tabIdToClose);
     setTabs(resolvedTabs);
 
     if (activeTabId === tabIdToClose) {
@@ -637,8 +661,6 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const activeWorkspace = WORKSPACES.find((w) => w.id === activeNav);
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', overflow: 'hidden' }}>
       {/* ─── 1. Title Bar: Logo + Toiloki, Centered E-commerce Search, Window Controls ─── */}
@@ -666,53 +688,110 @@ const AppContent: React.FC = () => {
         />
 
         <main
-          key={activeNav}
-          className="app-main-workspace motion-fade-in"
-          style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowY: 'auto' }}
+          className="app-main-workspace"
+          style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', position: 'relative' }}
         >
-          {activeNav === 'home' && (
-            <>
-              <Header
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                onOpenSearchModal={() => {
-                  const input = document.querySelector<HTMLInputElement>('.ecommerce-search-input');
-                  input?.focus();
-                }}
-                showHeroBanner={true}
-              />
-              <DashboardHome
-                onSelectWorkspace={(ws) => handleSelectWorkspace(ws)}
-                onSelectUtility={(ws, grp, util) => handleSelectUtility(ws, grp, util)}
-              />
-            </>
-          )}
+          {tabs.map((tab) => {
+            const isTabActive = tab.id === activeTabId;
+            const containerStyle: React.CSSProperties = {
+              display: isTabActive ? 'flex' : 'none',
+              flex: 1,
+              flexDirection: 'column',
+              minWidth: 0,
+              height: '100%',
+              width: '100%',
+              overflow: 'hidden',
+            };
 
-          {activeNav === 'new-tab' && (
-            <NewTabPage
-              onSelectWorkspace={(ws) => handleSelectWorkspace(ws)}
-              onSelectUtility={(ws, grp, util, feat) => handleSelectUtility(ws, grp, util, feat)}
-            />
-          )}
+            if (tab.workspaceId === 'home') {
+              return (
+                <div key={tab.id} style={{ ...containerStyle, overflowY: 'auto' }}>
+                  <Header
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onOpenSearchModal={() => {
+                      const input = document.querySelector<HTMLInputElement>('.ecommerce-search-input');
+                      input?.focus();
+                    }}
+                    showHeroBanner={true}
+                  />
+                  <DashboardHome
+                    onSelectWorkspace={(ws) => handleSelectWorkspace(ws)}
+                    onSelectUtility={(ws, grp, util) => handleSelectUtility(ws, grp, util)}
+                  />
+                </div>
+              );
+            }
 
-          {activeWorkspace && (
-            <WorkspaceView
-              workspace={activeWorkspace}
-              initialGroupId={selectedGroupId}
-              initialUtilityId={selectedUtilityId}
-              initialFeatureId={selectedFeatureId}
-              onBackToHome={() => handleSelectWorkspace('home')}
-            />
-          )}
+            if (tab.workspaceId === 'new-tab') {
+              return (
+                <div key={tab.id} style={{ ...containerStyle, overflowY: 'auto' }}>
+                  <NewTabPage
+                    onSelectWorkspace={(ws) => handleSelectWorkspace(ws)}
+                    onSelectUtility={(ws, grp, util, feat) => handleSelectUtility(ws, grp, util, feat)}
+                  />
+                </div>
+              );
+            }
 
-          {activeNav === 'history' && (
-            <HistoryView onOpenUtility={(ws, grp, util) => handleSelectUtility(ws, grp, util)} />
-          )}
-          {activeNav === 'favorites' && (
-            <FavoritesView onSelectUtility={(ws, grp, util) => handleSelectUtility(ws, grp, util)} />
-          )}
-          {activeNav === 'trash' && <TrashView />}
-          {activeNav === 'settings' && <SettingsView />}
+            if (tab.workspaceId === 'history') {
+              return (
+                <div key={tab.id} style={{ ...containerStyle, overflowY: 'auto' }}>
+                  <HistoryView onOpenUtility={(ws, grp, util) => handleSelectUtility(ws, grp, util)} />
+                </div>
+              );
+            }
+
+            if (tab.workspaceId === 'favorites') {
+              return (
+                <div key={tab.id} style={{ ...containerStyle, overflowY: 'auto' }}>
+                  <FavoritesView onSelectUtility={(ws, grp, util) => handleSelectUtility(ws, grp, util)} />
+                </div>
+              );
+            }
+
+            if (tab.workspaceId === 'trash') {
+              return (
+                <div key={tab.id} style={{ ...containerStyle, overflowY: 'auto' }}>
+                  <TrashView />
+                </div>
+              );
+            }
+
+            if (tab.workspaceId === 'settings') {
+              return (
+                <div key={tab.id} style={{ ...containerStyle, overflowY: 'auto' }}>
+                  <SettingsView />
+                </div>
+              );
+            }
+
+            const wsDef = WORKSPACES.find((w) => w.id === tab.workspaceId);
+            if (!wsDef) return null;
+
+            return (
+              <div key={tab.id} style={containerStyle}>
+                <WorkspaceView
+                  tabId={tab.id}
+                  workspace={wsDef}
+                  initialGroupId={tab.groupId}
+                  initialUtilityId={tab.utilityId}
+                  initialFeatureId={tab.featureId}
+                  onBackToHome={() => handleSelectWorkspace('home')}
+                  onUtilityChange={(groupId, utilityId, featureId) => {
+                    const uName = getUtilityName(wsDef.id, groupId, utilityId);
+                    setTabs((currentTabs) =>
+                      currentTabs.map((t) =>
+                        t.id === tab.id
+                          ? { ...t, groupId, utilityId, featureId, title: uName }
+                          : t
+                      )
+                    );
+                  }}
+                />
+              </div>
+            );
+          })}
         </main>
       </div>
 

@@ -307,45 +307,62 @@
   border-color: var(--border);
 }
 
-/* ─── Quick Actions Grid (Flat Card Style, Radius 12px) ─── */
+/* ─── Quick Actions Grid (Medium tiles 56px high, auto-fill minmax(180px, 1fr)) ─── */
 .quick-actions-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
 }
 
 .quick-action-card {
+  height: 56px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: var(--card-shadow);
-  padding: 18px 20px;
+  padding: 0 14px;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 12px;
   cursor: pointer;
-  transition: background-color 150ms ease;
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+  user-select: none;
 }
 
 .quick-action-card:hover {
   background: var(--surface-hover);
+  border-color: var(--border-strong, var(--border));
 }
 
-.quick-action-top {
+.qa-icon-wrap {
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  color: var(--text-2);
+  flex-shrink: 0;
 }
 
-/* Hide Quick Action category tag pills per Section 3 */
-.qa-tag {
-  display: none !important;
+.quick-action-card:hover .qa-icon-wrap {
+  color: var(--text);
+}
+
+.qa-name {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
 }
 
 .qa-arrow {
   color: var(--text-muted);
-  margin-left: auto;
-  transition: transform 150ms var(--ease-standard), color 150ms ease;
+  flex-shrink: 0;
+  transition: transform var(--dur-fast) ease, color var(--dur-fast) ease;
 }
 
 .quick-action-card:hover .qa-arrow {
@@ -353,34 +370,17 @@
   transform: translateX(2px);
 }
 
-.quick-action-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.run-open-btn.clear-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  margin-left: 6px;
 }
 
-.qa-name {
-  font-size: 14px;
-  font-weight: 600;
+.run-open-btn.clear-btn:hover {
+  background: var(--surface-hover);
   color: var(--text);
-}
-
-/* Show subtitle only on hover per Section 3 */
-.qa-desc {
-  font-size: 12px;
-  color: var(--text-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  opacity: 0;
-  max-height: 0;
-  transition: opacity 150ms ease, max-height 150ms ease;
-}
-
-.quick-action-card:hover .qa-desc {
-  opacity: 1;
-  max-height: 24px;
-  margin-top: 2px;
+  border-color: var(--border-strong);
 }
 
 /* ═══════════════════════════════════════════════════

@@ -110,20 +110,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return data;
   }, [settings.showUpcomingUtilities]);
 
+  const hasOpenableUtilities = (id: string) => {
+    const stats = workspaceUtilityData[id];
+    return stats ? stats.total > 0 : true;
+  };
+
   const visibleFilesAndMedia = useMemo(() => {
     const visibleIds = new Set(settings.visibleWorkspaces);
-    return FILES_AND_MEDIA_CATEGORIES.filter((cat) => visibleIds.has(cat.id));
-  }, [settings.visibleWorkspaces]);
+    return FILES_AND_MEDIA_CATEGORIES.filter((cat) => visibleIds.has(cat.id) && hasOpenableUtilities(cat.id));
+  }, [settings.visibleWorkspaces, workspaceUtilityData]);
 
   const visibleDataAndCode = useMemo(() => {
     const visibleIds = new Set(settings.visibleWorkspaces);
-    return DATA_AND_CODE_CATEGORIES.filter((cat) => visibleIds.has(cat.id));
-  }, [settings.visibleWorkspaces]);
+    return DATA_AND_CODE_CATEGORIES.filter((cat) => visibleIds.has(cat.id) && hasOpenableUtilities(cat.id));
+  }, [settings.visibleWorkspaces, workspaceUtilityData]);
 
   const visibleTools = useMemo(() => {
     const visibleIds = new Set(settings.visibleWorkspaces);
-    return TOOLS_CATEGORIES.filter((cat) => visibleIds.has(cat.id));
-  }, [settings.visibleWorkspaces]);
+    return TOOLS_CATEGORIES.filter((cat) => visibleIds.has(cat.id) && hasOpenableUtilities(cat.id));
+  }, [settings.visibleWorkspaces, workspaceUtilityData]);
 
   const renderCategoryList = (categories: readonly { id: string; label: string; icon: any; badgeClass: string }[]) => {
     return categories.map((cat) => {
