@@ -153,6 +153,7 @@ function CurlBuilderView() {
   const [url, setUrl] = useState('https://api.example.com/v1/resource');
   const [token, setToken] = useState('Bearer_xyz123');
   const [body, setBody] = useState('{\n  "name": "Toiloki",\n  "offline": true\n}');
+  const [shell, setShell] = useState<'bash' | 'powershell' | 'cmd'>('bash');
 
   const curl = React.useMemo(() => {
     return NetworkEngine.buildCurl({
@@ -162,12 +163,21 @@ function CurlBuilderView() {
       authToken: token,
       headers: { 'Content-Type': 'application/json' },
       body,
+      shell,
     }).data || '';
-  }, [method, url, token, body]);
+  }, [method, url, token, body, shell]);
 
   return (
     <NetCard title="cURL Request Command Generator">
       <div className="net-controls-row">
+        <div className="control-group">
+          <label className="control-label">Target Shell:</label>
+          <select className="control-select" value={shell} onChange={(e) => setShell(e.target.value as any)}>
+            <option value="bash">Bash / Linux / macOS (curl \)</option>
+            <option value="powershell">PowerShell (curl.exe `)</option>
+            <option value="cmd">Windows CMD (curl ^)</option>
+          </select>
+        </div>
         <div className="control-group">
           <label className="control-label">Method:</label>
           <select className="control-select" value={method} onChange={(e) => setMethod(e.target.value)}>

@@ -95,7 +95,34 @@ function AudioConverterView() {
 function AudioTrimmerView() {
   const [files, setFiles] = useState<SelectedFile[]>([]);
   const [startSec, setStartSec] = useState(0);
-  const [endSec, setEndSec] = useState(30);
+  const [endSec, setEndSec] = useState(15);
+  const [processing, setProcessing] = useState(false);
+  const [trimmedBuffer, setTrimmedBuffer] = useState<Uint8Array | null>(null);
+
+  const handleTrim = async () => {
+    if (!files[0]?.file && !files[0]?.buffer) return;
+    setProcessing(true);
+    try {
+      const buf = files[0].buffer || new Uint8Array(await files[0].file!.arrayBuffer());
+      const res = await MediaEngine.trimAudio(buf, startSec, endSec);
+      if (res.success && res.data) {
+        setTrimmedBuffer(res.data);
+      }
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!trimmedBuffer) return;
+    const blob = new Blob([trimmedBuffer], { type: 'audio/wav' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trimmed-${files[0]?.name?.replace(/\.[^.]+$/, '') || 'audio'}.wav`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <MediaCard title="Audio Trimmer & Waveform Cutter">
@@ -116,8 +143,13 @@ function AudioTrimmerView() {
           <input className="control-input" type="number" min={0} value={endSec} onChange={(e) => setEndSec(Number(e.target.value))} style={{ width: 100 }} />
         </div>
         {files.length > 0 && (
-          <button className="tool-btn primary small-btn">
-            Trim Audio ({startSec}s - {endSec}s)
+          <button className="tool-btn primary small-btn" onClick={handleTrim} disabled={processing}>
+            {processing ? 'Trimming...' : `Trim Audio (${startSec}s - ${endSec}s)`}
+          </button>
+        )}
+        {trimmedBuffer && (
+          <button className="tool-btn secondary small-btn" onClick={handleDownload}>
+            Download WAV
           </button>
         )}
       </div>
@@ -155,6 +187,37 @@ function AudioVolumeFadeView() {
   const [gain, setGain] = useState(0);
   const [fadeIn, setFadeIn] = useState(2);
   const [fadeOut, setFadeOut] = useState(3);
+  const [processing, setProcessing] = useState(false);
+  const [processedBuffer, setProcessedBuffer] = useState<Uint8Array | null>(null);
+
+  const handleApply = async () => {
+    if (!files[0]?.file && !files[0]?.buffer) return;
+    setProcessing(true);
+    try {
+      const buf = files[0].buffer || new Uint8Array(await files[0].file!.arrayBuffer());
+      const res = await MediaEngine.adjustVolumeAndFade(buf, {
+        gainDb: gain,
+        fadeInSec: fadeIn,
+        fadeOutSec: fadeOut,
+      });
+      if (res.success && res.data) {
+        setProcessedBuffer(res.data);
+      }
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!processedBuffer) return;
+    const blob = new Blob([processedBuffer], { type: 'audio/wav' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `adjusted-${files[0]?.name?.replace(/\.[^.]+$/, '') || 'audio'}.wav`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <MediaCard title="Audio Volume Normalization & Fade Envelopes">
@@ -179,19 +242,73 @@ function AudioVolumeFadeView() {
           <input className="control-input" type="number" min={0} value={fadeOut} onChange={(e) => setFadeOut(Number(e.target.value))} style={{ width: 80 }} />
         </div>
       </div>
+      {files.length > 0 && (
+        <div style={{ marginTop: 16, display: 'flex', gap: 10 }}>
+          <button className="tool-btn primary small-btn" onClick={handleApply} disabled={processing}>
+            {processing ? 'Processing...' : 'Apply Volume & Fade'}
+          </button>
+          {processedBuffer && (
+            <button className="tool-btn secondary small-btn" onClick={handleDownload}>
+              Download Processed Audio
+            </button>
+          )}
+        </div>
+      )}
     </MediaCard>
   );
 }
 
 // ─── 5. Audio Metadata ───────────────────────────────────────────────────────
 function AudioMetadataView() {
+  const [files, setFiles] = useState<SelectedFile[]>([]);
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [album, setAlbum] = useState('');
+  const [metadata, setMetadata] = useState<{ duration: number; sampleRate: number; channels: number } | null>(null);
+
+  React.useEffect(() => {
+    if (files[0]?.file || files[0]?.buffer) {
+      const getBuf = async () => {
+        const buf = files[0].buffer || new Uint8Array(await files[0].file!.arrayBuffer());
+        const res = await MediaEngine.inspectAudio(buf);
+        if (res.success && res.data) {
+          setMetadata({
+            duration: res.data.durationSeconds,
+            sampleRate: res.data.sampleRate,
+            channels: res.data.numberOfChannels,
+          });
+        }
+      };
+      getBuf();
+    }
+  }, [files]);
 
   return (
-    <MediaCard title="Audio ID3 Tag Inspector & Editor">
-      <div className="control-group">
+    <MediaCard title="Audio Properties & ID3 Tag Inspector">
+      <FileDropzone
+        accept={['.mp3', '.wav', '.ogg', '.m4a']}
+        multiple={false}
+        files={files}
+        onFilesChanged={setFiles}
+        label="Select audio track to inspect"
+      />
+      {metadata && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 14 }}>
+          <div className="media-stat-card">
+            <span className="media-stat-label">Duration</span>
+            <strong className="media-stat-val">{metadata.duration}s</strong>
+          </div>
+          <div className="media-stat-card">
+            <span className="media-stat-label">Sample Rate</span>
+            <strong className="media-stat-val">{metadata.sampleRate} Hz</strong>
+          </div>
+          <div className="media-stat-card">
+            <span className="media-stat-label">Channels</span>
+            <strong className="media-stat-val">{metadata.channels === 2 ? 'Stereo (2ch)' : `${metadata.channels}ch`}</strong>
+          </div>
+        </div>
+      )}
+      <div className="control-group" style={{ marginTop: 16 }}>
         <label className="control-label">Track Title:</label>
         <input className="control-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
       </div>

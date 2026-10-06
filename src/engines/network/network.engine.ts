@@ -169,7 +169,7 @@ export class NetworkEngine {
   }
 
   /**
-   * Build cURL command string
+   * Build cURL command string with multi-shell formatting (Bash, PowerShell, CMD)
    */
   static buildCurl(options: {
     url: string;
@@ -184,11 +184,17 @@ export class NetworkEngine {
     insecure?: boolean;
     compressed?: boolean;
     verbose?: boolean;
+    shell?: 'bash' | 'powershell' | 'cmd';
   }): EngineResult<string> {
     const start = performance.now();
     try {
       if (!options.url) throw new Error('Target URL is required');
-      const parts = ['curl'];
+      const shell = options.shell || 'bash';
+      const isPowerShell = shell === 'powershell';
+      const isCmd = shell === 'cmd';
+
+      const binary = isPowerShell ? 'curl.exe' : 'curl';
+      const parts = [binary];
       const method = (options.method || 'GET').toUpperCase();
 
       if (method !== 'GET') {
@@ -217,15 +223,30 @@ export class NetworkEngine {
 
       // Body
       if (options.body && method !== 'GET') {
-        const escaped = options.body.replace(/"/g, '\\"');
-        parts.push(`-d "${escaped}"`);
+        if (isPowerShell) {
+          const escaped = options.body.replace(/"/g, '`"');
+          parts.push(`-d "${escaped}"`);
+        } else if (isCmd) {
+          const escaped = options.body.replace(/"/g, '"""');
+          parts.push(`-d "${escaped}"`);
+        } else {
+          const escaped = options.body.replace(/"/g, '\\"');
+          parts.push(`-d "${escaped}"`);
+        }
       }
 
       parts.push(`"${options.url}"`);
 
+      let continuation = ' \\\n  ';
+      if (isPowerShell) {
+        continuation = ' `\n  ';
+      } else if (isCmd) {
+        continuation = ' ^\n  ';
+      }
+
       return {
         success: true,
-        data: parts.join(' \\\n  '),
+        data: parts.join(continuation),
         elapsedMs: Math.round(performance.now() - start),
       };
     } catch (err) {
