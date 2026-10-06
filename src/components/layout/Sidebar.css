@@ -296,7 +296,7 @@
 .single-settings-btn:hover {
   background-color: var(--surface-hover);
   color: var(--text);
-  border-color: var(--border-strong));
+  border-color: var(--border-strong);
 }
 
 .single-settings-btn.active {
@@ -343,4 +343,42 @@
 .app-sidebar.collapsed .sidebar-offline-indicator {
   justify-content: center;
   padding: 8px 0 2px;
+}
+
+/* ─── Responsive Breakpoints ─── */
+@media (max-width: 1023px) {
+  .app-sidebar:not(.collapsed) {
+    width: 200px;
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-sidebar {
+    width: 56px;
+    min-width: 56px;
+    padding: 8px 4px;
+  }
+
+  .app-sidebar .sidebar-btn-label,
+  .app-sidebar .nav-count-pill,
+  .app-sidebar .sidebar-section-header,
+  .app-sidebar .sidebar-privacy-status,
+  .app-sidebar .sidebar-storage-card,
+  .app-sidebar .sidebar-bottom-btn span,
+  .app-sidebar .offline-label {
+    display: none;
+  }
+
+  .app-sidebar .single-settings-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .app-sidebar .sidebar-offline-indicator {
+    justify-content: center;
+    padding: 8px 0 2px;
+  }
 }

@@ -1413,3 +1413,54 @@
   background: var(--surface-hover);
   color: var(--accent);
 }
+
+/* ─── Responsive Workbench Breakpoints ─── */
+@media (max-width: 1023px) {
+  .workbench-zone-2 {
+    width: 280px;
+  }
+}
+
+@media (max-width: 600px) {
+  .workbench-top-bar {
+    padding: 6px 10px;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: auto;
+  }
+
+  .workbench-top-left {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .workbench-menubar {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .workbench-3-zone-layout {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .workbench-zone-1 {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 16px;
+    min-height: 240px;
+    flex: none;
+  }
+
+  .workbench-zone-2 {
+    width: 100%;
+    flex: 1;
+    min-height: 280px;
+  }
+
+  .canvas-file-preview-card {
+    padding: 20px;
+    max-width: 100%;
+  }
+}

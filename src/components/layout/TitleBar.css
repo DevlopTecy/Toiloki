@@ -73,3 +73,22 @@
   background-color: var(--danger);
   color: var(--on-accent);
 }
+
+/* ─── Responsive TitleBar Breakpoints ─── */
+@media (max-width: 600px) {
+  .title-bar {
+    padding: 0 0 0 10px;
+  }
+
+  .title-bar-left .app-wordmark {
+    display: none;
+  }
+
+  .title-bar-center {
+    margin: 0 8px;
+  }
+
+  .window-control-btn {
+    width: 36px;
+  }
+}

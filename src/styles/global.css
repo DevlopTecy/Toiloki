@@ -178,3 +178,21 @@ textarea:focus-visible,
   border-color: var(--accent);
   box-shadow: var(--focus-ring);
 }
+
+/* ─── Responsive Viewport System ─── */
+@media (max-width: 1023px) {
+  :root {
+    --sidebar-width: 56px;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --sidebar-width: 56px;
+    --titlebar-height: 48px;
+  }
+
+  body {
+    font-size: 13.5px;
+  }
+}
