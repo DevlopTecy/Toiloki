@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
-  FileText,
-  FileCode,
   Search,
   Replace,
   WrapText,
@@ -18,9 +16,7 @@ import {
   ChevronRight,
   ShieldCheck,
   AlertCircle,
-  Hash,
   Upload,
-  RefreshCw,
 } from 'lucide-react';
 import { SelectedFile } from '../../file-system/FileDropzone';
 import { DocumentEngine } from '../../../engines/documents/document.engine';
