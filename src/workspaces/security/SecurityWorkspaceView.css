@@ -32,6 +32,37 @@
   flex-wrap: wrap;
 }
 
+.sec-tabs-row {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+
+.sec-tab-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sec-tab-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.sec-tab-btn.active {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
 .sec-checkboxes {
   display: flex;
   gap: 14px;
@@ -51,32 +82,78 @@
 }
 
 .sec-checkbox-label input[type="checkbox"] {
-  accent-color: var(--text);
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
 .sec-copy-btn,
-.sec-refresh-btn {
+.sec-refresh-btn,
+.sec-action-btn {
   background: var(--surface-hover);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 4px;
-  padding: 5px 12px;
+  padding: 6px 14px;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
 
 .sec-copy-btn:hover,
-.sec-refresh-btn:hover {
+.sec-refresh-btn:hover,
+.sec-action-btn:hover {
   background: var(--surface);
   border-color: var(--border-strong);
   color: var(--text);
+}
+
+.sec-primary-btn {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.sec-primary-btn:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.sec-primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sec-danger-btn {
+  background: var(--danger);
+  color: var(--surface);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.sec-danger-btn:hover {
+  opacity: 0.9;
 }
 
 .sec-result-block {
@@ -99,7 +176,7 @@
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
-  width: 56px;
+  width: 70px;
   text-transform: none;
 }
 
@@ -116,7 +193,7 @@
   align-items: center;
   justify-content: space-between;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
   padding: 14px 18px;
   gap: 16px;
@@ -124,7 +201,7 @@
 
 .sec-password-code {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text);
   word-break: break-all;
@@ -135,6 +212,63 @@
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.sec-slider-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sec-stepper-btn {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sec-stepper-btn:hover {
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+
+.sec-chip-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sec-chip-btn:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.sec-chip-btn.active {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+
+.sec-range-input {
+  flex: 1;
+  accent-color: var(--accent);
+  cursor: pointer;
+  height: 6px;
 }
 
 .sec-strength-bar {
@@ -174,33 +308,42 @@
 .sec-info-banner {
   font-size: 12.5px;
   color: var(--text-2);
-  background: var(--accent-soft);
+  background: var(--surface);
   border: 1px solid var(--border);
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 6px;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.sec-ssd-notice {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
 }
 
 .sec-file-drop {
   border: 1.5px dashed var(--border-strong);
   border-radius: 8px;
-  padding: 28px;
+  padding: 24px;
   text-align: center;
   background: var(--surface);
   transition: border-color 0.2s;
 }
 
 .sec-file-drop:hover {
-  border-color: var(--text);
+  border-color: var(--accent);
 }
 
 .sec-file-label {
   cursor: pointer;
   font-size: 14px;
   color: var(--text-2);
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
 .sec-checksum-result {
@@ -213,21 +356,30 @@
 
 .sec-checksum-result.match {
   border-color: var(--success);
-  background: var(--success-bg);
 }
 
 .sec-checksum-result.mismatch {
   border-color: var(--danger);
-  background: var(--danger-bg);
 }
 
 .sec-error {
   color: var(--danger);
   font-size: 13px;
-  padding: 8px 12px;
-  background: var(--danger-bg);
-  border-radius: 4px;
-  border: 1px solid var(--danger-bg);
+  padding: 10px 14px;
+  background: var(--surface);
+  border-radius: 6px;
+  border: 1px solid var(--danger);
+  line-height: 1.4;
+}
+
+.sec-success {
+  color: var(--success);
+  font-size: 13px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-radius: 6px;
+  border: 1px solid var(--success);
+  line-height: 1.4;
 }
 
 .sec-redaction-layout {
@@ -237,8 +389,8 @@
 }
 
 .sec-redaction-controls {
-  width: 250px;
-  min-width: 250px;
+  width: 260px;
+  min-width: 260px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -246,4 +398,26 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.sec-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.sec-details-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sec-details-table td:first-child {
+  color: var(--text-muted);
+  width: 140px;
+  font-weight: 500;
+}
+
+.sec-details-table td:last-child {
+  color: var(--text);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
 }

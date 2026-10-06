@@ -119,6 +119,16 @@ export class HistoryService {
     const trimmedOutput = (entry.output || '').trim();
     if (!trimmedOutput) return null;
 
+    // Never record sensitive credentials or security workspace records in persistent history
+    if (
+      entry.workspaceId === 'security' ||
+      entry.utilityId.startsWith('sec-password') ||
+      entry.utilityId.startsWith('sec-passphrase') ||
+      entry.utilityId === 'sec-file-encrypt'
+    ) {
+      return null;
+    }
+
     const existing = this.getRecords();
 
     // Merge consecutive identical entries (same utility + same input + same output)
