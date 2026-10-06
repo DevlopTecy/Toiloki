@@ -642,6 +642,63 @@ const AppContent: React.FC = () => {
     window.history.replaceState({}, '', url.toString());
   };
 
+  // Hash route listener and global registration for automated testing & deep linking
+  useEffect(() => {
+    (window as any).__TOILOKI_WORKSPACES__ = WORKSPACES;
+
+    const parseHashRoute = () => {
+      const hash = window.location.hash;
+      if (!hash) return;
+      const clean = hash.replace(/^#\/?/, '').trim();
+      if (!clean) return;
+      const parts = clean.split('/').filter(Boolean);
+      if (parts.length === 0) return;
+
+      const [p1, p2, p3] = parts;
+      if (['home', 'history', 'favorites', 'settings', 'trash', 'new-tab'].includes(p1)) {
+        handleSelectWorkspace(p1 as ActiveNav);
+        return;
+      }
+
+      const ws = WORKSPACES.find((w) => w.id === p1);
+      if (ws) {
+        if (!p2) {
+          handleSelectWorkspace(ws.id as ActiveNav);
+          return;
+        }
+
+        // Check if p2 is groupId and p3 is utilityId
+        let foundGroup = ws.groups.find((g) => g.id === p2);
+        let foundUtil = foundGroup?.utilities.find((u) => u.id === p3);
+
+        // Or if p2 is directly utilityId (#/${wsId}/${utilId})
+        if (!foundUtil) {
+          for (const g of ws.groups) {
+            const u = g.utilities.find((util) => util.id === p2);
+            if (u) {
+              foundGroup = g;
+              foundUtil = u;
+              break;
+            }
+          }
+        }
+
+        if (foundGroup && foundUtil) {
+          handleSelectUtility(ws.id, foundGroup.id, foundUtil.id);
+        } else {
+          handleSelectWorkspace(ws.id as ActiveNav);
+        }
+      }
+    };
+
+    if (window.location.hash && !window.location.search) {
+      parseHashRoute();
+    }
+
+    window.addEventListener('hashchange', parseHashRoute);
+    return () => window.removeEventListener('hashchange', parseHashRoute);
+  }, [handleSelectWorkspace, handleSelectUtility]);
+
   // Drop Anywhere handler
   const handleDropAccepted = async (target: DropTargetUtility, file: File) => {
     setIsDragOverActive(false);
