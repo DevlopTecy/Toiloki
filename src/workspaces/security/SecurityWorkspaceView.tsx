@@ -132,7 +132,7 @@ function downloadBuffer(buffer: Uint8Array, fileName: string, mimeType: string =
 // ─── 1. Hash & HMAC Generator ────────────────────────────────────────────────
 
 function HashHmacView() {
-  const [input, setInput] = useState('Hello, Toiloki!');
+  const [input, setInput] = useState('');
   const [algo, setAlgo] = useState<'SHA-256' | 'SHA-512' | 'SHA-384' | 'SHA-1' | 'MD5'>('SHA-256');
   const [hmacSecret, setHmacSecret] = useState('');
   const [showSecret, setShowSecret] = useState(false);
@@ -141,6 +141,10 @@ function HashHmacView() {
   const [error, setError] = useState<string | null>(null);
 
   const compute = async () => {
+    if (!input.trim()) {
+      setResult(null);
+      return;
+    }
     setError(null);
     const r = await SecurityEngine.hashText(input, algo, hmacSecret || undefined);
     if (r.success && r.data) setResult(r.data);
@@ -167,14 +171,26 @@ function HashHmacView() {
         title="Input & Configuration"
         subtitle="Hash plaintext using cryptographic message digests or keyed HMAC"
         actions={
-          <button
-            type="button"
-            className="sec-action-btn"
-            onClick={() => setInput('')}
-            title="Clear input"
-          >
-            Clear
-          </button>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {!input.trim() && (
+              <button
+                type="button"
+                className="sec-action-btn"
+                onClick={() => setInput('Hello, Toiloki offline cryptographic suite!')}
+                style={{ color: 'var(--accent)' }}
+              >
+                Try sample text
+              </button>
+            )}
+            <button
+              type="button"
+              className="sec-action-btn"
+              onClick={() => setInput('')}
+              title="Clear input"
+            >
+              Clear
+            </button>
+          </div>
         }
       >
         <div className="control-group">
@@ -298,6 +314,7 @@ function PasswordGeneratorView() {
   const [strength, setStrength] = useState<PasswordStrengthResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
+  const [bulkList, setBulkList] = useState<string[]>([]);
 
   const generate = () => {
     const r = SecurityEngine.generatePassword({
@@ -321,6 +338,23 @@ function PasswordGeneratorView() {
     } else {
       setError(r.error || 'Error generating password');
     }
+  };
+
+  const generateBulk = () => {
+    const list: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      const r = SecurityEngine.generatePassword({
+        length,
+        uppercase,
+        lowercase,
+        numbers,
+        symbols,
+        ambiguous,
+        exclude,
+      });
+      if (r.success && r.data) list.push(r.data.password);
+    }
+    setBulkList(list);
   };
 
   useEffect(() => {
@@ -406,6 +440,9 @@ function PasswordGeneratorView() {
             <button className="sec-refresh-btn" onClick={generate} title="Generate new password">
               <RefreshCw size={14} /> Regenerate
             </button>
+            <button className="sec-refresh-btn" onClick={generateBulk} title="Generate 5 random passwords">
+              Bulk Generate (5)
+            </button>
             <CopyButton text={password} />
           </div>
         </div>
@@ -455,6 +492,19 @@ function PasswordGeneratorView() {
               <div key={idx} className="sec-history-item">
                 <code style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{h}</code>
                 <CopyButton text={h} label="Copy" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Bulk Generated Batch */}
+        {bulkList.length > 0 && (
+          <div className="sec-history-tray" style={{ marginTop: 12 }}>
+            <span className="sec-history-title">Bulk Generated Batch (5 Tokens)</span>
+            {bulkList.map((tok, idx) => (
+              <div key={idx} className="sec-history-item">
+                <code style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 13 }}>{tok}</code>
+                <CopyButton text={tok} label="Copy" />
               </div>
             ))}
           </div>
