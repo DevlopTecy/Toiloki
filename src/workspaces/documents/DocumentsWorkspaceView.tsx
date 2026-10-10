@@ -767,7 +767,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                   <span>Execute All Rules</span>
                 </button>
                 {batchResultReport && (
-                  <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 600 }}>{batchResultReport}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 600 }}>{batchResultReport}</span>
                 )}
               </div>
             </div>

@@ -1015,7 +1015,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
             />
 
             {diffMeta && (
-              <div style={{ marginTop: '12px', padding: '10px 14px', background: 'var(--accent-soft)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--accent)', fontSize: '12px', fontWeight: 600 }}>
+              <div style={{ marginTop: '12px', padding: '10px 14px', background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: '12px', fontWeight: 600 }}>
                 {diffMeta}
               </div>
             )}

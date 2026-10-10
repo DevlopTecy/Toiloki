@@ -1064,7 +1064,7 @@ function AgeCalculator() {
       </div>
       {result && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
             {result.years}y {result.months}m {result.days}d
           </div>
           <ResultRow label="Total days lived" value={result.totalDaysLived.toLocaleString()} />
@@ -1100,7 +1100,7 @@ function DateDiffCalc() {
       </div>
       {result && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
             {result.years}y {result.months}m {result.days}d
           </div>
           <ResultRow label="Total days" value={result.totalDays.toLocaleString()} />
@@ -1186,7 +1186,7 @@ function BusinessDaysCalc() {
       </div>
       {result && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
             {result.businessDays} business days
           </div>
           <ResultRow label="Calendar days" value={result.calendarDays} />
@@ -1216,7 +1216,7 @@ function LoanEMICalc() {
       <NumInput label="Tenure" value={tenure} onChange={setTenure} min={1} unit="months" />
       {result && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
+          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
             EMI: ₹{fmt(result.emi)}
           </div>
           <ResultRow label="Principal" value={`₹${fmt(result.principal)}`} />
@@ -1272,7 +1272,7 @@ function AmortizationCalc() {
                   <tr key={row.month} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '5px 8px', textAlign: 'right' }}>{row.month}</td>
                     <td style={{ padding: '5px 8px', textAlign: 'right' }}>{fmt(row.emi)}</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'right', color: 'var(--accent)' }}>{fmt(row.principal)}</td>
+                    <td style={{ padding: '5px 8px', textAlign: 'right', color: 'var(--text)' }}>{fmt(row.principal)}</td>
                     <td style={{ padding: '5px 8px', textAlign: 'right', color: 'var(--text-2)' }}>{fmt(row.interest)}</td>
                     <td style={{ padding: '5px 8px', textAlign: 'right' }}>{fmt(row.balance)}</td>
                   </tr>
@@ -1321,7 +1321,7 @@ function CompoundInterestCalc() {
       </div>
       {result && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
+          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
             ₹{fmt(result.futureValue)}
           </div>
           <ResultRow label="Principal invested" value={`₹${fmt(result.principal)}`} />
@@ -1352,7 +1352,7 @@ function SIPCalc() {
       <NumInput label="Investment Period" value={years} onChange={setYears} min={1} unit="years" />
       {result && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
+          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
             ₹{fmt(result.maturityAmount)}
           </div>
           <ResultRow label="Total invested" value={`₹${fmt(result.totalInvested)}`} />
@@ -1454,7 +1454,7 @@ function TipSplitCalc() {
           onChange={e => setTipPct(Number(e.target.value))} style={{ width: '100%' }} />
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           {[0, 5, 10, 15, 18, 20, 25].map(v => (
-            <button key={v} style={{ fontSize: 11, padding: '2px 6px', background: tipPct === v ? 'var(--accent)' : 'var(--surface)', color: tipPct === v ? 'var(--bg)' : 'var(--text-2)', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+            <button key={v} style={{ fontSize: 11, padding: '2px 6px', background: tipPct === v ? 'var(--surface-hover)' : 'var(--surface)', color: tipPct === v ? 'var(--text)' : 'var(--text-2)', border: tipPct === v ? '1px solid var(--text-muted)' : 'none', borderRadius: 4, cursor: 'pointer' }}
               onClick={() => setTipPct(v)}>{v}%</button>
           ))}
         </div>
@@ -1464,7 +1464,7 @@ function TipSplitCalc() {
         <div style={{ marginTop: 16 }}>
           <ResultRow label="Tip amount" value={`${result.tipAmount.toFixed(2)}`} />
           <ResultRow label="Total bill" value={`${result.totalBill.toFixed(2)}`} />
-          <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginTop: 12 }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginTop: 12 }}>
             Per person: {result.perPersonBill.toFixed(2)}
           </div>
           <ResultRow label="Per person tip" value={`${result.perPersonTip.toFixed(2)}`} />
@@ -1504,10 +1504,10 @@ function BMICalc() {
       <NumInput label={unit === 'metric' ? 'Height (cm)' : 'Height (inches)'} value={height} onChange={setHeight} min={1} step={0.5} />
       {result && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 36, fontWeight: 800, color: bmiColors[result.category] || 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>
+          <div style={{ fontSize: 36, fontWeight: 800, color: bmiColors[result.category] || 'var(--text)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>
             {result.bmi}
           </div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: bmiColors[result.category] || 'var(--accent)', marginBottom: 12 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: bmiColors[result.category] || 'var(--text)', marginBottom: 12 }}>
             {result.category}
           </div>
           <ResultRow label={`Healthy range (${unit === 'metric' ? 'kg' : 'lbs'})`} value={`${result.healthyWeightRange.min} – ${result.healthyWeightRange.max}`} />
@@ -1542,7 +1542,7 @@ function BMRCalc() {
       <NumInput label="Age (years)" value={age} onChange={setAge} min={1} />
       {result && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
             BMR: {result.bmr} kcal/day
           </div>
           <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 8 }}>Formula: {result.formula}</div>
@@ -1601,7 +1601,7 @@ function NumberBaseCalc() {
       {err && <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 8 }}>{err}</div>}
       {result && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
+          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
             {result.result}
           </div>
           <ResultRow label="Binary" value={result.allBases.Binary} />
@@ -1644,7 +1644,7 @@ function RomanNumeralCalc() {
       </div>
       {err && <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 8 }}>{err}</div>}
       {result && !err && (
-        <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginTop: 16 }}>
+        <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginTop: 16 }}>
           {result}
         </div>
       )}
