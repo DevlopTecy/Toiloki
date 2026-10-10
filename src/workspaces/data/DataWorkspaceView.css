@@ -207,7 +207,8 @@
 }
 
 .interactive-data-table th.sorted-col {
-  color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
 }
 
 .th-content {

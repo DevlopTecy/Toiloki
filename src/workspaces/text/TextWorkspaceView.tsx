@@ -629,7 +629,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
             />
           </div>
           {regexMatches !== null && (
-            <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 600 }}>
+            <span style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 600 }}>
               {regexMatches} match{regexMatches === 1 ? '' : 'es'}
             </span>
           )}
@@ -752,7 +752,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
                   type="button"
                   className="toiloki-empty-sample-link"
                   onClick={handleTryDiffSample}
-                  style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '12px', textDecoration: 'underline' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', fontSize: '12px', textDecoration: 'underline' }}
                 >
                   Try sample comparison
                 </button>

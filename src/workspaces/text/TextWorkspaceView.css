@@ -50,8 +50,8 @@
 }
 
 .cat-tab-btn.active {
-  color: var(--accent);
-  background: var(--accent-soft);
+  color: var(--text);
+  background: var(--surface-hover);
   border-color: var(--border);
   font-weight: 600;
 }
@@ -205,7 +205,7 @@
 
 .swap-btn:hover {
   background: var(--surface-hover);
-  color: var(--accent);
+  color: var(--text);
   border-color: var(--border);
 }
 
