@@ -341,7 +341,6 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
                     if (res.success) setJwtData(res.data);
                   }}
                   type="button"
-                  style={{ color: 'var(--accent)' }}
                 >
                   Try a sample JWT
                 </button>
@@ -690,7 +689,6 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
                     if (res.success && res.data) setRegexMatches(res.data.matches);
                   }}
                   type="button"
-                  style={{ color: 'var(--accent)' }}
                 >
                   Try sample text
                 </button>
@@ -890,7 +888,7 @@ function CronExplainerView() {
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
         {presets.map(p => (
           <button key={p.value} onClick={() => setExpr(p.value)}
-            style={{ fontSize: 11, padding: '3px 8px', background: expr === p.value ? 'var(--accent)' : 'var(--surface)', color: expr === p.value ? 'var(--on-accent)' : 'var(--text-2)', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer' }}>
+            style={{ fontSize: 11, padding: '3px 8px', background: expr === p.value ? 'var(--surface-hover)' : 'var(--surface)', color: expr === p.value ? 'var(--text)' : 'var(--text-2)', border: expr === p.value ? '1px solid var(--text-muted)' : '1px solid var(--border)', borderRadius: 4, cursor: 'pointer' }}>
             {p.label}
           </button>
         ))}
@@ -907,7 +905,7 @@ function CronExplainerView() {
               {Object.entries(result.parts).map(([field, val]) => (
                 <div key={field} style={{ background: 'var(--surface)', borderRadius: 6, padding: '8px 10px', textAlign: 'center' }}>
                   <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>{field.toUpperCase()}</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, color: 'var(--accent)' }}>{val}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, color: 'var(--text)' }}>{val}</div>
                 </div>
               ))}
             </div>
@@ -952,7 +950,7 @@ function PxRemView() {
       </div>
       {result && (
         <>
-          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 8 }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginBottom: 8 }}>
             {result.result}{dir === 'pxToRem' ? 'rem' : 'px'}
           </div>
           <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: 20 }}>{result.formula}</div>
@@ -967,7 +965,7 @@ function PxRemView() {
               {result.scale.map(row => (
                 <tr key={row.px} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '4px 16px 4px 0' }}>{row.px}px</td>
-                  <td style={{ padding: '4px 16px', color: 'var(--accent)' }}>{row.rem}rem</td>
+                  <td style={{ padding: '4px 16px', color: 'var(--text)' }}>{row.rem}rem</td>
                 </tr>
               ))}
             </tbody>
@@ -997,7 +995,7 @@ function ChmodView() {
       <div style={{ fontSize: 11, color: 'var(--text-2)', fontWeight: 600, marginBottom: 8 }}>{label}</div>
       {[['r', perm.read, 'Read'], ['w', perm.write, 'Write'], ['x', perm.execute, 'Execute']].map(([sym, on, name]) => (
         <div key={sym as string} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-          <div style={{ width: 18, height: 18, borderRadius: 3, background: on ? 'var(--accent)' : 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: on ? 'var(--bg)' : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{on ? sym : '—'}</div>
+          <div style={{ width: 18, height: 18, borderRadius: 3, background: on ? 'var(--text)' : 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: on ? 'var(--bg)' : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{on ? sym : '—'}</div>
           <span style={{ fontSize: 12, color: on ? 'var(--text)' : 'var(--text-muted)' }}>{name as string}</span>
         </div>
       ))}
@@ -1015,7 +1013,7 @@ function ChmodView() {
       {result && (
         <>
           <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{result.octal}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'var(--text)' }}>{result.octal}</div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'var(--text-2)' }}>{result.symbolic}</div>
           </div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>Bitmask: {result.bitmask}</div>

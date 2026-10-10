@@ -634,7 +634,7 @@ function LocalPortView() {
       <div className="net-grid-2">
         {commonPorts.map((p) => (
           <div key={p.port} className="net-stat-card">
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text)' }}>
               :{p.port}
             </span>
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.proto}</span>

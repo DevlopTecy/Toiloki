@@ -522,7 +522,7 @@ function HostsFileView() {
         <div className="sys-env-table" style={{ marginTop: 8 }}>
           {filteredEntries.map((h, i) => (
             <div key={i} className={`sys-env-row ${!h.enabled ? 'disabled' : ''}`}>
-              <span style={{ width: 130, fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--accent)' }}>
+              <span style={{ width: 130, fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text)' }}>
                 {h.ip}
               </span>
               <span style={{ flex: 1, fontWeight: 500, color: h.enabled ? 'var(--text)' : 'var(--text-muted)' }}>
@@ -774,7 +774,7 @@ function ProcessViewerView() {
               PID {t.pid}
             </span>
             <span style={{ flex: 1, fontWeight: 600, color: 'var(--text)' }}>{t.name}</span>
-            <span style={{ width: 100, fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{t.memory}</span>
+            <span style={{ width: 100, fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>{t.memory}</span>
             <span style={{ width: 70, fontFamily: 'var(--font-mono)', color: 'var(--text-2)' }}>{t.cpu}</span>
             <span style={{ fontSize: 11, color: 'var(--success)' }}>● {t.status}</span>
           </div>
