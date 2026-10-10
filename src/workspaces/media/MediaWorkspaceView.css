@@ -51,12 +51,12 @@
 .media-copy-btn:hover {
   background: var(--surface);
   border-color: var(--border-strong);
-  color: var(--accent);
+  color: var(--text);
 }
 
 .media-notice-box {
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-soft);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 12px 16px;
   font-size: 13px;
