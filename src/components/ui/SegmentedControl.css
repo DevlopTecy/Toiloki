@@ -1,0 +1,71 @@
+/* ─── SegmentedControl Component ─── */
+.toiloki-segmented-control {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-controls, 8px);
+  padding: 3px;
+  gap: 3px;
+  user-select: none;
+}
+
+.toiloki-segmented-control.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toiloki-segmented-sm {
+  height: 30px;
+}
+
+.toiloki-segmented-md {
+  height: 36px;
+}
+
+.toiloki-segmented-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 100%;
+  padding: 0 12px;
+  border-radius: var(--radius-sm, 6px);
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+  white-space: nowrap;
+}
+
+.toiloki-segmented-item:hover:not(:disabled):not(.is-selected) {
+  color: var(--text);
+  background-color: var(--surface-hover);
+}
+
+.toiloki-segmented-item:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+/* Neutral selected state: raised surface, NEVER orange */
+.toiloki-segmented-item.is-selected {
+  background-color: var(--surface-elevated);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.toiloki-segmented-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toiloki-segmented-icon {
+  display: flex;
+  align-items: center;
+}

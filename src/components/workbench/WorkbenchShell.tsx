@@ -1288,7 +1288,8 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           throw new Error('Please select at least one page to duplicate.');
         }
         setProgressPercent(50);
-        const res = await PdfEngine.duplicatePages(buffer, selectedIndices);
+        const targetPagesOneBased = selectedIndices.map((i) => i + 1);
+        const res = await PdfEngine.duplicatePages(buffer, targetPagesOneBased);
         if (!res.success || !res.outputBuffer) {
           throw new Error(res.error || 'Failed to duplicate pages.');
         }
@@ -2268,34 +2269,6 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
         </div>
       )}
 
-      {/* "What this can do" Modal */}
-      {showWhatModal && (
-        <div className="workbench-modal-backdrop" onClick={() => setShowWhatModal(false)}>
-          <div className="workbench-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>What {activeUtility.name} can do</h3>
-              <button className="modal-close-btn" onClick={() => setShowWhatModal(false)}>
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <p>{activeUtility.description}</p>
-              <h4>Features & Capabilities:</h4>
-              <ul className="modal-features-list">
-                {activeUtility.features && activeUtility.features.length > 0 ? (
-                  activeUtility.features.map((f) => (
-                    <li key={f.id}>
-                      <strong>{f.name}:</strong> {f.description}
-                    </li>
-                  ))
-                ) : (
-                  <li>Full high-performance local processing on your machine.</li>
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Main Content Area */}
       <main className="workbench-main-area">

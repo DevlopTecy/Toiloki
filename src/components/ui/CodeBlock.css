@@ -1,0 +1,88 @@
+/* ─── CodeBlock Component ─── */
+.toiloki-codeblock-wrapper {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-controls, 8px);
+  overflow: hidden;
+  width: 100%;
+}
+
+.toiloki-codeblock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background-color: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.toiloki-codeblock-lang {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: lowercase;
+}
+
+.toiloki-codeblock-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs, 4px);
+  color: var(--text-2);
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+
+.toiloki-codeblock-copy:hover {
+  color: var(--text);
+  background-color: var(--surface-hover);
+  border-color: var(--border);
+}
+
+.toiloki-codeblock-copy.is-copied {
+  color: var(--success);
+}
+
+.toiloki-codeblock-body {
+  overflow: auto;
+  padding: 12px;
+}
+
+.toiloki-codeblock-numbered {
+  display: flex;
+  gap: 12px;
+}
+
+.toiloki-codeblock-gutter {
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  text-align: right;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  padding-right: 8px;
+  border-right: 1px solid var(--border);
+}
+
+.toiloki-codeblock-line-no {
+  display: block;
+}
+
+.toiloki-codeblock-pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre;
+  tab-size: 2;
+  flex: 1;
+}

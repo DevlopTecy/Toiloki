@@ -32,7 +32,7 @@ interface PdfPagesCanvasProps {
   file: SelectedFile;
   activeUtilityId: string;
   pages: PageCardItem[];
-  onPagesChange: (pages: PageCardItem[]) => void;
+  onPagesChange: (pages: PageCardItem[] | ((prev: PageCardItem[]) => PageCardItem[])) => void;
   onExecutePageAction?: (
     action: 'delete' | 'rotate' | 'extract' | 'duplicate' | 'crop' | 'replace',
     payload?: any
@@ -85,8 +85,8 @@ export const PdfPagesCanvas: React.FC<PdfPagesCanvasProps> = ({
           try {
             const res = await renderPageThumbnail(file.buffer!, page.originalIndex + 1, 160);
             if (!isCancelled && res) {
-              onPagesChange(
-                pages.map((p, idx) =>
+              onPagesChange((prev) =>
+                prev.map((p, idx) =>
                   idx === i ? { ...p, thumbUrl: res.dataUrl, isBlank: res.isBlank } : p
                 )
               );

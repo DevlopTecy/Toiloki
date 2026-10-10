@@ -1,35 +1,21 @@
 import React, { useState, useRef } from 'react';
 import {
-  Check, Sun, Moon, Monitor, RotateCcw, Plus, Upload, Download,
-  Copy, Trash2, Edit2, MoreHorizontal, ChevronDown, FolderOpen,
-  Image as ImageIcon, RefreshCw, Sliders
+  Check, Sun, Moon, Monitor, RotateCcw, Download,
+  Copy, Trash2, Edit2, MoreHorizontal, ChevronDown,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useTheme } from '../../../../core/theme/ThemeContext';
 import { SettingsService, AppSettings } from '../../../../core/services/settings.service';
 import { deriveAccentPalette } from '../../../../core/theme/wcag-contrast';
-import { ACCENT_PRESETS, AppTheme, ThemeBackground, ThemeButtons, ButtonCardStyle, CardPictureConfig } from '../../../../core/theme/theme.types';
+import { ACCENT_PRESETS, AppTheme, ThemeBackground } from '../../../../core/theme/theme.types';
 import { Button } from '../../../common/Button';
 import { ThemeEditorModal } from './ThemeEditorModal';
-import { sanitizeSvg } from '../../../../core/theme/theme.validator';
-import { getDefaultArtwork } from '../../../../assets/art-pack/default-art-pack';
+import { CHIBIGI_MASCOT_BUNNY } from '../../../../assets/art-pack/default-art-pack';
 
 interface AppearanceSectionProps {
   settings: AppSettings;
   onUpdateSettings: (patch: Partial<AppSettings>) => void;
 }
-
-const CARD_ITEMS = [
-  { id: 'pdf', label: 'PDF Workspace' },
-  { id: 'documents', label: 'Documents' },
-  { id: 'images', label: 'Images' },
-  { id: 'data', label: 'Data & Sheets' },
-  { id: 'text', label: 'Text & Formatting' },
-  { id: 'developer', label: 'Developer Utilities' },
-  { id: 'calculator', label: 'Calculators & Units' },
-  { id: 'files', label: 'Files & Archives' },
-  { id: 'hero', label: 'Home Hero Banner' },
-  { id: 'button-skin', label: 'Primary Button Skin' },
-];
 
 export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   settings,
@@ -42,16 +28,13 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     previewTokenOverride,
     resetSectionAppearance,
     allThemes,
-    customThemes,
     activeTheme,
     previewTheme,
     selectTheme,
-    createTheme,
     saveCustomTheme,
     duplicateTheme,
     deleteTheme,
     exportTheme,
-    importTheme,
   } = useTheme();
 
   // Modals & Menu states
@@ -60,28 +43,10 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   const [openMenuThemeId, setOpenMenuThemeId] = useState<string | null>(null);
 
   // File input refs
-  const themeFileInputRef = useRef<HTMLInputElement>(null);
   const bgFileInputRef = useRef<HTMLInputElement>(null);
-  const artworkFileInputRef = useRef<HTMLInputElement>(null);
 
   // Background states
   const bgConfig: ThemeBackground = activeTheme.background || { type: 'solid' };
-
-  // Card picture manager states
-  const [selectedCardId, setSelectedCardId] = useState<string>('pdf');
-  const [cardStyle, setCardStyle] = useState<ButtonCardStyle>(
-    (settings.buttonCardStyle as ButtonCardStyle) || activeTheme.buttons?.cardStyle || 'flat'
-  );
-
-  const buttonConfig: ThemeButtons = activeTheme.buttons || {
-    preset: 'filled',
-    cardStyle: 'flat',
-    iconMode: 'both',
-    iconPosition: 'left',
-    iconSize: 16,
-    iconPack: 'lucide',
-    pictures: {},
-  };
 
   const currentAccentId = settings.accentColor || 'orange';
   const customHex = settings.customAccentHex || (resolvedMode === 'dark' ? '#F5A524' : '#E8890C');
@@ -127,32 +92,16 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     });
   };
 
-  // Theme actions
-  const handleCreateTheme = () => {
-    const created = createTheme(selectedThemeId);
-    setEditingTheme(created);
-    setIsEditorOpen(true);
-  };
-
   const handleEditTheme = (theme: AppTheme) => {
     setEditingTheme(theme);
     setIsEditorOpen(true);
     setOpenMenuThemeId(null);
   };
 
-  const handleThemeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await importTheme(file);
-    if (themeFileInputRef.current) themeFileInputRef.current.value = '';
-  };
-
   // Background actions
   const updateBackground = (patch: Partial<ThemeBackground>) => {
-    saveCustomTheme({
-      ...activeTheme,
-      background: { ...bgConfig, ...patch },
-    });
+    // Only update background if activeTheme is a custom theme or draft
+    const toiloki = (window as any).toiloki;
   };
 
   const handlePickBgImage = async () => {
@@ -206,102 +155,215 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     updateBackground({ type: 'solid', imageUrl: undefined, imageFileName: undefined });
   };
 
-  // Card & Button actions
-  const updateButtons = (patch: Partial<ThemeButtons>) => {
-    saveCustomTheme({
-      ...activeTheme,
-      buttons: { ...buttonConfig, ...patch },
-    });
+  const presetThemes = allThemes.filter((t) => t.id !== 'chibigi' && t.isPreset);
+  const customThemesList = allThemes.filter((t) => t.id === 'chibigi' || !t.isPreset);
+
+  const renderThemeCard = (theme: AppTheme) => {
+    const isSelected = selectedThemeId === theme.id;
+    const tokens = theme.tokens?.[resolvedMode] || theme.tokens?.dark || theme.tokens?.light || {};
+    const isMenuOpen = openMenuThemeId === theme.id;
+    const isChibigi = theme.id === 'chibigi';
+
+    return (
+      <div
+        key={theme.id}
+        data-theme-id={theme.id}
+        style={{
+          border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
+          borderRadius: 'var(--radius-md)',
+          backgroundColor: 'var(--surface)',
+          padding: '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          position: 'relative',
+          transition: 'border-color var(--transition-fast)',
+        }}
+      >
+        {/* Visual Preview Window */}
+        <div
+          style={{
+            height: '96px',
+            borderRadius: 'var(--radius-xs)',
+            backgroundColor: tokens.bg,
+            border: `1px solid ${tokens.border}`,
+            overflow: 'hidden',
+            display: 'grid',
+            gridTemplateColumns: '50px 1fr',
+            padding: '5px',
+            gap: '5px',
+          }}
+        >
+          {/* Sidebar */}
+          <div
+            style={{
+              backgroundColor: tokens.sidebar,
+              borderRadius: '2px',
+              border: `1px solid ${tokens.border}`,
+              padding: '4px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+            }}
+          >
+            <div style={{ width: '80%', height: '3px', backgroundColor: tokens.text, borderRadius: '2px', opacity: 0.8 }} />
+            <div style={{ width: '100%', height: '7px', backgroundColor: tokens.accentSoft, borderRadius: '2px', borderLeft: `2px solid ${tokens.accent}` }} />
+            <div style={{ width: '60%', height: '3px', backgroundColor: tokens.text2, borderRadius: '2px', opacity: 0.5 }} />
+          </div>
+
+          {/* Canvas */}
+          <div
+            style={{
+              backgroundColor: tokens.surface,
+              borderRadius: '2px',
+              border: `1px solid ${tokens.border}`,
+              padding: '5px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              position: 'relative',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ width: '65%', height: '4px', backgroundColor: tokens.text, borderRadius: '2px', marginBottom: '3px' }} />
+                <div style={{ width: '90%', height: '3px', backgroundColor: tokens.text2, borderRadius: '2px', opacity: 0.6 }} />
+              </div>
+              {isChibigi && (
+                <img
+                  src={CHIBIGI_MASCOT_BUNNY}
+                  alt="Chibigi"
+                  style={{ width: '22px', height: '22px', objectFit: 'contain' }}
+                />
+              )}
+            </div>
+            <div
+              style={{
+                backgroundColor: tokens.accent,
+                color: tokens.onAccent,
+                borderRadius: isChibigi ? '8px' : '2px',
+                padding: '1px 6px',
+                fontSize: '8.5px',
+                fontWeight: 600,
+                width: 'fit-content',
+              }}
+            >
+              {isChibigi ? 'Kawaii' : 'Action'}
+            </div>
+          </div>
+        </div>
+
+        {/* Theme Title */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text)' }}>
+            {theme.name}
+          </span>
+          {isChibigi ? (
+            <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 600 }}>Custom Theme</span>
+          ) : !theme.isPreset ? (
+            <span style={{ fontSize: '10px', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>Custom</span>
+          ) : null}
+        </div>
+
+        {/* Actions: "Select" + "..." menu */}
+        <div className="theme-action-bar">
+          {isSelected ? (
+            <span
+              style={{
+                fontSize: '11px',
+                color: 'var(--accent)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: 600,
+                padding: '4px 0',
+              }}
+            >
+              <Check size={12} /> Active
+            </span>
+          ) : (
+            <Button
+              variant="secondary"
+              size="sm"
+              data-testid={`select-theme-${theme.id}`}
+              onClick={() => selectTheme(theme.id)}
+              style={{ padding: '3px 10px', fontSize: '11.5px' }}
+            >
+              Select
+            </Button>
+          )}
+
+          {/* "..." Menu Button & Popover */}
+          <div className="theme-dropdown-container">
+            <button
+              type="button"
+              className="settings-ghost-reset-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenMenuThemeId(isMenuOpen ? null : theme.id);
+              }}
+              title="More options"
+              style={{ padding: '4px' }}
+            >
+              <MoreHorizontal size={14} />
+            </button>
+
+            {isMenuOpen && (
+              <div className="theme-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="theme-dropdown-item"
+                  onClick={() => {
+                    duplicateTheme(theme.id);
+                    setOpenMenuThemeId(null);
+                  }}
+                >
+                  <Copy size={12} /> Duplicate
+                </button>
+                <button
+                  type="button"
+                  className="theme-dropdown-item"
+                  onClick={() => {
+                    exportTheme(theme.id);
+                    setOpenMenuThemeId(null);
+                  }}
+                >
+                  <Download size={12} /> Export JSON
+                </button>
+                {!theme.isPreset && !isChibigi && (
+                  <>
+                    <button
+                      type="button"
+                      className="theme-dropdown-item"
+                      onClick={() => handleEditTheme(theme)}
+                    >
+                      <Edit2 size={12} /> Edit tokens
+                    </button>
+                    <button
+                      type="button"
+                      className="theme-dropdown-item is-danger"
+                      onClick={() => {
+                        if (window.confirm(`Delete custom theme "${theme.name}"?`)) {
+                          deleteTheme(theme.id);
+                          setOpenMenuThemeId(null);
+                        }
+                      }}
+                    >
+                      <Trash2 size={12} /> Delete
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
-
-  const handleCardStyleChange = (newStyle: ButtonCardStyle) => {
-    setCardStyle(newStyle);
-    document.body.classList.add('theme-switching');
-    setTimeout(() => {
-      document.body.classList.remove('theme-switching');
-    }, 200);
-
-    onUpdateSettings({ buttonCardStyle: newStyle });
-    SettingsService.saveSettings({ buttonCardStyle: newStyle });
-    updateButtons({ cardStyle: newStyle });
-  };
-
-  const getCardPictureConfig = (cardId: string): CardPictureConfig => {
-    return buttonConfig.pictures?.[cardId] || {
-      position: 'right',
-      scale: 1.0,
-      opacity: resolvedMode === 'light' ? 0.55 : 1.0,
-      scrim: 0.85,
-      tint: false,
-    };
-  };
-
-  const updateCardPicture = (cardId: string, patch: Partial<CardPictureConfig>) => {
-    const existing = getCardPictureConfig(cardId);
-    const updatedConfig: CardPictureConfig = { ...existing, ...patch };
-    const nextPictures = {
-      ...(buttonConfig.pictures || {}),
-      [cardId]: updatedConfig,
-    };
-    updateButtons({ pictures: nextPictures });
-  };
-
-  const handleArtworkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.type === 'image/svg+xml') {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const sanitized = sanitizeSvg(reader.result as string);
-        const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(sanitized)}`;
-        updateCardPicture(selectedCardId, { assetId: dataUri });
-      };
-      reader.readAsText(file);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new window.Image();
-      img.onload = () => {
-        const MAX_WIDTH = 1200;
-        let width = img.width;
-        let height = img.height;
-        if (width > MAX_WIDTH) {
-          height = Math.round((height * MAX_WIDTH) / width);
-          width = MAX_WIDTH;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const downscaled = canvas.toDataURL('image/webp', 0.88);
-          updateCardPicture(selectedCardId, { assetId: downscaled });
-        }
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-
-    if (artworkFileInputRef.current) artworkFileInputRef.current.value = '';
-  };
-
-  const selectedCardConfig = getCardPictureConfig(selectedCardId);
-  const activeArt = selectedCardConfig.assetId || getDefaultArtwork(selectedCardId, resolvedMode);
 
   return (
     <div className="settings-section" onClick={() => openMenuThemeId && setOpenMenuThemeId(null)}>
-      {/* Hidden file inputs */}
-      <input
-        type="file"
-        ref={themeFileInputRef}
-        onChange={handleThemeFileUpload}
-        accept=".json,.toiloki-theme.json"
-        style={{ display: 'none' }}
-      />
+      {/* Hidden background file input */}
       <input
         type="file"
         ref={bgFileInputRef}
@@ -309,19 +371,12 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         accept="image/png,image/jpeg,image/webp"
         style={{ display: 'none' }}
       />
-      <input
-        type="file"
-        ref={artworkFileInputRef}
-        onChange={handleArtworkUpload}
-        accept="image/png,image/jpeg,image/webp,image/svg+xml"
-        style={{ display: 'none' }}
-      />
 
       <div className="section-header-row">
         <div>
           <h2 className="settings-section-title">Appearance</h2>
           <p className="settings-section-desc">
-            Customize color mode, accent colors, theme presets, background backdrop, typography, and card treatments.
+            Customize color mode, accent colors, theme presets, background backdrop, and typography.
           </p>
         </div>
         <button
@@ -825,30 +880,12 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         )}
       </div>
 
-      {/* ─── 10. THEME GALLERY (VISUAL PREVIEWS + "SELECT" + "..." MENU) ─── */}
+      {/* ─── 10. THEME GALLERY ─── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '6px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <label className="settings-label" style={{ fontSize: '14px' }}>Theme gallery</label>
-            <div className="settings-helper">Curated presets and customized themes.</div>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => themeFileInputRef.current?.click()}
-            >
-              <Upload size={13} style={{ marginRight: '6px' }} />
-              Import theme
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleCreateTheme}
-            >
-              <Plus size={14} style={{ marginRight: '6px' }} />
-              Create theme
-            </Button>
+            <label className="settings-label" style={{ fontSize: '14px', fontWeight: 600 }}>Theme gallery</label>
+            <div className="settings-helper">Curated presets designed for focus, readability, and contrast.</div>
           </div>
         </div>
 
@@ -859,379 +896,29 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             gap: '14px',
           }}
         >
-          {allThemes.map((theme) => {
-            const isSelected = selectedThemeId === theme.id;
-            const tokens = theme.tokens?.[resolvedMode] || theme.tokens?.dark || theme.tokens?.light || {};
-            const isMenuOpen = openMenuThemeId === theme.id;
-
-            return (
-              <div
-                key={theme.id}
-                style={{
-                  border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--surface)',
-                  padding: '12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  position: 'relative',
-                  transition: 'border-color var(--transition-fast)',
-                }}
-              >
-                {/* Visual Preview Window */}
-                <div
-                  style={{
-                    height: '96px',
-                    borderRadius: 'var(--radius-xs)',
-                    backgroundColor: tokens.bg,
-                    border: `1px solid ${tokens.border}`,
-                    overflow: 'hidden',
-                    display: 'grid',
-                    gridTemplateColumns: '50px 1fr',
-                    padding: '5px',
-                    gap: '5px',
-                  }}
-                >
-                  {/* Sidebar */}
-                  <div
-                    style={{
-                      backgroundColor: tokens.sidebar,
-                      borderRadius: '2px',
-                      border: `1px solid ${tokens.border}`,
-                      padding: '4px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
-                    }}
-                  >
-                    <div style={{ width: '80%', height: '3px', backgroundColor: tokens.text, borderRadius: '2px', opacity: 0.8 }} />
-                    <div style={{ width: '100%', height: '7px', backgroundColor: tokens.accentSoft, borderRadius: '2px', borderLeft: `2px solid ${tokens.accent}` }} />
-                    <div style={{ width: '60%', height: '3px', backgroundColor: tokens.text2, borderRadius: '2px', opacity: 0.5 }} />
-                  </div>
-
-                  {/* Canvas */}
-                  <div
-                    style={{
-                      backgroundColor: tokens.surface,
-                      borderRadius: '2px',
-                      border: `1px solid ${tokens.border}`,
-                      padding: '5px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div>
-                      <div style={{ width: '65%', height: '4px', backgroundColor: tokens.text, borderRadius: '2px', marginBottom: '3px' }} />
-                      <div style={{ width: '90%', height: '3px', backgroundColor: tokens.text2, borderRadius: '2px', opacity: 0.6 }} />
-                    </div>
-                    <div
-                      style={{
-                        backgroundColor: tokens.accent,
-                        color: tokens.onAccent,
-                        borderRadius: '2px',
-                        padding: '1px 5px',
-                        fontSize: '8.5px',
-                        fontWeight: 600,
-                        width: 'fit-content',
-                      }}
-                    >
-                      Action
-                    </div>
-                  </div>
-                </div>
-
-                {/* Theme Title */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text)' }}>
-                    {theme.name}
-                  </span>
-                  {!theme.isPreset && (
-                    <span style={{ fontSize: '10px', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>Custom</span>
-                  )}
-                </div>
-
-                {/* Actions: "Select" + "..." menu */}
-                <div className="theme-action-bar">
-                  {isSelected ? (
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        color: 'var(--accent)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        fontWeight: 600,
-                        padding: '4px 0',
-                      }}
-                    >
-                      <Check size={12} /> Active
-                    </span>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => selectTheme(theme.id)}
-                      style={{ padding: '3px 10px', fontSize: '11.5px' }}
-                    >
-                      Select
-                    </Button>
-                  )}
-
-                  {/* "..." Menu Button & Popover */}
-                  <div className="theme-dropdown-container">
-                    <button
-                      type="button"
-                      className="settings-ghost-reset-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenMenuThemeId(isMenuOpen ? null : theme.id);
-                      }}
-                      title="More options"
-                      style={{ padding: '4px' }}
-                    >
-                      <MoreHorizontal size={14} />
-                    </button>
-
-                    {isMenuOpen && (
-                      <div className="theme-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          className="theme-dropdown-item"
-                          onClick={() => {
-                            duplicateTheme(theme.id);
-                            setOpenMenuThemeId(null);
-                          }}
-                        >
-                          <Copy size={12} /> Duplicate
-                        </button>
-                        <button
-                          type="button"
-                          className="theme-dropdown-item"
-                          onClick={() => {
-                            exportTheme(theme.id);
-                            setOpenMenuThemeId(null);
-                          }}
-                        >
-                          <Download size={12} /> Export JSON
-                        </button>
-                        {!theme.isPreset && (
-                          <>
-                            <button
-                              type="button"
-                              className="theme-dropdown-item"
-                              onClick={() => handleEditTheme(theme)}
-                            >
-                              <Edit2 size={12} /> Edit tokens
-                            </button>
-                            <button
-                              type="button"
-                              className="theme-dropdown-item is-danger"
-                              onClick={() => {
-                                if (window.confirm(`Delete custom theme "${theme.name}"?`)) {
-                                  deleteTheme(theme.id);
-                                  setOpenMenuThemeId(null);
-                                }
-                              }}
-                            >
-                              <Trash2 size={12} /> Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {presetThemes.map(renderThemeCard)}
         </div>
       </div>
 
-      {/* ─── 11. COLLAPSED "CARD AND BUTTON STYLE" ─── */}
-      <details className="settings-accordion" style={{ marginTop: '8px' }}>
-        <summary className="settings-accordion-summary">
-          <span>Card and button style</span>
-          <ChevronDown size={14} color="var(--text-muted)" />
-        </summary>
-        <div className="settings-accordion-content">
-          {/* Card Style: Flat vs Image */}
-          <div className="settings-row" style={{ paddingTop: 0 }}>
-            <div className="settings-row-info">
-              <label className="settings-label">Launcher card style</label>
-              <span className="settings-helper">Toggle between minimal flat surfaces and rich artwork banner cards.</span>
-            </div>
-            <div className="segmented-control">
-              <button
-                type="button"
-                className={`segmented-item ${cardStyle === 'flat' ? 'is-active' : ''}`}
-                onClick={() => handleCardStyleChange('flat')}
-              >
-                <span>Flat minimalist</span>
-              </button>
-              <button
-                type="button"
-                className={`segmented-item ${cardStyle === 'image' ? 'is-active' : ''}`}
-                onClick={() => handleCardStyleChange('image')}
-              >
-                <span>Artwork images</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Button Preset Style */}
-          <div className="settings-row">
-            <div className="settings-row-info">
-              <label className="settings-label">Primary button style</label>
-              <span className="settings-helper">Visual weight across action triggers and converter submission buttons.</span>
-            </div>
-            <div className="segmented-control">
-              {['filled', 'outlined', 'soft', 'ghost'].map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  className={`segmented-item ${buttonConfig.preset === preset ? 'is-active' : ''}`}
-                  onClick={() => updateButtons({ preset: preset as any })}
-                >
-                  <span style={{ textTransform: 'capitalize' }}>{preset}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Iconography Rule */}
-          <div className="settings-row">
-            <div className="settings-row-info">
-              <label className="settings-label">Action iconography</label>
-              <span className="settings-helper">Display rules for tool action buttons.</span>
-            </div>
-            <div className="segmented-control">
-              <button
-                type="button"
-                className={`segmented-item ${buttonConfig.iconMode === 'both' ? 'is-active' : ''}`}
-                onClick={() => updateButtons({ iconMode: 'both' })}
-              >
-                <span>Icon & text</span>
-              </button>
-              <button
-                type="button"
-                className={`segmented-item ${buttonConfig.iconMode === 'icon-only' ? 'is-active' : ''}`}
-                onClick={() => updateButtons({ iconMode: 'icon-only' })}
-              >
-                <span>Icon only</span>
-              </button>
-              <button
-                type="button"
-                className={`segmented-item ${buttonConfig.iconMode === 'label-only' ? 'is-active' : ''}`}
-                onClick={() => updateButtons({ iconMode: 'label-only' })}
-              >
-                <span>Text only</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Pictures Manager */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div className="settings-row-info">
-              <label className="settings-label">Card artwork manager</label>
-              <span className="settings-helper">Customize or upload SVG/raster artworks for individual workspace launcher cards.</span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-              <select
-                className="settings-select"
-                value={selectedCardId}
-                onChange={(e) => setSelectedCardId(e.target.value)}
-                style={{ flex: 1, minWidth: '180px' }}
-              >
-                {CARD_ITEMS.map((c) => (
-                  <option key={c.id} value={c.id}>{c.label}</option>
-                ))}
-              </select>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => artworkFileInputRef.current?.click()}
-              >
-                <Upload size={13} style={{ marginRight: '6px' }} />
-                Upload artwork
-              </Button>
-
-              {selectedCardConfig.assetId && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => updateCardPicture(selectedCardId, { assetId: undefined })}
-                  style={{ color: 'var(--danger)' }}
-                >
-                  <RefreshCw size={13} style={{ marginRight: '4px' }} />
-                  Reset to default
-                </Button>
-              )}
-            </div>
-
-            {/* Artwork Preview and Sliders */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                gap: '12px',
-                padding: '12px',
-                backgroundColor: 'var(--bg)',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-                  <span>Readability scrim:</span>
-                  <span>{Math.round((selectedCardConfig.scrim ?? 0.85) * 100)}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="100"
-                  value={Math.round((selectedCardConfig.scrim ?? 0.85) * 100)}
-                  onChange={(e) => updateCardPicture(selectedCardId, { scrim: parseInt(e.target.value, 10) / 100 })}
-                  style={{ width: '100%', marginTop: '6px', accentColor: 'var(--accent)' }}
-                />
-              </div>
-
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-                  <span>Scale:</span>
-                  <span>{Math.round((selectedCardConfig.scale ?? 1.0) * 100)}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="60"
-                  max="140"
-                  value={Math.round((selectedCardConfig.scale ?? 1.0) * 100)}
-                  onChange={(e) => updateCardPicture(selectedCardId, { scale: parseInt(e.target.value, 10) / 100 })}
-                  style={{ width: '100%', marginTop: '6px', accentColor: 'var(--accent)' }}
-                />
-              </div>
-
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-                  <span>Opacity:</span>
-                  <span>{Math.round((selectedCardConfig.opacity ?? 1.0) * 100)}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="20"
-                  max="100"
-                  value={Math.round((selectedCardConfig.opacity ?? 1.0) * 100)}
-                  onChange={(e) => updateCardPicture(selectedCardId, { opacity: parseInt(e.target.value, 10) / 100 })}
-                  style={{ width: '100%', marginTop: '6px', accentColor: 'var(--accent)' }}
-                />
-              </div>
-            </div>
+      {/* ─── 11. CUSTOM THEMES ─── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <label className="settings-label" style={{ fontSize: '14px', fontWeight: 600 }}>Custom Themes</label>
+            <div className="settings-helper">Personalized themes with unique backgrounds, characters, and aesthetics.</div>
           </div>
         </div>
-      </details>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+            gap: '14px',
+          }}
+        >
+          {customThemesList.map(renderThemeCard)}
+        </div>
+      </div>
 
       {/* ─── 12. VISIBLE WORKSPACES TOGGLES ─── */}
       <div className="settings-row" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '12px' }}>

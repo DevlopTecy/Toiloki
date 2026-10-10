@@ -1,0 +1,97 @@
+/* ─── EmptyState Component ─── */
+.toiloki-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+}
+
+.toiloki-empty-state.is-compact {
+  padding: 24px 16px;
+  min-height: 160px;
+}
+
+.toiloki-empty-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md, 8px);
+  background-color: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  margin-bottom: 14px;
+}
+
+.toiloki-empty-state.is-compact .toiloki-empty-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 10px;
+}
+
+.toiloki-empty-text {
+  max-width: 380px;
+  margin-bottom: 16px;
+}
+
+.toiloki-empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.toiloki-empty-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.toiloki-empty-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.toiloki-empty-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 16px;
+  background-color: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--radius-controls, 8px);
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--dur-fast) ease;
+}
+
+.toiloki-empty-action-btn:hover {
+  opacity: 0.9;
+}
+
+.toiloki-empty-sample-link {
+  background: transparent;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color var(--dur-fast) ease;
+}
+
+.toiloki-empty-sample-link:hover {
+  color: var(--text);
+}

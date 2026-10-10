@@ -1,37 +1,276 @@
-/* SecurityWorkspaceView Styles - Toiloki Design System */
+/* ═══════════════════════════════════════════════════════════════════
+   TOILOKI — Security & Privacy Workspace Styles
+   Professional Desktop Utility Design System (IDE & Productivity Caliber)
+   Strict Token Compliance: 0 hex/rgb, 0 text-transform uppercase
+   ═══════════════════════════════════════════════════════════════════ */
+
 .sec-workspace {
   padding: 24px var(--content-padding-x, 32px);
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-height: 100%;
+  box-sizing: border-box;
 }
 
+/* ─── Modern 2-Column Split Layout for Workbenches ─── */
+.sec-workbench-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+
+.sec-workbench-split-equal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+
+@media (max-width: 960px) {
+  .sec-workbench-layout,
+  .sec-workbench-split-equal {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Purpose-Built Cards & Panels ─── */
 .sec-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 24px;
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--dur-fast) ease;
+}
+
+.sec-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sec-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sec-card-icon-tile {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
 }
 
 .sec-card-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text);
   margin: 0;
+  line-height: 1.3;
 }
 
+.sec-card-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+  line-height: 1.4;
+}
+
+/* ─── Informational Security Notices ─── */
+.sec-info-banner {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.sec-info-banner.sec-ssd-notice {
+  border-left-color: var(--warning);
+}
+
+.sec-info-banner code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+/* ─── Form Controls & Layout ─── */
 .sec-controls-row {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   align-items: flex-end;
   flex-wrap: wrap;
 }
 
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.control-input,
+.control-select {
+  height: 34px;
+  padding: 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  box-sizing: border-box;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+}
+
+.control-input:focus,
+.control-select:focus {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.code-editor {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.code-editor:focus {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+/* ─── Buttons ─── */
+.sec-primary-btn {
+  height: 34px;
+  padding: 0 16px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) ease;
+  white-space: nowrap;
+}
+
+.sec-primary-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.sec-primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sec-secondary-btn,
+.sec-action-btn,
+.sec-refresh-btn,
+.sec-copy-btn {
+  height: 32px;
+  padding: 0 12px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+  white-space: nowrap;
+}
+
+.sec-secondary-btn:hover,
+.sec-action-btn:hover,
+.sec-refresh-btn:hover,
+.sec-copy-btn:hover {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.sec-chip-btn {
+  height: 26px;
+  padding: 0 10px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+}
+
+.sec-chip-btn:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.sec-chip-btn.active {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ─── Tabs ─── */
 .sec-tabs-row {
   display: flex;
   gap: 8px;
@@ -40,15 +279,19 @@
 }
 
 .sec-tab-btn {
+  height: 32px;
+  padding: 0 14px;
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-2);
-  border-radius: 6px;
-  padding: 8px 16px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--dur-fast) ease;
 }
 
 .sec-tab-btn:hover {
@@ -63,18 +306,18 @@
   font-weight: 600;
 }
 
+/* ─── Checkboxes ─── */
 .sec-checkboxes {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
   align-items: center;
-  padding-bottom: 2px;
 }
 
 .sec-checkbox-label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 13px;
   color: var(--text-2);
   cursor: pointer;
@@ -84,127 +327,62 @@
 .sec-checkbox-label input[type="checkbox"] {
   accent-color: var(--accent);
   cursor: pointer;
+  width: 15px;
+  height: 15px;
 }
 
-.sec-copy-btn,
-.sec-refresh-btn,
-.sec-action-btn {
+/* ─── Prominent Drag-and-Drop Area ─── */
+.sec-file-drop {
+  border: 1.5px dashed var(--border-strong);
   background: var(--surface-hover);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 4px;
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: var(--radius-md);
+  padding: 32px 20px;
+  text-align: center;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.15s ease;
-  white-space: nowrap;
+  transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease;
 }
 
-.sec-copy-btn:hover,
-.sec-refresh-btn:hover,
-.sec-action-btn:hover {
+.sec-file-drop:hover {
+  border-color: var(--accent);
   background: var(--surface);
-  border-color: var(--border-strong);
-  color: var(--text);
 }
 
-.sec-primary-btn {
-  background: var(--accent);
-  color: var(--on-accent);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  padding: 9px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.15s ease;
-}
-
-.sec-primary-btn:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-}
-
-.sec-primary-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.sec-danger-btn {
-  background: var(--danger);
-  color: var(--surface);
-  border: 1px solid var(--danger);
-  border-radius: 6px;
-  padding: 9px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.15s ease;
-}
-
-.sec-danger-btn:hover {
-  opacity: 0.9;
-}
-
-.sec-result-block {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px 16px;
+.sec-file-label {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.sec-result-row {
-  display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.sec-result-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-muted);
-  width: 70px;
-  text-transform: none;
-}
-
-.sec-result-code {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 13px;
+  gap: 10px;
+  cursor: pointer;
   color: var(--text);
-  word-break: break-all;
-  flex: 1;
+  font-size: 13.5px;
+  font-weight: 500;
 }
 
+.sec-file-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+/* ─── Password Hero Output ─── */
 .sec-password-display {
+  background: var(--surface-hover);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  padding: 14px 18px;
   gap: 16px;
 }
 
 .sec-password-code {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-family: var(--font-mono);
   font-size: 18px;
   font-weight: 600;
   color: var(--text);
   word-break: break-all;
+  letter-spacing: 0.05em;
   flex: 1;
 }
 
@@ -212,28 +390,175 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-shrink: 0;
 }
 
-.sec-slider-control {
+/* ─── Character Breakdown Badges ─── */
+.sec-char-breakdown {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sec-char-tag {
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-2);
+}
+
+/* ─── Multi-segment Strength Bar ─── */
+.sec-strength-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.sec-strength-track {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  height: 6px;
+}
+
+.sec-strength-segment {
+  background: var(--border);
+  border-radius: 3px;
+  transition: background-color var(--dur-fast) ease;
+}
+
+.sec-strength-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.sec-strength-label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sec-strength-meta {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+/* ─── Hash Results Table ─── */
+.sec-hash-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sec-hash-item {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
+.sec-hash-item-label {
+  width: 70px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.sec-hash-item-value {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text);
+  word-break: break-all;
+  flex: 1;
+}
+
+/* ─── File Details Card ─── */
+.sec-file-summary-card {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sec-file-summary-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sec-file-summary-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sec-file-summary-size {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* ─── Status & Feedback Banners ─── */
+.sec-error {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.sec-success {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+/* ─── Slider Control with Steppers ─── */
+.sec-slider-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .sec-stepper-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
   background: var(--surface-hover);
   border: 1px solid var(--border);
   color: var(--text);
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 600;
   font-size: 14px;
-  font-weight: bold;
   cursor: pointer;
-  user-select: none;
+  flex-shrink: 0;
 }
 
 .sec-stepper-btn:hover {
@@ -241,183 +566,82 @@
   border-color: var(--border-strong);
 }
 
-.sec-chip-btn {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-2);
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.sec-chip-btn:hover {
-  border-color: var(--border-strong);
-  color: var(--text);
-}
-
-.sec-chip-btn.active {
-  background: var(--accent);
-  color: var(--on-accent);
-  border-color: var(--accent);
-}
-
 .sec-range-input {
   flex: 1;
   accent-color: var(--accent);
   cursor: pointer;
-  height: 6px;
 }
 
-.sec-strength-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.sec-strength-track {
-  display: flex;
-  gap: 4px;
-  flex: 1;
-  height: 6px;
-}
-
-.sec-strength-segment {
-  flex: 1;
-  height: 100%;
-  background: var(--surface-hover);
-  border-radius: 3px;
-  transition: background 0.2s ease;
-}
-
-.sec-strength-label {
-  font-size: 13px;
-  font-weight: 600;
-  min-width: 80px;
-}
-
-.sec-strength-meta {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-}
-
-.sec-info-banner {
-  font-size: 12.5px;
-  color: var(--text-2);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 12px 16px;
-  border-radius: 6px;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  line-height: 1.5;
-}
-
-.sec-ssd-notice {
-  background: var(--surface-hover);
-  border-color: var(--border-strong);
-}
-
-.sec-file-drop {
-  border: 1.5px dashed var(--border-strong);
-  border-radius: 8px;
-  padding: 24px;
-  text-align: center;
-  background: var(--surface);
-  transition: border-color 0.2s;
-}
-
-.sec-file-drop:hover {
-  border-color: var(--accent);
-}
-
-.sec-file-label {
-  cursor: pointer;
-  font-size: 14px;
-  color: var(--text-2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.sec-checksum-result {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 14px 18px;
-  margin-top: 12px;
-}
-
-.sec-checksum-result.match {
-  border-color: var(--success);
-}
-
-.sec-checksum-result.mismatch {
-  border-color: var(--danger);
-}
-
-.sec-error {
-  color: var(--danger);
-  font-size: 13px;
-  padding: 10px 14px;
-  background: var(--surface);
-  border-radius: 6px;
-  border: 1px solid var(--danger);
-  line-height: 1.4;
-}
-
-.sec-success {
-  color: var(--success);
-  font-size: 13px;
-  padding: 10px 14px;
-  background: var(--surface);
-  border-radius: 6px;
-  border: 1px solid var(--success);
-  line-height: 1.4;
-}
-
+/* ─── Redaction Dual-Pane Layout ─── */
 .sec-redaction-layout {
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
   align-items: stretch;
 }
 
-.sec-redaction-controls {
-  width: 260px;
-  min-width: 260px;
+@media (max-width: 1100px) {
+  .sec-redaction-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sec-redaction-sidebar {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 18px;
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sec-redaction-pane {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.sec-details-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+.sec-count-badge {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  margin-left: auto;
 }
 
-.sec-details-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
+/* ─── Ephemeral History Tray ─── */
+.sec-history-tray {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.sec-details-table td:first-child {
+.sec-history-title {
+  font-size: 12px;
+  font-weight: 600;
   color: var(--text-muted);
-  width: 140px;
-  font-weight: 500;
 }
 
-.sec-details-table td:last-child {
-  color: var(--text);
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+.sec-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  background: var(--surface-hover);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-2);
 }

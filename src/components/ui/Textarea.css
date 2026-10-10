@@ -1,0 +1,42 @@
+/* ─── Textarea Component ─── */
+.toiloki-textarea {
+  display: block;
+  width: 100%;
+  min-height: 160px;
+  padding: 10px 12px;
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-controls, 8px);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+}
+
+.toiloki-textarea:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.toiloki-textarea.is-mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  tab-size: 2;
+}
+
+.toiloki-textarea.is-invalid {
+  border-color: var(--danger);
+}
+
+.toiloki-textarea.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--surface-hover);
+}
+
+.toiloki-textarea::placeholder {
+  color: var(--text-muted);
+}

@@ -49,15 +49,77 @@ export interface ShellBridge {
   openPath: (filePath: string) => Promise<{ success: boolean; error?: string }>;
 }
 
+export interface BackgroundBridge {
+  pickImage: () => Promise<{ canceled: boolean; fileName?: string; url?: string; error?: string }>;
+  removeImage: (fileName: string) => Promise<{ success: boolean; error?: string }>;
+}
+
+export interface RustFileHashItem {
+  path: string;
+  name: string;
+  size: number;
+  hash?: string;
+  error?: string;
+}
+
+export interface RustSystemStats {
+  total_memory_mb: number;
+  used_memory_mb: number;
+  free_memory_mb: number;
+  memory_percentage: number;
+  cpu_count: number;
+  cpu_usage_percentage: number;
+  os_name: string;
+  os_version: string;
+  host_name: string;
+}
+
+export interface RustRenamePreviewItem {
+  original: string;
+  proposed: string;
+  has_changed: boolean;
+}
+
+export interface RustMultiHashItem {
+  path: string;
+  name: string;
+  size: number;
+  sha256: string;
+  sha512: string;
+}
+
+export interface RustEngineBridge {
+  computeSha256: (filePath: string) => Promise<string>;
+  computeMultiHash?: (filePath: string) => Promise<RustMultiHashItem>;
+  batchHashFiles: (filePaths: string[]) => Promise<RustFileHashItem[]>;
+  getSystemStats: () => Promise<RustSystemStats>;
+  batchRenamePreview: (options: {
+    files: string[];
+    prefix: string;
+    suffix: string;
+    find_str: string;
+    replace_str: string;
+    start_number: number;
+    pad_zeros: number;
+  }) => Promise<RustRenamePreviewItem[]>;
+}
+
 export interface ToilokiBridge {
+  isTauri?: boolean;
+  isElectron?: boolean;
   windowControls: WindowControlsBridge;
   dialog: DialogBridge;
   fs: FsBridge;
   shell: ShellBridge;
+  background?: BackgroundBridge;
+  rustEngine?: RustEngineBridge;
 }
 
 declare global {
   interface Window {
     toiloki?: ToilokiBridge;
+    __TAURI_INTERNALS__?: any;
+    __TAURI__?: any;
   }
 }
+

@@ -1,0 +1,104 @@
+/* ─── TextInput Component ─── */
+.toiloki-input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-controls, 8px);
+  width: 100%;
+  color: var(--text);
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+  position: relative;
+}
+
+.toiloki-input-wrapper:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.toiloki-input-wrapper.is-invalid {
+  border-color: var(--danger);
+}
+
+.toiloki-input-wrapper.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--surface-hover);
+}
+
+.toiloki-input-sm {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.toiloki-input-md {
+  height: 36px;
+  padding: 0 10px;
+  font-size: 13.5px;
+}
+
+.toiloki-input-lg {
+  height: 42px;
+  padding: 0 14px;
+  font-size: 14.5px;
+}
+
+.toiloki-input-prefix,
+.toiloki-input-suffix {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.toiloki-input-prefix {
+  margin-right: 8px;
+}
+
+.toiloki-input-suffix {
+  margin-left: 8px;
+}
+
+.toiloki-text-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: inherit;
+  min-width: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.toiloki-text-input::placeholder {
+  color: var(--text-muted);
+}
+
+.toiloki-input-wrapper.is-mono .toiloki-text-input {
+  font-family: var(--font-mono);
+}
+
+.toiloki-input-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-left: 6px;
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+
+.toiloki-input-clear:hover {
+  color: var(--text);
+  background-color: var(--surface-hover);
+}

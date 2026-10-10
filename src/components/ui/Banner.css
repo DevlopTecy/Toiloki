@@ -1,0 +1,110 @@
+/* ─── Banner Component ─── */
+.toiloki-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-controls, 8px);
+  width: 100%;
+  font-size: 13px;
+  line-height: 1.4;
+  position: relative;
+}
+
+.toiloki-banner-icon-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.toiloki-banner-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toiloki-banner-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.toiloki-banner-message {
+  font-size: 12.5px;
+}
+
+.toiloki-banner-action {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-xs, 4px);
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 8px;
+  flex-shrink: 0;
+  color: inherit;
+  transition: opacity var(--dur-fast) ease;
+}
+
+.toiloki-banner-action:hover {
+  opacity: 0.8;
+}
+
+.toiloki-banner-dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  padding: 2px;
+  margin-left: 4px;
+  flex-shrink: 0;
+  transition: opacity var(--dur-fast) ease;
+}
+
+.toiloki-banner-dismiss:hover {
+  opacity: 1;
+}
+
+/* ─── Variants ─── */
+.toiloki-banner-info {
+  background-color: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.toiloki-banner-info .toiloki-banner-icon {
+  color: var(--text-2);
+}
+
+.toiloki-banner-warning {
+  background-color: var(--warning-bg);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+}
+.toiloki-banner-warning .toiloki-banner-message {
+  color: var(--text);
+}
+
+.toiloki-banner-danger {
+  background-color: var(--danger-bg);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+.toiloki-banner-danger .toiloki-banner-message {
+  color: var(--text);
+}
+
+.toiloki-banner-success {
+  background-color: var(--success-bg);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+.toiloki-banner-success .toiloki-banner-message {
+  color: var(--text);
+}

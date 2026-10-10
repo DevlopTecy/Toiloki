@@ -5,6 +5,13 @@ import { SettingsService, AppSettings } from '../services/settings.service';
 import { validateThemeJson } from './theme.validator';
 import { deriveAccentPalette } from './wcag-contrast';
 import { useToast } from '../context/ToastContext';
+import {
+  CHIBIGI_MASCOT_BUNNY,
+  CHIBIGI_MASCOT_KUMA,
+  CHIBIGI_MASCOT_NEKO,
+  CHIBIGI_WALLPAPER_LIGHT,
+  CHIBIGI_WALLPAPER_DARK,
+} from '../../assets/art-pack/default-art-pack';
 
 
 interface ThemeContextType {
@@ -300,9 +307,27 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     cssLines.push('}');
 
-    // Background handling (Image, Pattern, Material)
+    // Background handling (Image, Pattern, Material, Chibigi)
     const bgConfig: ThemeBackground = currentTheme.background || { type: 'solid' };
-    if (bgConfig.type === 'pattern') {
+    if (currentTheme.id === 'chibigi') {
+      const chibigiWallpaper = resolvedMode === 'dark' ? CHIBIGI_WALLPAPER_DARK : CHIBIGI_WALLPAPER_LIGHT;
+      cssLines.push(`
+        body {
+          background-image: url('${chibigiWallpaper}') !important;
+          background-size: 360px 360px !important;
+          background-repeat: repeat !important;
+          background-attachment: fixed !important;
+        }
+        body::before, body::after {
+          display: none !important;
+        }
+        :root {
+          --chibigi-mascot-bunny: url('${CHIBIGI_MASCOT_BUNNY}');
+          --chibigi-mascot-kuma: url('${CHIBIGI_MASCOT_KUMA}');
+          --chibigi-mascot-neko: url('${CHIBIGI_MASCOT_NEKO}');
+        }
+      `);
+    } else if (bgConfig.type === 'pattern') {
       if (bgConfig.patternType === 'dots') {
         const dotColor = resolvedMode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
         cssLines.push(`body { background-image: radial-gradient(${dotColor} 1px, transparent 1px); background-size: 16px 16px; }`);
@@ -360,8 +385,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const selectTheme = useCallback((themeId: string) => {
     const found = allThemes.find((t) => t.id === themeId);
     if (!found) return;
-    setDraftTheme(found);
+    setActiveThemeId(found.id);
+    setDraftTheme(null);
     setTokenPatch(null);
+    SettingsService.saveSettings({ activeThemeId: found.id });
   }, [allThemes]);
 
   const previewThemeDraft = useCallback((theme: AppTheme) => {
@@ -445,7 +472,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const filtered = prev.filter((t) => t.id !== themeId);
       try {
         localStorage.setItem(CUSTOM_THEMES_STORAGE_KEY, JSON.stringify(filtered));
-      } catch (e) {}
+      } catch (e) { }
       return filtered;
     });
     if (activeThemeId === themeId) {

@@ -36,12 +36,26 @@ App
 
 ## 🚀 Getting Started
 
+### Prerequisites (for Rust & Tauri Desktop Backend)
+To run or build the native Rust backend:
+```bash
+# Install Rust via Windows Package Manager
+winget install Rustlang.Rustup
+
+# Restart terminal or reload environment, then verify:
+cargo --version
+rustc --version
+```
+
 ### Development
 ```bash
 # Start frontend dev server
 npm run dev
 
-# Start Electron desktop app
+# Start Tauri desktop app (Rust backend + React frontend)
+npm run dev:tauri
+
+# Start legacy Electron desktop app (optional fallback)
 npm run dev:electron
 ```
 
@@ -50,18 +64,19 @@ npm run dev:electron
 # Build React + Vite bundle
 npm run build
 
-# Run built app locally in Electron
-$env:SERVE_DIST="1"; npx electron .
+# Build Tauri native Windows executable (installer & portable binary)
+npm run build:tauri
 
-# Package into Windows NSIS installer and portable executable
+# Or package legacy Electron executable
 npm run electron:dist
 ```
 
 ### Test Suite
 ```bash
-# Run automated engine verification tests
-node tests/verify-engines.cjs
+# Run all automated verification tests (including Tauri & Rust architecture checks)
+npm test
 ```
+
 
 ---
 

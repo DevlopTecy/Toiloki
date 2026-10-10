@@ -102,6 +102,18 @@
   border-color: var(--border);
 }
 
+/* 4. Danger: Red text/border with subtle background */
+.toiloki-btn-danger {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.toiloki-btn-danger:hover:not(:disabled) {
+  background-color: var(--danger);
+  color: var(--bg);
+}
+
 /* ─── Icon & Label ─── */
 .toiloki-btn-icon {
   display: flex;

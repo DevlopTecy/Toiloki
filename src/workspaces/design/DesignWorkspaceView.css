@@ -1,70 +1,191 @@
-/* DesignWorkspaceView Styles - Toiloki Design System */
+/* ═══════════════════════════════════════════════════════════════════
+   TOILOKI — Color & Design Workspace Styles
+   Professional Desktop Utility Design System (IDE & Productivity Caliber)
+   Strict Token Compliance: 0 hex/rgb, 0 text-transform uppercase
+   ═══════════════════════════════════════════════════════════════════ */
+
 .design-workspace {
   padding: 24px var(--content-padding-x, 32px);
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.design-workbench-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+
+.design-workbench-equal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+
+@media (max-width: 960px) {
+  .design-workbench-split,
+  .design-workbench-equal {
+    grid-template-columns: 1fr;
+  }
 }
 
 .design-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 24px;
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--dur-fast) ease;
+}
+
+.design-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.design-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.design-card-icon-tile {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
 }
 
 .design-card-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text);
   margin: 0;
+  line-height: 1.3;
 }
 
-.design-controls-row {
-  display: flex;
-  gap: 16px;
-  align-items: flex-end;
-  flex-wrap: wrap;
+.design-card-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+  line-height: 1.4;
 }
 
-.design-copy-btn {
+/* ─── Buttons & Actions ─── */
+.design-copy-btn,
+.design-action-btn {
+  height: 32px;
+  padding: 0 12px;
   background: var(--surface-hover);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
   font-weight: 500;
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  transition: all 0.15s ease;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
   white-space: nowrap;
 }
 
-.design-copy-btn:hover {
+.design-copy-btn:hover,
+.design-action-btn:hover {
   background: var(--surface);
   border-color: var(--border-strong);
   color: var(--text);
 }
 
+.design-primary-btn {
+  height: 34px;
+  padding: 0 16px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+  white-space: nowrap;
+}
+
+.design-primary-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.design-primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Hero Color Swatch ─── */
+.design-color-hero {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 100px;
+  transition: background-color var(--dur-fast) ease;
+}
+
+.design-color-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.design-color-hero-hex {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Formats Grid ─── */
 .design-grid-outputs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-  margin-top: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
 }
 
 .design-color-box {
-  background: var(--surface);
+  background: var(--surface-hover);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 12px 14px;
   display: flex;
   align-items: center;
@@ -75,101 +196,155 @@
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
-  width: 50px;
-  letter-spacing: 0.01em;
+  width: 48px;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
 }
 
 .design-code-val {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 13px;
-  color: var(--text);
-  flex: 1;
-}
-
-.palette-strip {
-  display: flex;
-  border-radius: 8px;
-  overflow: hidden;
-  height: 90px;
-  border: 1px solid var(--border);
-}
-
-.palette-swatch {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 8px;
-  align-items: center;
-  gap: 6px;
-  transition: flex 0.2s;
-}
-
-.swatch-label {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  background: rgba(0, 0, 0, 0.65);
-  color: var(--on-accent);
-  padding: 2px 6px;
-  border-radius: 3px;
-}
-
-.contrast-scorecard {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px 20px;
-  margin-top: 14px;
-}
-
-.contrast-big-ratio {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 32px;
-  font-weight: 800;
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  color: var(--text);
-  min-width: 120px;
-}
-
-.ratio-sub {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: none;
-}
-
-.contrast-badges {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-}
-
-.contrast-badge {
+  font-family: var(--font-mono);
   font-size: 12.5px;
-  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+  word-break: break-all;
 }
 
-.contrast-badge.pass {
-  color: var(--success);
+/* ─── Visual Tokens Showcase ─── */
+.design-token-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
 }
 
-.contrast-badge.fail {
-  color: var(--danger);
-}
-
-.design-code-snippet {
-  background: var(--surface);
+.design-token-chip {
+  background: var(--surface-hover);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.design-token-swatch {
+  height: 38px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+}
+
+.design-token-name {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.design-token-val {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ─── Favicon Grid ─── */
+.design-favicon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.design-favicon-card {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.design-favicon-preview {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.design-favicon-label {
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  color: var(--text-2);
+}
+
+/* ─── Type Scale Specimen Showcase ─── */
+.design-type-scale-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.design-type-scale-row {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.design-type-scale-meta {
+  display: flex;
+  gap: 14px;
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.design-type-scale-text {
+  color: var(--text);
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+/* ─── Box Shadow Live Surface ─── */
+.design-shadow-canvas {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+}
+
+.design-shadow-box {
+  width: 140px;
+  height: 140px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  transition: box-shadow var(--dur-fast) ease;
+}
+
+/* ─── SVG Optimizer Side-by-Side ─── */
+.design-svg-preview-box {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
 }

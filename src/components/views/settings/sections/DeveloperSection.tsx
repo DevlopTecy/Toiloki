@@ -364,6 +364,17 @@ export const DeveloperSection: React.FC<DeveloperSectionProps> = ({
 
           <div className="settings-row">
             <div className="settings-row-info">
+              <label className="settings-label">Component gallery</label>
+              <span className="settings-helper">Inspect and audit all UI Kit V2 components in both Dark and Light themes.</span>
+            </div>
+            <Button variant="secondary" size="sm" onClick={() => setIsGalleryOpen(true)}>
+              <Grid size={13} style={{ marginRight: '6px' }} />
+              Open component gallery
+            </Button>
+          </div>
+
+          <div className="settings-row">
+            <div className="settings-row-info">
               <label className="settings-label">Safe mode reboot</label>
               <span className="settings-helper">Immediately launches the application with clean factory defaults and no assets.</span>
             </div>

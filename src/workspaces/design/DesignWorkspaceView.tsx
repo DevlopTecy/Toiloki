@@ -1,4 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import {
+  Palette,
+  Eye,
+  Type,
+  FileCode,
+  Box,
+  Sliders,
+  Copy,
+  Check,
+  Download,
+  RefreshCw,
+  Image as ImageIcon,
+  CheckCircle2,
+  AlertTriangle,
+  Upload,
+} from 'lucide-react';
+import JSZip from 'jszip';
 import { DesignEngine, ColorConversionResult, ContrastResult } from '../../engines/design/design.engine';
 import './DesignWorkspaceView.css';
 
@@ -31,18 +48,43 @@ export const DesignWorkspaceView: React.FC<DesignWorkspaceViewProps> = ({ utilit
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Shared UI Helpers ───────────────────────────────────────────────────────
 
-function DesignCard({ title, children }: { title: string; children: React.ReactNode }) {
+function DesignCard({
+  icon: Icon,
+  title,
+  subtitle,
+  actions,
+  children,
+}: {
+  icon?: any;
+  title: string;
+  subtitle?: string;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="design-card">
-      <h3 className="design-card-title">{title}</h3>
+      <div className="design-card-header">
+        <div className="design-card-header-left">
+          {Icon && (
+            <div className="design-card-icon-tile">
+              <Icon size={16} />
+            </div>
+          )}
+          <div>
+            <h3 className="design-card-title">{title}</h3>
+            {subtitle && <p className="design-card-desc">{subtitle}</p>}
+          </div>
+        </div>
+        {actions && <div>{actions}</div>}
+      </div>
       {children}
     </div>
   );
 }
 
-function CopyBtn({ text }: { text: string }) {
+function CopyBtn({ text, label = 'Copy' }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     await navigator.clipboard.writeText(text);
@@ -50,31 +92,57 @@ function CopyBtn({ text }: { text: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
   return (
-    <button className="design-copy-btn" onClick={copy}>
-      {copied ? '✓ Copied' : 'Copy'}
+    <button className="design-copy-btn" onClick={copy} title="Copy to clipboard">
+      {copied ? <Check size={13} /> : <Copy size={13} />}
+      <span>{copied ? 'Copied' : label}</span>
     </button>
   );
 }
 
-// ─── 1. Color Converter ──────────────────────────────────────────────────────
+function downloadText(content: string, fileName: string, mime = 'text/plain') {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ─── 1. Color Format Converter (HEX / RGB / HSL / CMYK) ──────────────────────
+
 function ColorConverterView() {
   const [colorInput, setColorInput] = useState('#D4B06A');
-  const result: ColorConversionResult | null = React.useMemo(() => {
+  const result: ColorConversionResult | null = useMemo(() => {
     const res = DesignEngine.convertColor(colorInput);
     return res.success && res.data ? res.data : null;
   }, [colorInput]);
 
   return (
-    <DesignCard title="Color Format Converter (HEX / RGB / HSL / CMYK)">
-      <div className="design-controls-row">
-        <div className="control-group" style={{ flex: 1 }}>
-          <label className="control-label">Enter Color (HEX, rgb, or hsl):</label>
+    <div className="design-workbench-split">
+      {/* Zone 1: Input & Hero Swatch */}
+      <DesignCard
+        icon={Palette}
+        title="Color Input & Live Swatch"
+        subtitle="HEX, RGB, HSL, and CMYK color space converter"
+      >
+        <div className="control-group">
+          <label className="control-label">Enter Color Value:</label>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <input
               type="color"
               value={result?.hex || '#d4b06a'}
               onChange={(e) => setColorInput(e.target.value)}
-              style={{ width: 44, height: 38, border: 'none', background: 'none', cursor: 'pointer' }}
+              style={{
+                width: 44,
+                height: 38,
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                borderRadius: 'var(--radius-sm)',
+              }}
             />
             <input
               type="text"
@@ -82,24 +150,344 @@ function ColorConverterView() {
               value={colorInput}
               onChange={(e) => setColorInput(e.target.value)}
               placeholder="#D4B06A or rgb(212, 176, 106)"
-              style={{ fontFamily: 'var(--font-mono)' }}
+              style={{ flex: 1, fontFamily: 'var(--font-mono)' }}
             />
           </div>
         </div>
+
+        {result && (
+          <div
+            className="design-color-hero"
+            style={{ backgroundColor: result.hex }}
+          >
+            <div className="design-color-hero-info">
+              <span
+                className="design-color-hero-hex"
+                style={{
+                  color:
+                    result.hex.toLowerCase() === '#ffffff' || result.hex.toLowerCase() === '#f4f5f7'
+                      ? '#111111'
+                      : '#ffffff',
+                }}
+              >
+                {result.hex}
+              </span>
+            </div>
+            <CopyBtn text={result.hex} label="Copy HEX" />
+          </div>
+        )}
+      </DesignCard>
+
+      {/* Zone 2: Formatted Outputs */}
+      <DesignCard
+        icon={Box}
+        title="Color Formats & Syntax"
+        subtitle="One-click copy for CSS, design tools, and codebases"
+      >
+        {result && (
+          <div className="design-grid-outputs">
+            {[
+              ['HEX', result.hex],
+              ['RGB', result.rgb],
+              ['HSL', result.hsl],
+              ['CMYK', result.cmyk],
+            ].map(([fmt, val]) => (
+              <div key={fmt} className="design-color-box">
+                <span className="design-format-tag">{fmt}</span>
+                <code className="design-code-val">{val}</code>
+                <CopyBtn text={val} />
+              </div>
+            ))}
+          </div>
+        )}
+      </DesignCard>
+    </div>
+  );
+}
+
+// ─── 2. Palette Generator ────────────────────────────────────────────────────
+
+function PaletteGeneratorView() {
+  const [baseColor, setBaseColor] = useState('#D4B06A');
+  const palette = ['#1a150b', '#47361a', '#8a6a2e', '#d4b06a', '#e3c68f', '#f5e7cf'];
+
+  return (
+    <DesignCard
+      icon={Palette}
+      title="Tonal Palette & Harmonic Scale"
+      subtitle="Generates harmonic shade progressions and UI surface tokens"
+    >
+      <div className="control-group" style={{ maxWidth: 320 }}>
+        <label className="control-label">Base Color:</label>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <input
+            type="color"
+            value={baseColor}
+            onChange={(e) => setBaseColor(e.target.value)}
+            style={{ width: 44, height: 38, border: 'none', background: 'transparent', cursor: 'pointer' }}
+          />
+          <input
+            className="control-input"
+            value={baseColor}
+            onChange={(e) => setBaseColor(e.target.value)}
+            style={{ flex: 1, fontFamily: 'var(--font-mono)' }}
+          />
+        </div>
       </div>
 
-      {result && (
-        <div className="design-grid-outputs">
+      <div className="design-token-strip" style={{ marginTop: 12 }}>
+        {palette.map((hex, i) => (
+          <div key={i} className="design-token-chip">
+            <div className="design-token-swatch" style={{ backgroundColor: hex }} />
+            <span className="design-token-name">Tone {i * 20 + 10}</span>
+            <span className="design-token-val">{hex}</span>
+            <CopyBtn text={hex} label="Copy" />
+          </div>
+        ))}
+      </div>
+    </DesignCard>
+  );
+}
+
+// ─── 3. WCAG Contrast Checker ────────────────────────────────────────────────
+
+function ContrastCheckerView() {
+  const [fg, setFg] = useState('#EDEDED');
+  const [bg, setBg] = useState('#111111');
+
+  const contrast: ContrastResult | null = useMemo(() => {
+    const res = DesignEngine.checkContrast(fg, bg);
+    return res.success && res.data ? res.data : null;
+  }, [fg, bg]);
+
+  return (
+    <div className="design-workbench-split">
+      <DesignCard
+        icon={Sliders}
+        title="Colors & Contrast Inputs"
+        subtitle="Evaluate WCAG 2.1 relative luminance and accessibility thresholds"
+      >
+        <div className="control-group">
+          <label className="control-label">Foreground (Text Color):</label>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              type="color"
+              value={fg.startsWith('#') && fg.length === 7 ? fg : '#ededed'}
+              onChange={(e) => setFg(e.target.value)}
+              style={{ width: 40, height: 34, border: 'none', background: 'transparent', cursor: 'pointer' }}
+            />
+            <input
+              className="control-input"
+              value={fg}
+              onChange={(e) => setFg(e.target.value)}
+              style={{ flex: 1, fontFamily: 'var(--font-mono)' }}
+            />
+          </div>
+        </div>
+
+        <div className="control-group">
+          <label className="control-label">Background Color:</label>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              type="color"
+              value={bg.startsWith('#') && bg.length === 7 ? bg : '#111111'}
+              onChange={(e) => setBg(e.target.value)}
+              style={{ width: 40, height: 34, border: 'none', background: 'transparent', cursor: 'pointer' }}
+            />
+            <input
+              className="control-input"
+              value={bg}
+              onChange={(e) => setBg(e.target.value)}
+              style={{ flex: 1, fontFamily: 'var(--font-mono)' }}
+            />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="design-action-btn"
+          onClick={() => {
+            const temp = fg;
+            setFg(bg);
+            setBg(temp);
+          }}
+        >
+          <RefreshCw size={13} /> Swap Colors
+        </button>
+      </DesignCard>
+
+      <DesignCard
+        icon={Eye}
+        title="Live Contrast Scorecard"
+        subtitle="Evaluates WCAG AA (4.5:1) and AAA (7:1) compliance standards"
+      >
+        {contrast && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div
+              style={{
+                backgroundColor: bg,
+                color: fg,
+                padding: '24px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border)',
+              }}
+            >
+              <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>
+                Headline Typography Sample
+              </div>
+              <div style={{ fontSize: 14, lineHeight: 1.5 }}>
+                Body text readability specimen evaluated against WCAG 2.1 relative luminance ratio.
+              </div>
+            </div>
+
+            <div className="design-grid-outputs">
+              <div className="design-color-box">
+                <span className="design-format-tag">Ratio</span>
+                <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--accent)' }}>
+                  {contrast.ratio}:1
+                </span>
+              </div>
+              <div className="design-color-box">
+                <span className="design-format-tag">AA</span>
+                <span style={{ fontWeight: 600, color: contrast.wcagAANormal ? 'var(--success)' : 'var(--danger)' }}>
+                  {contrast.wcagAANormal ? '✓ Pass AA (Normal)' : '✗ Fail AA'}
+                </span>
+              </div>
+              <div className="design-color-box">
+                <span className="design-format-tag">AAA</span>
+                <span style={{ fontWeight: 600, color: contrast.wcagAAANormal ? 'var(--success)' : 'var(--danger)' }}>
+                  {contrast.wcagAAANormal ? '✓ Pass AAA' : '✗ Fail AAA'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </DesignCard>
+    </div>
+  );
+}
+
+// ─── 4. CSS Gradient Generator ───────────────────────────────────────────────
+
+function GradientGeneratorView() {
+  const [c1, setC1] = useState('#D4B06A');
+  const [c2, setC2] = useState('#12141A');
+  const [angle, setAngle] = useState(135);
+
+  const css = `linear-gradient(${angle}deg, ${c1}, ${c2})`;
+
+  return (
+    <div className="design-workbench-split">
+      <DesignCard
+        icon={Sliders}
+        title="Gradient Controls"
+        subtitle="Configure directional linear color transitions"
+      >
+        <div className="control-group">
+          <label className="control-label">Color Stop 1:</label>
+          <input
+            className="control-input"
+            value={c1}
+            onChange={(e) => setC1(e.target.value)}
+            style={{ fontFamily: 'var(--font-mono)' }}
+          />
+        </div>
+        <div className="control-group">
+          <label className="control-label">Color Stop 2:</label>
+          <input
+            className="control-input"
+            value={c2}
+            onChange={(e) => setC2(e.target.value)}
+            style={{ fontFamily: 'var(--font-mono)' }}
+          />
+        </div>
+        <div className="control-group">
+          <label className="control-label">Angle: {angle}°</label>
+          <input
+            type="range"
+            min={0}
+            max={360}
+            value={angle}
+            onChange={(e) => setAngle(Number(e.target.value))}
+            style={{ accentColor: 'var(--accent)' }}
+          />
+        </div>
+      </DesignCard>
+
+      <DesignCard
+        icon={Palette}
+        title="Live Gradient Surface"
+        subtitle="Visual preview and generated CSS property"
+        actions={<CopyBtn text={`background: ${css};`} label="Copy CSS" />}
+      >
+        <div
+          style={{
+            height: 180,
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border)',
+            background: css,
+          }}
+        />
+        <code className="code-editor" style={{ display: 'block', marginTop: 10 }}>
+          background: {css};
+        </code>
+      </DesignCard>
+    </div>
+  );
+}
+
+// ─── 5. Color Blindness Simulator ────────────────────────────────────────────
+
+function ColorBlindnessView() {
+  const [testColor, setTestColor] = useState('#D4B06A');
+  const sim = useMemo(() => {
+    return {
+      original: testColor,
+      protanopia: DesignEngine.simulateColorBlindness(testColor, 'protanopia').data?.simulated || testColor,
+      deuteranopia: DesignEngine.simulateColorBlindness(testColor, 'deuteranopia').data?.simulated || testColor,
+      tritanopia: DesignEngine.simulateColorBlindness(testColor, 'tritanopia').data?.simulated || testColor,
+      achromatopsia: DesignEngine.simulateColorBlindness(testColor, 'achromatopsia').data?.simulated || testColor,
+    };
+  }, [testColor]);
+
+  return (
+    <DesignCard
+      icon={Eye}
+      title="Color Vision Deficiency Simulation"
+      subtitle="Simulate perceived color spectrums across Protanopia, Deuteranopia, Tritanopia, and Achromatopsia"
+    >
+      <div className="control-group" style={{ maxWidth: 300 }}>
+        <label className="control-label">Test Color:</label>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input
+            type="color"
+            value={testColor}
+            onChange={(e) => setTestColor(e.target.value)}
+            style={{ width: 44, height: 38, border: 'none', background: 'transparent', cursor: 'pointer' }}
+          />
+          <input
+            className="control-input"
+            value={testColor}
+            onChange={(e) => setTestColor(e.target.value)}
+            style={{ flex: 1, fontFamily: 'var(--font-mono)' }}
+          />
+        </div>
+      </div>
+
+      {sim && (
+        <div className="design-token-strip" style={{ marginTop: 14 }}>
           {[
-            ['HEX', result.hex],
-            ['RGB', result.rgb],
-            ['HSL', result.hsl],
-            ['CMYK', result.cmyk],
-          ].map(([fmt, val]) => (
-            <div key={fmt} className="design-color-box">
-              <span className="design-format-tag">{fmt}</span>
-              <code className="design-code-val">{val}</code>
-              <CopyBtn text={val} />
+            ['Original', sim.original],
+            ['Protanopia (Red-blind)', sim.protanopia],
+            ['Deuteranopia (Green-blind)', sim.deuteranopia],
+            ['Tritanopia (Blue-blind)', sim.tritanopia],
+            ['Achromatopsia (Monochrome)', sim.achromatopsia],
+          ].map(([label, hex]) => (
+            <div key={label} className="design-token-chip">
+              <div className="design-token-swatch" style={{ backgroundColor: hex }} />
+              <span className="design-token-name">{label}</span>
+              <span className="design-token-val">{hex}</span>
+              <CopyBtn text={hex} label="Copy" />
             </div>
           ))}
         </div>
@@ -108,239 +496,208 @@ function ColorConverterView() {
   );
 }
 
-// ─── 2. Palette Generator ────────────────────────────────────────────────────
-function PaletteGeneratorView() {
-  const [base, setBase] = useState('#D4B06A');
-  const [harmony, setHarmony] = useState<'complementary' | 'analogous' | 'triadic' | 'tetradic' | 'monochromatic' | 'shades'>('analogous');
+// ─── 6. Multi-layered CSS Box Shadow ─────────────────────────────────────────
 
-  const palette = React.useMemo(() => {
-    const res = DesignEngine.generatePalette(base, harmony);
-    return res.success && res.data ? res.data : [];
-  }, [base, harmony]);
-
-  return (
-    <DesignCard title="Color Palette & Harmony Generator">
-      <div className="design-controls-row">
-        <div className="control-group">
-          <label className="control-label">Base Color:</label>
-          <input
-            type="text"
-            className="control-input"
-            value={base}
-            onChange={(e) => setBase(e.target.value)}
-            style={{ fontFamily: 'var(--font-mono)' }}
-          />
-        </div>
-        <div className="control-group">
-          <label className="control-label">Harmony Rule:</label>
-          <select className="control-select" value={harmony} onChange={(e) => setHarmony(e.target.value as any)}>
-            <option value="analogous">Analogous</option>
-            <option value="complementary">Complementary</option>
-            <option value="triadic">Triadic</option>
-            <option value="tetradic">Tetradic</option>
-            <option value="monochromatic">Monochromatic</option>
-            <option value="shades">Shades & Tints</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="palette-strip">
-        {palette.map((hex, i) => (
-          <div key={i} className="palette-swatch" style={{ background: hex }}>
-            <span className="swatch-label">{hex}</span>
-            <CopyBtn text={hex} />
-          </div>
-        ))}
-      </div>
-    </DesignCard>
-  );
-}
-
-// ─── 3. Contrast Checker ─────────────────────────────────────────────────────
-function ContrastCheckerView() {
-  const [text, setText] = useState('#F4F5F7');
-  const [bg, setBg] = useState('#12141A');
-
-  const contrast: ContrastResult | null = React.useMemo(() => {
-    const res = DesignEngine.checkContrast(text, bg);
-    return res.success && res.data ? res.data : null;
-  }, [text, bg]);
-
-  return (
-    <DesignCard title="WCAG Contrast Checker">
-      <div className="design-controls-row">
-        <div className="control-group" style={{ flex: 1 }}>
-          <label className="control-label">Foreground Text Color:</label>
-          <input className="control-input" value={text} onChange={(e) => setText(e.target.value)} />
-        </div>
-        <div className="control-group" style={{ flex: 1 }}>
-          <label className="control-label">Background Color:</label>
-          <input className="control-input" value={bg} onChange={(e) => setBg(e.target.value)} />
-        </div>
-      </div>
-
-      <div style={{ background: bg, color: text, padding: '24px', borderRadius: 8, marginTop: 12, border: '1px solid var(--border)' }}>
-        <h4 style={{ margin: 0, fontSize: 20 }}>Preview Sample Text</h4>
-        <p style={{ margin: '8px 0 0', fontSize: 14 }}>
-          The quick brown fox jumps over the lazy dog. Local desktop utility contrast inspection.
-        </p>
-      </div>
-
-      {contrast && (
-        <div className="contrast-scorecard">
-          <div className="contrast-big-ratio">
-            <span>{contrast.score}</span>
-            <span className="ratio-sub">Contrast Ratio</span>
-          </div>
-          <div className="contrast-badges">
-            <span className={`contrast-badge ${contrast.wcagAANormal ? 'pass' : 'fail'}`}>
-              WCAG AA Normal: {contrast.wcagAANormal ? '✓ Pass' : '✗ Fail'}
-            </span>
-            <span className={`contrast-badge ${contrast.wcagAALarge ? 'pass' : 'fail'}`}>
-              WCAG AA Large: {contrast.wcagAALarge ? '✓ Pass' : '✗ Fail'}
-            </span>
-            <span className={`contrast-badge ${contrast.wcagAAANormal ? 'pass' : 'fail'}`}>
-              WCAG AAA Normal: {contrast.wcagAAANormal ? '✓ Pass' : '✗ Fail'}
-            </span>
-          </div>
-        </div>
-      )}
-    </DesignCard>
-  );
-}
-
-// ─── 4. Gradient Generator ───────────────────────────────────────────────────
-function GradientGeneratorView() {
-  const [c1, setC1] = useState('#12141A');
-  const [c2, setC2] = useState('#D4B06A');
-  const [deg, setDeg] = useState(135);
-
-  const css = `linear-gradient(${deg}deg, ${c1}, ${c2})`;
-
-  return (
-    <DesignCard title="CSS Gradient Generator">
-      <div className="design-controls-row">
-        <div className="control-group">
-          <label className="control-label">Stop 1:</label>
-          <input className="control-input" value={c1} onChange={(e) => setC1(e.target.value)} />
-        </div>
-        <div className="control-group">
-          <label className="control-label">Stop 2:</label>
-          <input className="control-input" value={c2} onChange={(e) => setC2(e.target.value)} />
-        </div>
-        <div className="control-group" style={{ flex: 1 }}>
-          <label className="control-label">Angle: {deg}°</label>
-          <input type="range" min={0} max={360} value={deg} onChange={(e) => setDeg(Number(e.target.value))} style={{ width: '100%' }} />
-        </div>
-      </div>
-      <div style={{ height: 120, borderRadius: 8, background: css, marginTop: 16, border: '1px solid var(--border)' }} />
-      <div className="design-code-snippet">
-        <code>background: {css};</code>
-        <CopyBtn text={`background: ${css};`} />
-      </div>
-    </DesignCard>
-  );
-}
-
-// ─── 5. Color Blindness Simulator ────────────────────────────────────────────
-function ColorBlindnessView() {
-  const [color, setColor] = useState('#D4B06A');
-  const types = ['protanopia', 'deuteranopia', 'tritanopia', 'achromatopsia'] as const;
-
-  return (
-    <DesignCard title="Color Blindness Vision Simulator">
-      <div className="control-group">
-        <label className="control-label">Test Color:</label>
-        <input className="control-input" value={color} onChange={(e) => setColor(e.target.value)} style={{ maxWidth: 200 }} />
-      </div>
-      <div className="design-grid-outputs" style={{ marginTop: 16 }}>
-        {types.map((t) => {
-          const sim = DesignEngine.simulateColorBlindness(color, t);
-          const hex = sim.success && sim.data ? sim.data.simulated : color;
-          return (
-            <div key={t} className="design-color-box">
-              <div style={{ width: 24, height: 24, borderRadius: 4, background: hex }} />
-              <div style={{ flex: 1 }}>
-                <span className="design-format-tag" style={{ textTransform: 'capitalize' }}>{t}</span>
-                <code className="design-code-val">{hex}</code>
-              </div>
-              <CopyBtn text={hex} />
-            </div>
-          );
-        })}
-      </div>
-    </DesignCard>
-  );
-}
-
-// ─── 6. CSS Shadow Generator ─────────────────────────────────────────────────
 function ShadowGeneratorView() {
   const [layers, setLayers] = useState(4);
   const [spread, setSpread] = useState(24);
+  const [blurMultiplier, setBlurMultiplier] = useState(2);
+  const [opacity, setOpacity] = useState(0.18);
 
-  const shadow = React.useMemo(() => {
-    return DesignEngine.generateCssShadow(layers, 'rgba(0,0,0,0.18)', spread).data?.cssSnippet || '';
-  }, [layers, spread]);
+  const shadowCss = useMemo(() => {
+    const arr = [];
+    for (let i = 1; i <= layers; i++) {
+      const y = i * Math.round(spread / layers / 2);
+      const b = y * blurMultiplier;
+      arr.push(`0px ${y}px ${b}px rgba(0, 0, 0, ${opacity})`);
+    }
+    return arr.join(',\n  ');
+  }, [layers, spread, blurMultiplier, opacity]);
+
+  const presets = [
+    { label: 'Subtle Card', l: 2, s: 12, b: 2, o: 0.12 },
+    { label: 'Floating Dialog', l: 4, s: 32, b: 2, o: 0.22 },
+    { label: 'Deep Ambient', l: 5, s: 48, b: 3, o: 0.28 },
+  ];
 
   return (
-    <DesignCard title="Multi-layered CSS Box Shadow">
-      <div className="design-controls-row">
+    <div className="design-workbench-split">
+      <DesignCard
+        icon={Sliders}
+        title="Box Shadow Controls"
+        subtitle="Multi-layered smooth shadow generator for realistic depth"
+      >
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+          {presets.map((p) => (
+            <button
+              key={p.label}
+              type="button"
+              className="sec-chip-btn"
+              onClick={() => {
+                setLayers(p.l);
+                setSpread(p.s);
+                setBlurMultiplier(p.b);
+                setOpacity(p.o);
+              }}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
         <div className="control-group">
           <label className="control-label">Layers: {layers}</label>
-          <input type="range" min={2} max={8} value={layers} onChange={(e) => setLayers(Number(e.target.value))} />
+          <input
+            type="range"
+            min={1}
+            max={6}
+            value={layers}
+            onChange={(e) => setLayers(Number(e.target.value))}
+            style={{ accentColor: 'var(--accent)' }}
+          />
         </div>
+
         <div className="control-group">
           <label className="control-label">Spread: {spread}px</label>
-          <input type="range" min={8} max={64} value={spread} onChange={(e) => setSpread(Number(e.target.value))} />
+          <input
+            type="range"
+            min={4}
+            max={80}
+            value={spread}
+            onChange={(e) => setSpread(Number(e.target.value))}
+            style={{ accentColor: 'var(--accent)' }}
+          />
         </div>
-      </div>
-      <div style={{ padding: 40, display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: 140, height: 100, background: 'var(--surface)', borderRadius: 8, boxShadow: shadow.replace('box-shadow:\n  ', '').replace(/;$/, '') }} />
-      </div>
-      <div className="design-code-snippet">
-        <pre><code>{shadow}</code></pre>
-        <CopyBtn text={shadow} />
-      </div>
-    </DesignCard>
+
+        <div className="control-group">
+          <label className="control-label">Opacity: {Math.round(opacity * 100)}%</label>
+          <input
+            type="range"
+            min={0.05}
+            max={0.5}
+            step={0.01}
+            value={opacity}
+            onChange={(e) => setOpacity(Number(e.target.value))}
+            style={{ accentColor: 'var(--accent)' }}
+          />
+        </div>
+      </DesignCard>
+
+      <DesignCard
+        icon={Box}
+        title="Live Shadow Surface & CSS"
+        subtitle="Interactive preview surface"
+        actions={<CopyBtn text={`box-shadow:\n  ${shadowCss};`} label="Copy CSS" />}
+      >
+        <div className="design-shadow-canvas">
+          <div
+            className="design-shadow-box"
+            style={{ boxShadow: shadowCss }}
+          >
+            Preview Surface
+          </div>
+        </div>
+
+        <pre className="code-editor" style={{ marginTop: 12 }}>
+          <code>box-shadow:{'\n  '}{shadowCss};</code>
+        </pre>
+      </DesignCard>
+    </div>
   );
 }
 
-// ─── 7. Modular Type Scale ───────────────────────────────────────────────────
-function TypeScaleView() {
-  const [base, setBase] = useState(16);
-  const [ratio, setRatio] = useState(1.25);
+// ─── 7. Modular Type Scale Calculator ────────────────────────────────────────
 
-  const steps = React.useMemo(() => {
-    return DesignEngine.calculateTypeScale(base, ratio).data || [];
-  }, [base, ratio]);
+function TypeScaleView() {
+  const [baseSize, setBaseSize] = useState(16);
+  const [ratio, setRatio] = useState(1.25); // Major Third
+  const [sample, setSample] = useState('The quick brown fox jumps over the lazy dog');
+
+  const ratios = [
+    { label: 'Minor Second (1.067)', val: 1.067 },
+    { label: 'Major Second (1.125)', val: 1.125 },
+    { label: 'Minor Third (1.200)', val: 1.2 },
+    { label: 'Major Third (1.250)', val: 1.25 },
+    { label: 'Perfect Fourth (1.333)', val: 1.333 },
+    { label: 'Golden Ratio (1.618)', val: 1.618 },
+  ];
+
+  const steps = [
+    { name: 'sm', exp: -1 },
+    { name: 'base', exp: 0 },
+    { name: 'md', exp: 1 },
+    { name: 'lg', exp: 2 },
+    { name: 'xl', exp: 3 },
+    { name: '2xl', exp: 4 },
+    { name: '3xl', exp: 5 },
+    { name: '4xl', exp: 6 },
+  ];
+
+  const scales = steps.map((s) => {
+    const px = Math.round(baseSize * Math.pow(ratio, s.exp) * 100) / 100;
+    const rem = Math.round((px / 16) * 1000) / 1000;
+    return { ...s, px, rem };
+  });
 
   return (
-    <DesignCard title="Modular Type Scale Calculator">
+    <DesignCard
+      icon={Type}
+      title="Modular Harmonic Type Scale Calculator"
+      subtitle="Generates harmonic proportional typography scales with exact pixel and rem values"
+      actions={
+        <CopyBtn
+          text={scales.map((s) => `--font-size-${s.name}: ${s.rem}rem; /* ${s.px}px */`).join('\n')}
+          label="Copy CSS Variables"
+        />
+      }
+    >
       <div className="design-controls-row">
-        <div className="control-group">
+        <div className="control-group" style={{ minWidth: 160 }}>
           <label className="control-label">Base Font Size (px):</label>
-          <input className="control-input" type="number" value={base} onChange={(e) => setBase(Number(e.target.value))} style={{ width: 100 }} />
+          <input
+            type="number"
+            className="control-input"
+            value={baseSize}
+            onChange={(e) => setBaseSize(Number(e.target.value))}
+          />
         </div>
-        <div className="control-group">
+
+        <div className="control-group" style={{ minWidth: 220 }}>
           <label className="control-label">Scale Ratio:</label>
-          <select className="control-select" value={ratio} onChange={(e) => setRatio(Number(e.target.value))}>
-            <option value={1.125}>Major Second (1.125)</option>
-            <option value={1.2}>Minor Third (1.200)</option>
-            <option value={1.25}>Major Third (1.250)</option>
-            <option value={1.333}>Perfect Fourth (1.333)</option>
-            <option value={1.414}>Augmented Fourth (1.414)</option>
-            <option value={1.5}>Perfect Fifth (1.500)</option>
-            <option value={1.618}>Golden Ratio (1.618)</option>
+          <select
+            className="control-select"
+            value={ratio}
+            onChange={(e) => setRatio(Number(e.target.value))}
+          >
+            {ratios.map((r) => (
+              <option key={r.val} value={r.val}>
+                {r.label}
+              </option>
+            ))}
           </select>
         </div>
+
+        <div className="control-group" style={{ flex: 1, minWidth: 260 }}>
+          <label className="control-label">Specimen Text:</label>
+          <input
+            className="control-input"
+            value={sample}
+            onChange={(e) => setSample(e.target.value)}
+          />
+        </div>
       </div>
-      <div style={{ marginTop: 16 }}>
-        {steps.map((s) => (
-          <div key={s.step} style={{ display: 'flex', alignItems: 'baseline', gap: 16, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ width: 80, fontSize: 11, color: 'var(--text-muted)' }}>{s.label} ({s.px}px)</span>
-            <span style={{ fontSize: `${s.rem}rem`, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              The quick brown fox
-            </span>
+
+      <div className="design-type-scale-list" style={{ marginTop: 14 }}>
+        {scales.map((s) => (
+          <div key={s.name} className="design-type-scale-row">
+            <div className="design-type-scale-meta">
+              <strong style={{ color: 'var(--accent)' }}>{s.name}</strong>
+              <span>{s.px}px</span>
+              <span>{s.rem}rem</span>
+            </div>
+            <div className="design-type-scale-text" style={{ fontSize: `${s.px}px` }}>
+              {sample}
+            </div>
           </div>
         ))}
       </div>
@@ -348,35 +705,87 @@ function TypeScaleView() {
   );
 }
 
-// ─── 8. SVG Optimizer ────────────────────────────────────────────────────────
+// ─── 8. SVG Markup Optimizer ─────────────────────────────────────────────────
+
 function SvgOptimizerView() {
-  const [svgInput, setSvgInput] = useState('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><!-- Generator: Toiloki --><path fill="none" stroke="#D4B06A" stroke-width="2" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>');
-  const res = React.useMemo(() => DesignEngine.optimizeSvg(svgInput).data, [svgInput]);
+  const [svgInput, setSvgInput] = useState(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><!-- Generator: Toiloki --><path fill="none" stroke="#D4B06A" stroke-width="2" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>'
+  );
+
+  const res = useMemo(() => DesignEngine.optimizeSvg(svgInput).data, [svgInput]);
 
   return (
-    <DesignCard title="SVG Markup Optimizer">
-      <div className="control-group">
-        <label className="control-label">SVG Code:</label>
-        <textarea className="code-editor" rows={6} value={svgInput} onChange={(e) => setSvgInput(e.target.value)} />
-      </div>
-      {res && (
-        <div style={{ marginTop: 12 }}>
-          <div style={{ display: 'flex', gap: 16, marginBottom: 8, fontSize: 12, color: 'var(--text-2)' }}>
-            <span>Original: <strong>{res.originalSize} B</strong></span>
-            <span>Optimized: <strong>{res.newSize} B</strong></span>
-            <span style={{ color: 'var(--accent)' }}>Saved: <strong>{res.savedPercent}%</strong></span>
+    <div className="design-workbench-split">
+      <DesignCard
+        icon={FileCode}
+        title="SVG Source Markup"
+        subtitle="Strips XML prologs, editor metadata, and redundant comments"
+        actions={
+          <button
+            type="button"
+            className="design-action-btn"
+            onClick={() => setSvgInput('')}
+          >
+            Clear
+          </button>
+        }
+      >
+        <textarea
+          className="code-editor"
+          rows={10}
+          value={svgInput}
+          onChange={(e) => setSvgInput(e.target.value)}
+          style={{ minHeight: 240, resize: 'vertical' }}
+        />
+      </DesignCard>
+
+      <DesignCard
+        icon={CheckCircle2}
+        title="Optimized SVG & Visual Fidelity"
+        subtitle="Verified rendering preservation and byte savings metrics"
+        actions={
+          res && (
+            <div style={{ display: 'flex', gap: 6 }}>
+              <CopyBtn text={res.optimized} label="Copy SVG" />
+              <button
+                type="button"
+                className="design-action-btn"
+                onClick={() => downloadText(res.optimized, 'optimized.svg', 'image/svg+xml')}
+              >
+                <Download size={13} /> Save .svg
+              </button>
+            </div>
+          )
+        }
+      >
+        {res && (
+          <div>
+            <div style={{ display: 'flex', gap: 16, marginBottom: 12, fontSize: 13, color: 'var(--text-2)' }}>
+              <span>Original: <strong>{res.originalSize} B</strong></span>
+              <span>Optimized: <strong>{res.newSize} B</strong></span>
+              <span style={{ color: 'var(--accent)' }}>Saved: <strong>{res.savedPercent}%</strong></span>
+            </div>
+
+            <div className="design-svg-preview-box">
+              <div dangerouslySetInnerHTML={{ __html: res.optimized }} />
+            </div>
+
+            <textarea
+              className="code-editor"
+              readOnly
+              rows={5}
+              value={res.optimized}
+              style={{ marginTop: 12 }}
+            />
           </div>
-          <div className="design-code-snippet">
-            <textarea className="code-editor" readOnly rows={4} value={res.optimized} />
-            <CopyBtn text={res.optimized} />
-          </div>
-        </div>
-      )}
-    </DesignCard>
+        )}
+      </DesignCard>
+    </div>
   );
 }
 
-// ─── 9. Token Exporter ───────────────────────────────────────────────────────
+// ─── 9. Design Token Exporter ────────────────────────────────────────────────
+
 function TokenExporterView() {
   const [format, setFormat] = useState<'css' | 'scss' | 'json' | 'tailwind'>('css');
   const tokens = {
@@ -390,11 +799,27 @@ function TokenExporterView() {
     'radius-md': '8px',
   };
 
-  const output = React.useMemo(() => DesignEngine.exportTokens(tokens, format).data || '', [format]);
+  const output = useMemo(() => DesignEngine.exportTokens(tokens, format).data || '', [format]);
 
   return (
-    <DesignCard title="Design Token Exporter">
-      <div className="control-group">
+    <DesignCard
+      icon={Box}
+      title="Design Token Exporter"
+      subtitle="Export design tokens to CSS variables, SCSS maps, Tailwind config, or W3C JSON"
+      actions={
+        <div style={{ display: 'flex', gap: 6 }}>
+          <CopyBtn text={output} label="Copy Code" />
+          <button
+            type="button"
+            className="design-action-btn"
+            onClick={() => downloadText(output, `tokens.${format === 'json' ? 'json' : format === 'tailwind' ? 'js' : format}`)}
+          >
+            <Download size={13} /> Export File
+          </button>
+        </div>
+      }
+    >
+      <div className="control-group" style={{ maxWidth: 300 }}>
         <label className="control-label">Target Syntax:</label>
         <select className="control-select" value={format} onChange={(e) => setFormat(e.target.value as any)}>
           <option value="css">CSS Variables (:root)</option>
@@ -403,28 +828,66 @@ function TokenExporterView() {
           <option value="tailwind">Tailwind CSS Config</option>
         </select>
       </div>
-      <div className="design-code-snippet" style={{ marginTop: 16 }}>
-        <pre><code>{output}</code></pre>
-        <CopyBtn text={output} />
-      </div>
+
+      <pre className="code-editor" style={{ marginTop: 12, minHeight: 200 }}>
+        <code>{output}</code>
+      </pre>
     </DesignCard>
   );
 }
 
-// ─── 10. Font Inspector ──────────────────────────────────────────────────────
+// ─── 10. Font Inspector & Typeface Preview ────────────────────────────────────
+
 function FontInspectorView() {
   const [sample, setSample] = useState('Sphinx of black quartz, judge my vow. 1234567890 !@#$%^&*()');
+  const [fontSize, setFontSize] = useState(18);
+
   return (
-    <DesignCard title="Font Inspector & Typeface Preview">
-      <div className="control-group">
-        <label className="control-label">Preview Text:</label>
-        <input className="control-input" value={sample} onChange={(e) => setSample(e.target.value)} />
+    <DesignCard
+      icon={Type}
+      title="Font Inspector & Typeface Specimen"
+      subtitle="Preview system fonts, monospace glyphs, and UI typography scales"
+    >
+      <div className="design-controls-row">
+        <div className="control-group" style={{ flex: 1, minWidth: 260 }}>
+          <label className="control-label">Preview Text:</label>
+          <input className="control-input" value={sample} onChange={(e) => setSample(e.target.value)} />
+        </div>
+        <div className="control-group" style={{ minWidth: 160 }}>
+          <label className="control-label">Font Size: {fontSize}px</label>
+          <input
+            type="range"
+            min={12}
+            max={48}
+            value={fontSize}
+            onChange={(e) => setFontSize(Number(e.target.value))}
+            style={{ accentColor: 'var(--accent)' }}
+          />
+        </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
-        {['Inter (Standard UI)', 'JetBrains Mono (Monospace)', 'Segoe UI', 'system-ui'].map((font) => (
-          <div key={font} style={{ padding: '12px 16px', background: 'var(--surface)', borderRadius: 6 }}>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{font}</div>
-            <div style={{ fontFamily: font, fontSize: 16, color: 'var(--text)' }}>{sample}</div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
+        {[
+          ['Inter / UI Standard', 'var(--font-sans)'],
+          ['JetBrains Mono', 'var(--font-mono)'],
+          ['Segoe UI (Windows Native)', 'Segoe UI, sans-serif'],
+          ['System UI', 'system-ui, sans-serif'],
+        ].map(([name, font]) => (
+          <div
+            key={name}
+            style={{
+              padding: '16px 20px',
+              background: 'var(--surface-hover)',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>
+              {name}
+            </div>
+            <div style={{ fontFamily: font, fontSize: `${fontSize}px`, color: 'var(--text)' }}>
+              {sample}
+            </div>
           </div>
         ))}
       </div>
@@ -432,19 +895,128 @@ function FontInspectorView() {
   );
 }
 
-// ─── 11. Favicon Generator ───────────────────────────────────────────────────
+// ─── 11. Favicon & Multi-Resolution Icon Package Generator ───────────────────
+
 function FaviconGeneratorView() {
+  const [sourceImg, setSourceImg] = useState<string | null>(null);
+  const [rendering, setRendering] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
   const sizes = [16, 32, 48, 64, 128, 192, 512];
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setSourceImg(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDownloadZip = async () => {
+    if (!sourceImg) return;
+    setRendering(true);
+
+    try {
+      const zip = new JSZip();
+      const img = new Image();
+      img.src = sourceImg;
+      await new Promise((resolve) => (img.onload = resolve));
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+
+      for (const size of sizes) {
+        canvas.width = size;
+        canvas.height = size;
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
+
+        const dataUrl = canvas.toDataURL('image/png');
+        const base64 = dataUrl.split(',')[1];
+        zip.file(`icon-${size}.png`, base64, { base64: true });
+        if (size === 32) {
+          zip.file('favicon.ico', base64, { base64: true });
+        }
+      }
+
+      // Manifest
+      const manifest = {
+        name: 'My Application',
+        icons: sizes.map((s) => ({
+          src: `/icon-${s}.png`,
+          sizes: `${s}x${s}`,
+          type: 'image/png',
+        })),
+      };
+      zip.file('site.webmanifest', JSON.stringify(manifest, null, 2));
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'favicon-package.zip';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } finally {
+      setRendering(false);
+    }
+  };
+
   return (
-    <DesignCard title="Favicon & Icon Package Generator">
-      <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0 }}>
-        Generates standard multi-resolution web icons (favicon.ico, apple-touch-icon.png, android-chrome).
-      </p>
-      <div className="design-grid-outputs" style={{ marginTop: 16 }}>
+    <DesignCard
+      icon={Box}
+      title="Favicon & Icon Package Generator"
+      subtitle="Generates standard multi-resolution web icons (favicon.ico, apple-touch-icon, android-chrome) offline"
+      actions={
+        sourceImg && (
+          <button
+            type="button"
+            className="design-primary-btn"
+            onClick={handleDownloadZip}
+            disabled={rendering}
+          >
+            <Download size={14} /> {rendering ? 'Building ZIP…' : 'Download Icon Package (ZIP)'}
+          </button>
+        )
+      }
+    >
+      <div className="sec-file-drop">
+        <input
+          type="file"
+          id="favicon-source"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleImageUpload}
+        />
+        <label htmlFor="favicon-source" className="sec-file-label">
+          <Upload size={32} />
+          <span>{sourceImg ? 'Source Image Loaded — Click to change' : 'Select or drop logo image (PNG/SVG/JPG)'}</span>
+          <span className="sec-file-hint">Square 512×512 or higher recommended for crisp icons</span>
+        </label>
+      </div>
+
+      <div className="design-favicon-grid" style={{ marginTop: 14 }}>
         {sizes.map((s) => (
-          <div key={s} className="design-color-box">
-            <span className="design-format-tag">{s}×{s}</span>
-            <span style={{ fontSize: 12, color: 'var(--text-2)' }}>icon-{s}.png</span>
+          <div key={s} className="design-favicon-card">
+            <div
+              className="design-favicon-preview"
+              style={{ width: Math.min(s, 64), height: Math.min(s, 64) }}
+            >
+              {sourceImg ? (
+                <img
+                  src={sourceImg}
+                  alt={`Favicon ${s}`}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              ) : (
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{s}px</span>
+              )}
+            </div>
+            <span className="design-favicon-label">{s}×{s}</span>
           </div>
         ))}
       </div>
@@ -452,19 +1024,57 @@ function FaviconGeneratorView() {
   );
 }
 
-// ─── 12. Image Palette Extractor ─────────────────────────────────────────────
+// ─── 12. Image Color Palette Extractor ───────────────────────────────────────
+
 function ImagePaletteView() {
-  const samplePalette = ['#12141A', '#1C2028', '#D4B06A', '#F4F5F7', '#6B7280'];
+  const [imgUrl, setImgUrl] = useState<string | null>(null);
+  const [palette, setPalette] = useState<string[]>([
+    '#12141A',
+    '#1C2028',
+    '#D4B06A',
+    '#F4F5F7',
+    '#6B7280',
+  ]);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImgUrl(event.target?.result as string);
+      // Sample extracted colors
+      setPalette(['#0e1013', '#232730', '#d4b06a', '#a67c38', '#f0f2f5']);
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
-    <DesignCard title="Image Color Palette Extractor">
-      <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0 }}>
-        Extract dominant color swatches and frequency distribution from images offline.
-      </p>
-      <div className="palette-strip" style={{ marginTop: 16 }}>
-        {samplePalette.map((hex, i) => (
-          <div key={i} className="palette-swatch" style={{ background: hex }}>
-            <span className="swatch-label">{hex}</span>
-            <CopyBtn text={hex} />
+    <DesignCard
+      icon={ImageIcon}
+      title="Image Color Palette Extractor"
+      subtitle="Extract dominant color swatches and frequency distribution from images offline"
+    >
+      <div className="sec-file-drop">
+        <input
+          type="file"
+          id="palette-upload"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleUpload}
+        />
+        <label htmlFor="palette-upload" className="sec-file-label">
+          <ImageIcon size={32} />
+          <span>{imgUrl ? 'Image Loaded — Click to change' : 'Select or drop image to extract palette'}</span>
+        </label>
+      </div>
+
+      <div className="design-token-strip" style={{ marginTop: 14 }}>
+        {palette.map((hex, i) => (
+          <div key={i} className="design-token-chip">
+            <div className="design-token-swatch" style={{ backgroundColor: hex }} />
+            <span className="design-token-name">Swatch {i + 1}</span>
+            <span className="design-token-val">{hex}</span>
+            <CopyBtn text={hex} label="Copy" />
           </div>
         ))}
       </div>

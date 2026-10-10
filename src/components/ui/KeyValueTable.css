@@ -1,0 +1,77 @@
+/* ─── KeyValueTable Component ─── */
+.toiloki-kv-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-controls, 8px);
+  background-color: var(--surface);
+  overflow: hidden;
+}
+
+.toiloki-kv-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+  min-height: 34px;
+}
+
+.toiloki-kv-row:last-child {
+  border-bottom: none;
+}
+
+.toiloki-kv-key {
+  color: var(--text-muted);
+  font-weight: 500;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.toiloki-kv-val-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.toiloki-kv-val {
+  color: var(--text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toiloki-kv-val.is-mono {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+.toiloki-kv-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs, 4px);
+  background-color: var(--surface-hover);
+  color: var(--text-2);
+  cursor: pointer;
+  outline: none;
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+  flex-shrink: 0;
+}
+
+.toiloki-kv-copy-btn:hover {
+  color: var(--text);
+  background-color: var(--surface-elevated);
+}
+
+.toiloki-kv-copy-btn.is-copied {
+  color: var(--success);
+  border-color: var(--success);
+}

@@ -1,0 +1,153 @@
+/* ═══════════════════════════════════════════════════
+   TOILOKI — Chibigi Theme Styles
+   Cute pastel kawaii aesthetic with chibi character
+   stickers on buttons, titles, and wallpaper background
+   ═══════════════════════════════════════════════════ */
+
+/* ─── 1. Background Wallpaper ─── */
+[data-theme-preset="chibigi"] body,
+html[data-theme-preset="chibigi"] body {
+  background-attachment: fixed !important;
+}
+
+/* Allow wallpaper pattern to shine through shell backgrounds */
+[data-theme-preset="chibigi"] .workbench-shell-container,
+[data-theme-preset="chibigi"] .workspace-view-container,
+[data-theme-preset="chibigi"] .workspace-main-area,
+[data-theme-preset="chibigi"] .tool-layout-wrapper,
+[data-theme-preset="chibigi"] .tool-main-content,
+[data-theme-preset="chibigi"] .settings-container,
+[data-theme-preset="chibigi"] .settings-layout,
+[data-theme-preset="chibigi"] .settings-content,
+[data-theme-preset="chibigi"] .home-layout {
+  background-color: transparent !important;
+}
+
+/* ─── 2. Buttons: Chibi Mascot Badges ─── */
+[data-theme-preset="chibigi"] .toiloki-btn-primary::before,
+[data-theme-preset="chibigi"] .action-bar-primary-btn::before,
+[data-theme-preset="chibigi"] .converter-submit-btn::before,
+[data-theme-preset="chibigi"] .workbench-submit-btn::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  background-image: var(--chibigi-mascot-bunny);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  flex-shrink: 0;
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-theme-preset="chibigi"] .toiloki-btn-primary:hover:not(:disabled)::before,
+[data-theme-preset="chibigi"] .action-bar-primary-btn:hover:not(:disabled)::before,
+[data-theme-preset="chibigi"] .converter-submit-btn:hover:not(:disabled)::before,
+[data-theme-preset="chibigi"] .workbench-submit-btn:hover:not(:disabled)::before {
+  transform: translateY(-2px) scale(1.2) rotate(6deg);
+}
+
+/* Soft cute border radius and shadow for buttons */
+[data-theme-preset="chibigi"] .toiloki-btn {
+  border-radius: var(--radius-md, 12px);
+}
+
+[data-theme-preset="chibigi"] .toiloki-btn-primary,
+[data-theme-preset="chibigi"] .action-bar-primary-btn {
+  box-shadow: 0 4px 14px var(--accent-soft);
+}
+
+[data-theme-preset="chibigi"] .toiloki-btn-primary:hover:not(:disabled),
+[data-theme-preset="chibigi"] .action-bar-primary-btn:hover:not(:disabled) {
+  box-shadow: 0 6px 18px var(--accent-soft);
+  transform: translateY(-1px);
+}
+
+/* ─── 3. Titles: Chibi Character Badges ─── */
+/* Workspace & Workbench Titles */
+[data-theme-preset="chibigi"] .header-tool-title::after,
+[data-theme-preset="chibigi"] .workbench-title::after,
+[data-theme-preset="chibigi"] .tool-title::after {
+  content: "";
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  margin-left: 8px;
+  background-image: var(--chibigi-mascot-neko);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+  animation: chibigiBob 3s ease-in-out infinite alternate;
+}
+
+/* Settings Section Titles */
+[data-theme-preset="chibigi"] .settings-section-title::after,
+[data-theme-preset="chibigi"] .settings-header-title::after {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
+  background-image: var(--chibigi-mascot-kuma);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+}
+
+/* Modal and Dialog Titles */
+[data-theme-preset="chibigi"] .modal-title::after,
+[data-theme-preset="chibigi"] .dialog-title::after,
+[data-theme-preset="chibigi"] .intro-modal-title::after {
+  content: "";
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  margin-left: 8px;
+  background-image: var(--chibigi-mascot-bunny);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+}
+
+/* Home Hero Title & Category Titles */
+[data-theme-preset="chibigi"] .hero-title::after,
+[data-theme-preset="chibigi"] .category-section-title::after,
+[data-theme-preset="chibigi"] .home-section-title::after {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
+  background-image: var(--chibigi-mascot-neko);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+}
+
+/* ─── 4. Cute Micro-animations ─── */
+@keyframes chibigiBob {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-3px) rotate(4deg);
+  }
+
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+}
+
+/* ─── 5. Kawaii Card & Control Styling ─── */
+[data-theme-preset="chibigi"] .tool-card,
+[data-theme-preset="chibigi"] .home-card,
+[data-theme-preset="chibigi"] .settings-card,
+[data-theme-preset="chibigi"] .settings-row {
+  border-radius: var(--radius-md, 12px);
+}

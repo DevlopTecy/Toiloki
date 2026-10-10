@@ -95,7 +95,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: var(--accent);
+  background-color: var(--text-2);
   flex-shrink: 0;
 }
 
@@ -297,12 +297,13 @@
 }
 
 .tab-discard-btn.primary-danger {
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  color: var(--on-accent);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  color: var(--danger);
 }
 
 .tab-discard-btn.primary-danger:hover {
-  filter: brightness(1.1);
+  background: var(--danger);
+  color: var(--bg);
 }
 

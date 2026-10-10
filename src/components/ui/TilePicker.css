@@ -1,0 +1,109 @@
+/* ─── TilePicker Component ─── */
+.toiloki-tile-grid {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.toiloki-tile-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.toiloki-tile-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.toiloki-tile-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.toiloki-tile-cols-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 800px) {
+  .toiloki-tile-cols-3,
+  .toiloki-tile-cols-4,
+  .toiloki-tile-cols-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 500px) {
+  .toiloki-tile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.toiloki-tile {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-controls, 8px);
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+  user-select: none;
+}
+
+.toiloki-tile:hover:not(:disabled):not(.is-selected) {
+  background-color: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.toiloki-tile:focus-visible {
+  box-shadow: var(--focus-ring);
+  border-color: var(--accent);
+}
+
+/* Neutral selected state: raised surface + check, NEVER orange */
+.toiloki-tile.is-selected {
+  background-color: var(--surface-elevated);
+  border-color: var(--border-strong);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.toiloki-tile.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toiloki-tile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.toiloki-tile-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-2);
+}
+
+.toiloki-tile.is-selected .toiloki-tile-icon {
+  color: var(--text);
+}
+
+.toiloki-tile-check {
+  color: var(--text);
+}
+
+.toiloki-tile-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.toiloki-tile-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

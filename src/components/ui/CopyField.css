@@ -1,0 +1,98 @@
+/* ─── CopyField Component ─── */
+.toiloki-copyfield-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.toiloki-copyfield-label {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.toiloki-copyfield-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-controls, 8px);
+  padding: 6px 8px 6px 12px;
+  min-height: 36px;
+  gap: 8px;
+}
+
+.toiloki-copyfield-value {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: all;
+}
+
+.toiloki-copyfield-value.is-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.toiloki-copyfield-value.is-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.toiloki-copyfield-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.toiloki-copyfield-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px;
+  background-color: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs, 4px);
+  color: var(--text-2);
+  cursor: pointer;
+  outline: none;
+  font-size: 11.5px;
+  font-weight: 500;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.toiloki-copyfield-btn:hover:not(:disabled) {
+  color: var(--text);
+  background-color: var(--surface-elevated);
+}
+
+.toiloki-copyfield-btn:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.toiloki-copyfield-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toiloki-copyfield-btn.is-copied {
+  color: var(--success);
+  border-color: var(--success);
+  background-color: var(--success-bg);
+}
+
+.toiloki-copyfield-check {
+  color: var(--success);
+}
+
+.toiloki-copyfield-feedback {
+  font-size: 11px;
+}

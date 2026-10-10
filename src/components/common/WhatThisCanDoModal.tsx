@@ -60,13 +60,17 @@ export const WhatThisCanDoModal: React.FC<WhatThisCanDoModalProps> = ({
         {/* Stats Summary Bar */}
         <div className="what-modal-stats-bar">
           <div className="stat-pill ready-pill">
-            <CheckCircle2 size={13} />
-            <span>{readyFeatures.length} Ready Features</span>
+            <span className="stat-dot ready-dot" />
+            <span className="stat-pill-label">
+              <span className="stat-pill-count">{readyFeatures.length}</span> Ready Features
+            </span>
           </div>
           {soonFeatures.length > 0 && (
             <div className="stat-pill soon-pill">
-              <Clock size={13} />
-              <span>{soonFeatures.length} In Development</span>
+              <span className="stat-dot soon-dot" />
+              <span className="stat-pill-label">
+                <span className="stat-pill-count">{soonFeatures.length}</span> In Development
+              </span>
             </div>
           )}
         </div>

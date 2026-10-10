@@ -1,0 +1,18 @@
+/* ─── Skeleton Component ─── */
+.toiloki-skeleton {
+  background-color: var(--surface-hover);
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+  display: block;
+}
+
+@keyframes skeletonPulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}

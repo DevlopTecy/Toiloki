@@ -232,9 +232,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                     style={
                       shouldAnimate
                         ? {
-                            animation: 'workspaceEntrance var(--dur-page) var(--ease-out) forwards',
-                            animationDelay: `${Math.min(idx, 7) * 25}ms`,
-                          }
+                          animation: 'workspaceEntrance var(--dur-page) var(--ease-out) forwards',
+                          animationDelay: `${Math.min(idx, 7) * 25}ms`,
+                        }
                         : undefined
                     }
                     onClick={() =>
@@ -332,9 +332,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                   style={
                     shouldAnimate
                       ? {
-                          animation: 'workspaceEntrance var(--dur-page) var(--ease-out) forwards',
-                          animationDelay: `${Math.min(idx, 5) * 25}ms`,
-                        }
+                        animation: 'workspaceEntrance var(--dur-page) var(--ease-out) forwards',
+                        animationDelay: `${Math.min(idx, 5) * 25}ms`,
+                      }
                       : undefined
                   }
                   title={`${qa.name} - ${qa.desc}`}

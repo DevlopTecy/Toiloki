@@ -1,0 +1,67 @@
+/* ─── Checkbox Component ─── */
+.toiloki-checkbox-label {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.toiloki-checkbox-label.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toiloki-checkbox-native {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.toiloki-checkbox-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-xs, 4px);
+  border: 1px solid var(--border-strong);
+  background-color: var(--surface);
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.toiloki-checkbox-native:focus-visible + .toiloki-checkbox-box {
+  box-shadow: var(--focus-ring);
+  border-color: var(--accent);
+}
+
+.toiloki-checkbox-box.is-checked {
+  background-color: var(--surface-hover);
+  border-color: var(--accent);
+}
+
+.toiloki-checkbox-check {
+  color: var(--accent);
+  stroke-width: 3;
+}
+
+.toiloki-checkbox-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.toiloki-checkbox-title {
+  font-weight: 500;
+}
+
+.toiloki-checkbox-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}

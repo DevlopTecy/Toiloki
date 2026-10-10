@@ -1,0 +1,61 @@
+/* ─── ChipGroup Component ─── */
+.toiloki-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.toiloki-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text-2);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, color var(--dur-fast) ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.toiloki-chip:hover:not(:disabled):not(.is-selected) {
+  background-color: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.toiloki-chip:focus-visible {
+  box-shadow: var(--focus-ring);
+  border-color: var(--accent);
+}
+
+/* Neutral selected state: raised surface, NEVER orange */
+.toiloki-chip.is-selected {
+  background-color: var(--surface-elevated);
+  border-color: var(--border-strong);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toiloki-chip.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toiloki-chip-icon {
+  display: flex;
+  align-items: center;
+}
+
+.toiloki-chip-check {
+  color: var(--text);
+}

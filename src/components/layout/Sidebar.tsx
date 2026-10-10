@@ -156,97 +156,101 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside className={`app-sidebar no-drag ${isCollapsed ? 'collapsed' : ''}`}>
 
-      {/* ─── Top Controls ─── */}
-      <div className="sidebar-top-bar">
-        <button
-          className="sidebar-collapse-btn"
-          onClick={toggleCollapsed}
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
-        </button>
-      </div>
+      {/* ─── Pinned Top Controls & Home Navigation ─── */}
+      <div className="sidebar-pinned-top">
+        <div className="sidebar-top-bar">
+          <button
+            className="sidebar-collapse-btn"
+            onClick={toggleCollapsed}
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+        </div>
 
-      {/* ─── Home Navigation ─── */}
-      <div className="sidebar-section">
-        <button
-          data-nav="home"
-          className={`sidebar-nav-btn home-nav-btn ${activeNav === 'home' ? 'active' : ''}`}
-          onClick={() => onSelectNav('home')}
-          title="Home Dashboard"
-        >
-          <div className="nav-tile home-tile">
-            <Home size={13} />
-          </div>
-          {!isCollapsed && <span className="sidebar-btn-label">Home</span>}
-        </button>
-      </div>
-
-      <div className="sidebar-divider" />
-
-      {/* ─── 1. Files and Media Section ─── */}
-      {visibleFilesAndMedia.length > 0 && (
         <div className="sidebar-section">
-          {!isCollapsed && <div className="sidebar-section-header">Files and media</div>}
-          {renderCategoryList(visibleFilesAndMedia)}
+          <button
+            data-nav="home"
+            className={`sidebar-nav-btn home-nav-btn ${activeNav === 'home' ? 'active' : ''}`}
+            onClick={() => onSelectNav('home')}
+            title="Home Dashboard"
+          >
+            <div className="nav-tile home-tile">
+              <Home size={13} />
+            </div>
+            {!isCollapsed && <span className="sidebar-btn-label">Home</span>}
+          </button>
         </div>
-      )}
 
-      {/* ─── 2. Data and Code Section ─── */}
-      {visibleDataAndCode.length > 0 && (
-        <div className="sidebar-section" style={{ marginTop: '4px' }}>
-          {!isCollapsed && <div className="sidebar-section-header">Data and code</div>}
-          {renderCategoryList(visibleDataAndCode)}
+        <div className="sidebar-divider" />
+      </div>
+
+      {/* ─── Scrollable Categories & Workspaces ─── */}
+      <div className="sidebar-scrollable-content">
+        {/* ─── 1. Files and Media Section ─── */}
+        {visibleFilesAndMedia.length > 0 && (
+          <div className="sidebar-section">
+            {!isCollapsed && <div className="sidebar-section-header">Files and media</div>}
+            {renderCategoryList(visibleFilesAndMedia)}
+          </div>
+        )}
+
+        {/* ─── 2. Data and Code Section ─── */}
+        {visibleDataAndCode.length > 0 && (
+          <div className="sidebar-section" style={{ marginTop: '4px' }}>
+            {!isCollapsed && <div className="sidebar-section-header">Data and code</div>}
+            {renderCategoryList(visibleDataAndCode)}
+          </div>
+        )}
+
+        {/* ─── 3. Tools Section ─── */}
+        {visibleTools.length > 0 && (
+          <div className="sidebar-section" style={{ marginTop: '4px' }}>
+            {!isCollapsed && <div className="sidebar-section-header">Tools</div>}
+            {renderCategoryList(visibleTools)}
+          </div>
+        )}
+
+        <div className="sidebar-divider" />
+
+        {/* ─── Library Section ─── */}
+        <div className="sidebar-section">
+          {!isCollapsed && <div className="sidebar-section-header">Library</div>}
+          <button
+            data-nav="favorites"
+            className={`sidebar-nav-btn ${activeNav === 'favorites' ? 'active' : ''}`}
+            onClick={() => onSelectNav('favorites')}
+            title="Favorites"
+          >
+            <div className="nav-tile fav-tile">
+              <Star size={12} />
+            </div>
+            {!isCollapsed && <span className="sidebar-btn-label">Favorites</span>}
+          </button>
+          <button
+            data-nav="history"
+            className={`sidebar-nav-btn ${activeNav === 'history' ? 'active' : ''}`}
+            onClick={() => onSelectNav('history')}
+            title="Recent Activity"
+          >
+            <div className="nav-tile history-tile">
+              <Clock size={12} />
+            </div>
+            {!isCollapsed && <span className="sidebar-btn-label">Recent</span>}
+          </button>
+          <button
+            data-nav="trash"
+            className={`sidebar-nav-btn ${activeNav === 'trash' ? 'active' : ''}`}
+            onClick={() => onSelectNav('trash')}
+            title="Toiloki Trash & Quarantine"
+          >
+            <div className="nav-tile history-tile">
+              <Trash2 size={12} />
+            </div>
+            {!isCollapsed && <span className="sidebar-btn-label">Trash</span>}
+          </button>
         </div>
-      )}
-
-      {/* ─── 3. Tools Section ─── */}
-      {visibleTools.length > 0 && (
-        <div className="sidebar-section" style={{ marginTop: '4px' }}>
-          {!isCollapsed && <div className="sidebar-section-header">Tools</div>}
-          {renderCategoryList(visibleTools)}
-        </div>
-      )}
-
-      <div className="sidebar-divider" />
-
-      {/* ─── Library Section ─── */}
-      <div className="sidebar-section">
-        {!isCollapsed && <div className="sidebar-section-header">Library</div>}
-        <button
-          data-nav="favorites"
-          className={`sidebar-nav-btn ${activeNav === 'favorites' ? 'active' : ''}`}
-          onClick={() => onSelectNav('favorites')}
-          title="Favorites"
-        >
-          <div className="nav-tile fav-tile">
-            <Star size={12} />
-          </div>
-          {!isCollapsed && <span className="sidebar-btn-label">Favorites</span>}
-        </button>
-        <button
-          data-nav="history"
-          className={`sidebar-nav-btn ${activeNav === 'history' ? 'active' : ''}`}
-          onClick={() => onSelectNav('history')}
-          title="Recent Activity"
-        >
-          <div className="nav-tile history-tile">
-            <Clock size={12} />
-          </div>
-          {!isCollapsed && <span className="sidebar-btn-label">Recent</span>}
-        </button>
-        <button
-          data-nav="trash"
-          className={`sidebar-nav-btn ${activeNav === 'trash' ? 'active' : ''}`}
-          onClick={() => onSelectNav('trash')}
-          title="Toiloki Trash & Quarantine"
-        >
-          <div className="nav-tile history-tile">
-            <Trash2 size={12} />
-          </div>
-          {!isCollapsed && <span className="sidebar-btn-label">Trash</span>}
-        </button>
       </div>
 
       {/* ─── Bottom Settings Button ─── */}

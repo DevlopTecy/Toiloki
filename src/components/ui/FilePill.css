@@ -1,0 +1,56 @@
+/* ─── FilePill Component ─── */
+.toiloki-file-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px 0 10px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text);
+  font-size: 12px;
+  max-width: 240px;
+  user-select: none;
+}
+
+.toiloki-file-pill-icon {
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.toiloki-file-pill-name {
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.toiloki-file-pill-size {
+  color: var(--text-muted);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.toiloki-file-pill-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  margin-left: 2px;
+  flex-shrink: 0;
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+
+.toiloki-file-pill-remove:hover {
+  color: var(--text);
+  background-color: var(--surface-hover);
+}

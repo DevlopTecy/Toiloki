@@ -1,0 +1,166 @@
+/* ─── Custom Select Component ─── */
+.toiloki-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.toiloki-select-container.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toiloki-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-controls, 8px);
+  color: var(--text);
+  padding: 0 10px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+}
+
+.toiloki-select-trigger:focus-visible,
+.toiloki-select-trigger.is-open {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.toiloki-select-sm .toiloki-select-trigger {
+  height: 30px;
+  font-size: 12px;
+}
+
+.toiloki-select-md .toiloki-select-trigger {
+  height: 36px;
+  font-size: 13.5px;
+}
+
+.toiloki-select-lg .toiloki-select-trigger {
+  height: 42px;
+  font-size: 14.5px;
+}
+
+.toiloki-select-trigger-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toiloki-select-placeholder {
+  color: var(--text-muted);
+}
+
+.toiloki-select-arrow {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform var(--dur-fast) ease;
+  margin-left: 8px;
+}
+
+.toiloki-select-arrow.is-flipped {
+  transform: rotate(180deg);
+}
+
+.toiloki-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-controls, 8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.40);
+  max-height: 260px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: dropdownEnter 120ms var(--ease-out);
+}
+
+.toiloki-select-search-box {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+  gap: 6px;
+}
+
+.toiloki-select-search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.toiloki-select-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 12.5px;
+}
+
+.toiloki-select-options-list {
+  overflow-y: auto;
+  max-height: 210px;
+  padding: 4px;
+}
+
+.toiloki-select-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: var(--radius-xs);
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--dur-fast) ease;
+}
+
+.toiloki-select-option:hover:not(:disabled) {
+  background-color: var(--surface-hover);
+}
+
+.toiloki-select-option.is-selected {
+  background-color: var(--surface-hover);
+  font-weight: 500;
+}
+
+.toiloki-select-option-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.toiloki-select-option-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.toiloki-select-check {
+  color: var(--accent);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.toiloki-select-empty {
+  padding: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}

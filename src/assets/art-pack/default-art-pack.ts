@@ -6,7 +6,7 @@
  */
 
 // Helper to convert an SVG string to a clean data-URI
-function svgToDataUri(svg: string): string {
+export function svgToDataUri(svg: string): string {
   const cleaned = svg
     .replace(/\s+/g, ' ')
     .replace(/> </g, '><')
@@ -497,3 +497,236 @@ export function getDefaultArtwork(categoryId: string, mode: 'dark' | 'light' = '
   if (!art) return DEFAULT_ART_PACK.pdf[mode];
   return art[mode];
 }
+
+// ─────────────────────────────────────────────────────────────
+// CHIBIGI THEME ARTWORK & CHARACTER MASCOTS
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Chibigi Bun-bun (Cute Chibi Bunny Mascot with sparkly eyes and heart)
+ */
+export const CHIBIGI_MASCOT_BUNNY = svgToDataUri(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="bunnyBlush" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FF6B9D" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#FF6B9D" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Ears -->
+  <ellipse cx="23" cy="18" rx="6" ry="15" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+  <ellipse cx="23" cy="18" rx="3.5" ry="11" fill="#FFCCD5"/>
+  <ellipse cx="41" cy="18" rx="6" ry="15" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+  <ellipse cx="41" cy="18" rx="3.5" ry="11" fill="#FFCCD5"/>
+  <!-- Head -->
+  <ellipse cx="32" cy="38" rx="22" ry="19" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+  <!-- Bow on ear -->
+  <path d="M 36 17 C 33 15 33 21 36 19 C 39 21 39 15 36 17 Z" fill="#FF6B9D"/>
+  <circle cx="36" cy="18" r="1.5" fill="#FFE4E6"/>
+  <!-- Big Kawaii Eyes with Highlights -->
+  <ellipse cx="24" cy="36" rx="3.5" ry="4.5" fill="#3B1422"/>
+  <circle cx="23" cy="34.5" r="1.5" fill="#FFFFFF"/>
+  <circle cx="25.5" cy="38" r="0.8" fill="#FFFFFF"/>
+  <ellipse cx="40" cy="36" rx="3.5" ry="4.5" fill="#3B1422"/>
+  <circle cx="39" cy="34.5" r="1.5" fill="#FFFFFF"/>
+  <circle cx="41.5" cy="38" r="0.8" fill="#FFFFFF"/>
+  <!-- Cheeks Blush -->
+  <ellipse cx="17" cy="41" rx="4.5" ry="2.8" fill="url(#bunnyBlush)"/>
+  <ellipse cx="47" cy="41" rx="4.5" ry="2.8" fill="url(#bunnyBlush)"/>
+  <!-- Cute Mouth (w) and Nose -->
+  <circle cx="32" cy="39" r="1" fill="#FF6B9D"/>
+  <path d="M 29.5 41 Q 32 43.5 32 41 Q 32 43.5 34.5 41" fill="none" stroke="#3B1422" stroke-width="1.3" stroke-linecap="round"/>
+  <!-- Little hands holding heart -->
+  <path d="M 32 46 C 30 43 27 45 28 47.5 C 29 50 32 52.5 32 52.5 C 32 52.5 35 50 36 47.5 C 37 45 34 43 32 46 Z" fill="#FF6B9D"/>
+  <ellipse cx="27" cy="48" rx="2.5" ry="2" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="1"/>
+  <ellipse cx="37" cy="48" rx="2.5" ry="2" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="1"/>
+</svg>
+`);
+
+/**
+ * Chibigi Kuma (Cute Teddy Bear Mascot waving)
+ */
+export const CHIBIGI_MASCOT_KUMA = svgToDataUri(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="kumaBlush" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFAAA6" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#FFAAA6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Bear Ears -->
+  <circle cx="17" cy="22" r="8" fill="#FFF2E0" stroke="#F6C492" stroke-width="2"/>
+  <circle cx="17" cy="22" r="4.5" fill="#FFAAA6" opacity="0.6"/>
+  <circle cx="47" cy="22" r="8" fill="#FFF2E0" stroke="#F6C492" stroke-width="2"/>
+  <circle cx="47" cy="22" r="4.5" fill="#FFAAA6" opacity="0.6"/>
+  <!-- Bear Head -->
+  <ellipse cx="32" cy="38" rx="22" ry="19" fill="#FFF8F0" stroke="#F6C492" stroke-width="2"/>
+  <!-- Snout Area -->
+  <ellipse cx="32" cy="42" rx="7" ry="5.5" fill="#FFFFFF"/>
+  <ellipse cx="32" cy="39.5" rx="2" ry="1.5" fill="#7C4A28"/>
+  <path d="M 32 41 L 32 43" stroke="#7C4A28" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M 30 43 Q 32 44.8 34 43" fill="none" stroke="#7C4A28" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Eyes -->
+  <circle cx="23" cy="36" r="3" fill="#3E2723"/>
+  <circle cx="22" cy="35" r="1.2" fill="#FFFFFF"/>
+  <circle cx="41" cy="36" r="3" fill="#3E2723"/>
+  <circle cx="40" cy="35" r="1.2" fill="#FFFFFF"/>
+  <!-- Cheeks Blush -->
+  <ellipse cx="17" cy="42" rx="4.5" ry="2.8" fill="url(#kumaBlush)"/>
+  <ellipse cx="47" cy="42" rx="4.5" ry="2.8" fill="url(#kumaBlush)"/>
+  <!-- Waving Paw -->
+  <ellipse cx="51" cy="47" rx="3.5" ry="3" fill="#FFF8F0" stroke="#F6C492" stroke-width="1.5"/>
+</svg>
+`);
+
+/**
+ * Chibigi Neko (Cute Kitten Mascot with bell collar)
+ */
+export const CHIBIGI_MASCOT_NEKO = svgToDataUri(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="nekoBlush" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FF6B9D" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#FF6B9D" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Kitty Ears -->
+  <path d="M 14 30 L 19 14 L 29 24 Z" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+  <path d="M 17 27 L 20 18 L 26 24 Z" fill="#FFCCD5"/>
+  <path d="M 50 30 L 45 14 L 35 24 Z" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+  <path d="M 47 27 L 44 18 L 38 24 Z" fill="#FFCCD5"/>
+  <!-- Kitty Head -->
+  <ellipse cx="32" cy="38" rx="21" ry="18" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+  <!-- Happy Eyes (smiling arcs) -->
+  <path d="M 21 36 Q 25 31 28 36" fill="none" stroke="#3B1422" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M 36 36 Q 39 31 43 36" fill="none" stroke="#3B1422" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Cheeks Blush -->
+  <ellipse cx="17" cy="42" rx="4.5" ry="2.5" fill="url(#nekoBlush)"/>
+  <ellipse cx="47" cy="42" rx="4.5" ry="2.5" fill="url(#nekoBlush)"/>
+  <!-- Cute Whiskers -->
+  <line x1="12" y1="39" x2="6" y2="38" stroke="#FFAAC9" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="12" y1="43" x2="7" y2="44" stroke="#FFAAC9" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="52" y1="39" x2="58" y2="38" stroke="#FFAAC9" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="52" y1="43" x2="57" y2="44" stroke="#FFAAC9" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Cute Nose & Mouth -->
+  <ellipse cx="32" cy="40" rx="1.5" ry="1.2" fill="#FF6B9D"/>
+  <path d="M 29.5 42 Q 32 44.5 32 42 Q 32 44.5 34.5 42" fill="none" stroke="#3B1422" stroke-width="1.3" stroke-linecap="round"/>
+  <!-- Tiny Bell Collar -->
+  <circle cx="32" cy="51" r="3.5" fill="#FBBF24" stroke="#F59E0B" stroke-width="1"/>
+  <line x1="30.5" y1="52" x2="33.5" y2="52" stroke="#B45309" stroke-width="1"/>
+</svg>
+`);
+
+/**
+ * Chibigi Wallpaper (Light Mode: Strawberry Milk Pastel Pattern)
+ */
+export const CHIBIGI_WALLPAPER_LIGHT = svgToDataUri(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" width="360" height="360">
+  <rect width="360" height="360" fill="#FFF5F8"/>
+  <!-- Floating clouds -->
+  <path d="M 50 60 C 42 60 38 52 46 45 C 46 36 60 34 65 41 C 72 36 82 39 80 48 C 88 51 84 60 75 60 Z" fill="#FFE2EC" opacity="0.6"/>
+  <path d="M 230 220 C 222 220 218 212 226 205 C 226 196 240 194 245 201 C 252 196 262 199 260 208 C 268 211 264 220 255 220 Z" fill="#FFE2EC" opacity="0.6"/>
+  <!-- Chibi Bunny at (60, 160) -->
+  <g transform="translate(45, 145) scale(0.6)" opacity="0.28">
+    <ellipse cx="23" cy="18" rx="6" ry="14" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+    <ellipse cx="41" cy="18" rx="6" ry="14" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+    <ellipse cx="32" cy="38" rx="22" ry="18" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+    <circle cx="24" cy="36" r="3" fill="#3B1422"/>
+    <circle cx="40" cy="36" r="3" fill="#3B1422"/>
+    <ellipse cx="17" cy="41" rx="4" ry="2.5" fill="#FF8FA3"/>
+    <ellipse cx="47" cy="41" rx="4" ry="2.5" fill="#FF8FA3"/>
+    <path d="M 30 42 Q 32 44 34 42" stroke="#3B1422" stroke-width="1.2" fill="none"/>
+  </g>
+  <!-- Chibi Bear at (230, 60) -->
+  <g transform="translate(215, 45) scale(0.6)" opacity="0.25">
+    <circle cx="17" cy="22" r="7" fill="#FFF2E0" stroke="#F6C492" stroke-width="2"/>
+    <circle cx="47" cy="22" r="7" fill="#FFF2E0" stroke="#F6C492" stroke-width="2"/>
+    <ellipse cx="32" cy="38" rx="21" ry="18" fill="#FFF8F0" stroke="#F6C492" stroke-width="2"/>
+    <circle cx="23" cy="36" r="2.8" fill="#3E2723"/>
+    <circle cx="41" cy="36" r="2.8" fill="#3E2723"/>
+    <ellipse cx="17" cy="41" rx="4" ry="2.5" fill="#FFAAA6"/>
+    <ellipse cx="47" cy="41" rx="4" ry="2.5" fill="#FFAAA6"/>
+    <path d="M 30 43 Q 32 45 34 43" stroke="#7C4A28" stroke-width="1.2" fill="none"/>
+  </g>
+  <!-- Chibi Neko at (180, 270) -->
+  <g transform="translate(165, 255) scale(0.6)" opacity="0.28">
+    <path d="M 14 30 L 19 14 L 29 24 Z" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+    <path d="M 50 30 L 45 14 L 35 24 Z" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+    <ellipse cx="32" cy="38" rx="20" ry="17" fill="#FFFFFF" stroke="#FFAAC9" stroke-width="2"/>
+    <path d="M 22 36 Q 25 32 28 36" stroke="#3B1422" stroke-width="2" fill="none"/>
+    <path d="M 36 36 Q 39 32 42 36" stroke="#3B1422" stroke-width="2" fill="none"/>
+    <ellipse cx="17" cy="41" rx="4" ry="2.2" fill="#FF8FA3"/>
+    <ellipse cx="47" cy="41" rx="4" ry="2.2" fill="#FF8FA3"/>
+  </g>
+  <!-- Floating Hearts -->
+  <path d="M 160 110 C 156 104 150 106 152 112 C 154 117 160 122 160 122 C 160 122 166 117 168 112 C 170 106 164 104 160 110 Z" fill="#FF8FA3" opacity="0.35"/>
+  <path d="M 310 160 C 306 154 300 156 302 162 C 304 167 310 172 310 172 C 310 172 316 167 318 162 C 320 156 314 154 310 160 Z" fill="#FF8FA3" opacity="0.35"/>
+  <path d="M 90 310 C 86 304 80 306 82 312 C 84 317 90 322 90 322 C 90 322 96 317 98 312 C 100 306 94 304 90 310 Z" fill="#FF8FA3" opacity="0.35"/>
+  <!-- Twinkling Stars -->
+  <path d="M 120 40 Q 120 48 112 48 Q 120 48 120 56 Q 120 48 128 48 Q 120 48 120 40 Z" fill="#FBBF24" opacity="0.45"/>
+  <path d="M 280 120 Q 280 128 272 128 Q 280 128 280 136 Q 280 128 288 128 Q 280 128 280 120 Z" fill="#FBBF24" opacity="0.45"/>
+  <path d="M 330 280 Q 330 288 322 288 Q 330 288 330 296 Q 330 288 338 288 Q 330 288 330 280 Z" fill="#FBBF24" opacity="0.45"/>
+  <path d="M 40 280 Q 40 288 32 288 Q 40 288 40 296 Q 40 288 48 288 Q 40 288 40 280 Z" fill="#FBBF24" opacity="0.45"/>
+  <circle cx="150" cy="190" r="2" fill="#FFB6C1" opacity="0.4"/>
+  <circle cx="210" cy="150" r="1.5" fill="#C084FC" opacity="0.4"/>
+  <circle cx="110" cy="130" r="1.5" fill="#C084FC" opacity="0.4"/>
+  <circle cx="290" cy="40" r="2" fill="#FFB6C1" opacity="0.4"/>
+</svg>
+`);
+
+/**
+ * Chibigi Wallpaper (Dark Mode: Magical Midnight Violet Pattern)
+ */
+export const CHIBIGI_WALLPAPER_DARK = svgToDataUri(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" width="360" height="360">
+  <rect width="360" height="360" fill="#181324"/>
+  <!-- Floating clouds in deep lilac -->
+  <path d="M 50 60 C 42 60 38 52 46 45 C 46 36 60 34 65 41 C 72 36 82 39 80 48 C 88 51 84 60 75 60 Z" fill="#2E2145" opacity="0.6"/>
+  <path d="M 230 220 C 222 220 218 212 226 205 C 226 196 240 194 245 201 C 252 196 262 199 260 208 C 268 211 264 220 255 220 Z" fill="#2E2145" opacity="0.6"/>
+  <!-- Chibi Bunny glowing -->
+  <g transform="translate(45, 145) scale(0.6)" opacity="0.30">
+    <ellipse cx="23" cy="18" rx="6" ry="14" fill="#312547" stroke="#F472B6" stroke-width="2"/>
+    <ellipse cx="41" cy="18" rx="6" ry="14" fill="#312547" stroke="#F472B6" stroke-width="2"/>
+    <ellipse cx="32" cy="38" rx="22" ry="18" fill="#312547" stroke="#F472B6" stroke-width="2"/>
+    <circle cx="24" cy="36" r="3" fill="#FDF2F8"/>
+    <circle cx="40" cy="36" r="3" fill="#FDF2F8"/>
+    <ellipse cx="17" cy="41" rx="4" ry="2.5" fill="#F472B6"/>
+    <ellipse cx="47" cy="41" rx="4" ry="2.5" fill="#F472B6"/>
+    <path d="M 30 42 Q 32 44 34 42" stroke="#FDF2F8" stroke-width="1.2" fill="none"/>
+  </g>
+  <!-- Chibi Bear glowing -->
+  <g transform="translate(215, 45) scale(0.6)" opacity="0.28">
+    <circle cx="17" cy="22" r="7" fill="#312547" stroke="#FBBF24" stroke-width="2"/>
+    <circle cx="47" cy="22" r="7" fill="#312547" stroke="#FBBF24" stroke-width="2"/>
+    <ellipse cx="32" cy="38" rx="21" ry="18" fill="#312547" stroke="#FBBF24" stroke-width="2"/>
+    <circle cx="23" cy="36" r="2.8" fill="#FDF2F8"/>
+    <circle cx="41" cy="36" r="2.8" fill="#FDF2F8"/>
+    <ellipse cx="17" cy="41" rx="4" ry="2.5" fill="#FBBF24"/>
+    <ellipse cx="47" cy="41" rx="4" ry="2.5" fill="#FBBF24"/>
+    <path d="M 30 43 Q 32 45 34 43" stroke="#FDF2F8" stroke-width="1.2" fill="none"/>
+  </g>
+  <!-- Chibi Neko glowing -->
+  <g transform="translate(165, 255) scale(0.6)" opacity="0.30">
+    <path d="M 14 30 L 19 14 L 29 24 Z" fill="#312547" stroke="#C084FC" stroke-width="2"/>
+    <path d="M 50 30 L 45 14 L 35 24 Z" fill="#312547" stroke="#C084FC" stroke-width="2"/>
+    <ellipse cx="32" cy="38" rx="20" ry="17" fill="#312547" stroke="#C084FC" stroke-width="2"/>
+    <path d="M 22 36 Q 25 32 28 36" stroke="#FDF2F8" stroke-width="2" fill="none"/>
+    <path d="M 36 36 Q 39 32 42 36" stroke="#FDF2F8" stroke-width="2" fill="none"/>
+    <ellipse cx="17" cy="41" rx="4" ry="2.2" fill="#C084FC"/>
+    <ellipse cx="47" cy="41" rx="4" ry="2.2" fill="#C084FC"/>
+  </g>
+  <!-- Glowing Floating Hearts -->
+  <path d="M 160 110 C 156 104 150 106 152 112 C 154 117 160 122 160 122 C 160 122 166 117 168 112 C 170 106 164 104 160 110 Z" fill="#F472B6" opacity="0.4"/>
+  <path d="M 310 160 C 306 154 300 156 302 162 C 304 167 310 172 310 172 C 310 172 316 167 318 162 C 320 156 314 154 310 160 Z" fill="#F472B6" opacity="0.4"/>
+  <path d="M 90 310 C 86 304 80 306 82 312 C 84 317 90 322 90 322 C 90 322 96 317 98 312 C 100 306 94 304 90 310 Z" fill="#F472B6" opacity="0.4"/>
+  <!-- Glowing Stars -->
+  <path d="M 120 40 Q 120 48 112 48 Q 120 48 120 56 Q 120 48 128 48 Q 120 48 120 40 Z" fill="#FDE047" opacity="0.45"/>
+  <path d="M 280 120 Q 280 128 272 128 Q 280 128 280 136 Q 280 128 288 128 Q 280 128 280 120 Z" fill="#FDE047" opacity="0.45"/>
+  <path d="M 330 280 Q 330 288 322 288 Q 330 288 330 296 Q 330 288 338 288 Q 330 288 330 280 Z" fill="#FDE047" opacity="0.45"/>
+  <path d="M 40 280 Q 40 288 32 288 Q 40 288 40 296 Q 40 288 48 288 Q 40 288 40 280 Z" fill="#FDE047" opacity="0.45"/>
+  <circle cx="150" cy="190" r="2" fill="#F472B6" opacity="0.4"/>
+  <circle cx="210" cy="150" r="1.5" fill="#C084FC" opacity="0.4"/>
+  <circle cx="110" cy="130" r="1.5" fill="#C084FC" opacity="0.4"/>
+  <circle cx="290" cy="40" r="2" fill="#F472B6" opacity="0.4"/>
+</svg>
+`);

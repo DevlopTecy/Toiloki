@@ -9,8 +9,11 @@
   "scripts": {
     "dev": "vite",
     "dev:electron": "concurrently -k \"vite\" \"electron .\"",
+    "dev:tauri": "tauri dev",
     "build": "tsc -b && vite build",
-    "test": "node tests/migration.test.cjs && node tests/verify-all-engines.cjs && node tests/verify-new-engines.cjs && node tests/phase9-capabilities.test.cjs && node tests/settings-persistence.test.cjs && node tests/phase12-flow.test.cjs && node tests/offline-cjk-pdf.test.cjs && node scripts/verify_wcag_contrast.cjs && node tests/e2e-smoke.test.cjs && node tests/guard-compliance.test.cjs && node tests/phase2-session-persistence.test.cjs && node tests/pdf-page-range.test.cjs && node tests/pdf-workspace-complete.test.cjs && node tests/images-workspace-complete.test.cjs && node tests/documents-workspace-complete.test.cjs && node tests/data-workspace-complete.test.cjs && node tests/text-workspace-complete.test.cjs && node tests/developer-workspace-complete.test.cjs && node tests/calculator-workspace-complete.test.cjs && node tests/files-workspace-complete.test.cjs && node tests/security-workspace-complete.test.cjs && node tests/phase7-workspaces-complete.test.cjs && node tests/phase9-responsive-platform.test.cjs",
+    "build:tauri": "tauri build",
+    "tauri": "tauri",
+    "test": "node tests/migration.test.cjs && node tests/verify-all-engines.cjs && node tests/verify-new-engines.cjs && node tests/phase9-capabilities.test.cjs && node tests/settings-persistence.test.cjs && node tests/phase12-flow.test.cjs && node tests/offline-cjk-pdf.test.cjs && node scripts/verify_wcag_contrast.cjs && node tests/e2e-smoke.test.cjs && node tests/guard-compliance.test.cjs && node tests/phase2-session-persistence.test.cjs && node tests/pdf-page-range.test.cjs && node tests/pdf-workspace-complete.test.cjs && node tests/images-workspace-complete.test.cjs && node tests/documents-workspace-complete.test.cjs && node tests/data-workspace-complete.test.cjs && node tests/text-workspace-complete.test.cjs && node tests/developer-workspace-complete.test.cjs && node tests/calculator-workspace-complete.test.cjs && node tests/files-workspace-complete.test.cjs && node tests/security-workspace-complete.test.cjs && node tests/phase7-workspaces-complete.test.cjs && node tests/phase9-responsive-platform.test.cjs && node tests/tauri-architecture.test.cjs",
     "test:e2e": "node tests/phase5-ui-e2e.test.cjs",
     "test:sweep": "node tests/phase8-ui-sweep.test.cjs",
     "test:all": "npm test && npm run test:e2e",
@@ -68,9 +71,11 @@
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "yaml": "^2.7.0"
+    "yaml": "^2.7.0",
+    "@tauri-apps/api": "^2.0.0"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0",
     "@types/adm-zip": "^0.5.7",
     "@types/diff": "^7.0.0",
     "@types/node": "^22.13.0",
@@ -88,3 +93,4 @@
     "vite": "^6.1.0"
   }
 }
+

@@ -3,7 +3,9 @@
 // Provides a unified capability-driven contract across Electron (desktop),
 // Web PWA (tablet/Chromebook), and Mobile/Capacitor environments.
 
-export type PlatformType = 'electron' | 'web-pwa' | 'capacitor' | 'browser';
+import { initTauriBridge, isTauriEnvironment } from './tauri-bridge';
+
+export type PlatformType = 'electron' | 'tauri' | 'web-pwa' | 'capacitor' | 'browser';
 
 export interface PlatformCapabilities {
   platform: PlatformType;
@@ -356,6 +358,123 @@ export class WebPlatformAdapter implements PlatformAdapter {
   }
 }
 
+/**
+ * Native Tauri + Rust Desktop Implementation
+ */
+export class TauriPlatformAdapter implements PlatformAdapter {
+  private get toiloki(): any {
+    return typeof window !== 'undefined' ? (window as any).toiloki : null;
+  }
+
+  getPlatformName(): PlatformType {
+    return 'tauri';
+  }
+
+  getCapabilities(): PlatformCapabilities {
+    return {
+      platform: 'tauri',
+      hasNativeFs: true,
+      hasWindowControls: true,
+      hasTray: true,
+      hasSystemDiagnostics: true,
+      hasClipboard: true,
+      isOfflineGuaranteed: true,
+      maxRecommendedBufferSizeMB: 1024,
+    };
+  }
+
+  async pickFiles(options?: { accept?: string[]; multiple?: boolean }): Promise<PlatformFile[]> {
+    if (!this.toiloki?.dialog?.openFile || !this.toiloki?.fs?.readFileBuffer) {
+      throw new Error('Tauri filesystem bridge is not available');
+    }
+
+    const filters = options?.accept?.map((ext) => ({
+      name: ext.toUpperCase().replace('.', ''),
+      extensions: [ext.replace('.', '')],
+    })) || [{ name: 'All Files', extensions: ['*'] }];
+
+    const res = await this.toiloki.dialog.openFile({
+      properties: options?.multiple ? ['openFile', 'multiSelections'] : ['openFile'],
+      filters,
+    });
+
+    if (res.canceled || !res.filePaths || res.filePaths.length === 0) {
+      return [];
+    }
+
+    const files: PlatformFile[] = [];
+    for (const filePath of res.filePaths) {
+      const readRes = await this.toiloki.fs.readFileBuffer(filePath);
+      if (readRes.success && readRes.data) {
+        const name = filePath.split(/[\\/]/).pop() || 'file';
+        files.push({
+          name,
+          size: readRes.data.byteLength,
+          type: '',
+          buffer: new Uint8Array(readRes.data),
+        });
+      }
+    }
+
+    return files;
+  }
+
+  async saveFile(data: Uint8Array | string, defaultName: string, _mime?: string): Promise<PlatformSaveResult> {
+    if (!this.toiloki?.dialog?.saveFile || !this.toiloki?.fs?.writeFileBuffer) {
+      return { success: false, error: 'Tauri filesystem bridge unavailable' };
+    }
+
+    const ext = defaultName.split('.').pop() || '*';
+    const res = await this.toiloki.dialog.saveFile({
+      defaultPath: defaultName,
+      filters: [{ name: ext.toUpperCase(), extensions: [ext] }],
+    });
+
+    if (res.canceled || !res.filePath) {
+      return { success: false };
+    }
+
+    const buffer = typeof data === 'string' ? new TextEncoder().encode(data) : data;
+    const writeRes = await this.toiloki.fs.writeFileBuffer(res.filePath, buffer);
+    return {
+      success: Boolean(writeRes.success),
+      path: res.filePath,
+      error: writeRes.error,
+    };
+  }
+
+  async readClipboardText(): Promise<string> {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.readText) {
+      return navigator.clipboard.readText().catch(() => '');
+    }
+    return '';
+  }
+
+  async writeClipboardText(text: string): Promise<void> {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    }
+  }
+
+  minimizeWindow(): void {
+    this.toiloki?.windowControls?.minimize();
+  }
+
+  maximizeWindow(): void {
+    this.toiloki?.windowControls?.maximize();
+  }
+
+  closeWindow(): void {
+    this.toiloki?.windowControls?.close();
+  }
+
+  showNotification(title: string, body: string): void {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      new Notification(title, { body });
+    }
+  }
+}
+
 let activePlatformAdapter: PlatformAdapter | null = null;
 
 /**
@@ -363,6 +482,17 @@ let activePlatformAdapter: PlatformAdapter | null = null;
  */
 export function getPlatformAdapter(): PlatformAdapter {
   if (activePlatformAdapter) return activePlatformAdapter;
+
+  initTauriBridge();
+
+  const isTauri =
+    typeof window !== 'undefined' &&
+    (isTauriEnvironment() || Boolean((window as any).toiloki?.isTauri));
+
+  if (isTauri) {
+    activePlatformAdapter = new TauriPlatformAdapter();
+    return activePlatformAdapter;
+  }
 
   const isElectron =
     typeof window !== 'undefined' &&
@@ -376,3 +506,4 @@ export function getPlatformAdapter(): PlatformAdapter {
 
   return activePlatformAdapter;
 }
+

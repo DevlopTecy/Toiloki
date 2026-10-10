@@ -1,0 +1,52 @@
+/* ─── Archetype A: Generator (320px left, large result right) ─── */
+.toiloki-archetype-a {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg);
+}
+
+.toiloki-archetype-a-controls {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background-color: var(--bg);
+}
+
+.toiloki-archetype-a-result {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px;
+  overflow-y: auto;
+  gap: 16px;
+  background-color: var(--bg);
+  min-width: 0;
+}
+
+.toiloki-archetype-a-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+@media (max-width: 800px) {
+  .toiloki-archetype-a {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .toiloki-archetype-a-controls {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
