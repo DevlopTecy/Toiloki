@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { SystemEngine, SystemInfo, EnvVarItem, HostsEntry } from '../../engines/system/system.engine';
 import { getPlatformAdapter } from '../../core/platform/platform-adapter';
+import { EmptyState } from '../../components/ui';
 import './SystemWorkspaceView.css';
 
 interface SystemWorkspaceViewProps {
@@ -546,19 +547,31 @@ function HostsFileView() {
 // ─── 4. Storage & Directory Structure Tree ────────────────────────────────────
 
 function DiskUsageTreeView() {
-  const sampleFiles = [
-    { path: 'src/components/Sidebar.tsx', size: 12400 },
-    { path: 'src/components/TitleBar.tsx', size: 8500 },
-    { path: 'src/engines/pdf.engine.ts', size: 48900 },
-    { path: 'src/engines/security.engine.ts', size: 43200 },
-    { path: 'public/icon.png', size: 32000 },
-    { path: 'package.json', size: 2200 },
-    { path: 'src-tauri/src/lib.rs', size: 1600 },
-    { path: 'src-tauri/Cargo.toml', size: 640 },
-  ];
-
-  const [filesList] = useState(sampleFiles);
+  const [filesList, setFilesList] = useState<Array<{ path: string; size: number }>>([]);
   const [filterText, setFilterText] = useState('');
+
+  const handleFolderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+    const scanned = Array.from(fileList).map((f) => ({
+      path: (f as any).webkitRelativePath || f.name,
+      size: f.size,
+    }));
+    setFilesList(scanned);
+  };
+
+  const handleTrySample = () => {
+    setFilesList([
+      { path: 'src/components/Sidebar.tsx', size: 12400 },
+      { path: 'src/components/TitleBar.tsx', size: 8500 },
+      { path: 'src/engines/pdf.engine.ts', size: 48900 },
+      { path: 'src/engines/security.engine.ts', size: 43200 },
+      { path: 'public/icon.png', size: 32000 },
+      { path: 'package.json', size: 2200 },
+      { path: 'src-tauri/src/lib.rs', size: 1600 },
+      { path: 'src-tauri/Cargo.toml', size: 640 },
+    ]);
+  };
 
   const filtered = useMemo(() => {
     if (!filterText.trim()) return filesList;
@@ -567,6 +580,7 @@ function DiskUsageTreeView() {
   }, [filesList, filterText]);
 
   const tree = useMemo(() => {
+    if (filtered.length === 0) return '';
     return SystemEngine.formatStorageTree(filtered).data || '';
   }, [filtered]);
 
@@ -574,30 +588,59 @@ function DiskUsageTreeView() {
     <SysCard
       icon={FolderTree}
       title="Storage & Directory Structure Tree"
-      subtitle="Reconstructs clean hierarchical tree diagrams from nested path collections"
+      subtitle="Reconstructs clean hierarchical tree diagrams from a user-chosen folder"
       actions={
-        <CopyBtn text={tree} label="Copy Tree Diagram" />
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <label className="sys-action-btn" style={{ cursor: 'pointer', margin: 0 }}>
+            <span>Scan folder…</span>
+            <input
+              type="file"
+              // @ts-ignore
+              webkitdirectory=""
+              directory=""
+              multiple
+              style={{ display: 'none' }}
+              onChange={handleFolderUpload}
+            />
+          </label>
+          {tree && <CopyBtn text={tree} label="Copy Tree" />}
+        </div>
       }
     >
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: 1, maxWidth: 360 }}>
-          <input
-            className="control-input"
-            value={filterText}
-            onChange={(e) => setFilterText(e.target.value)}
-            placeholder="Filter file paths in tree…"
-            style={{ width: '100%', paddingLeft: 30 }}
-          />
-          <Search
-            size={13}
-            style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
-          />
-        </div>
-      </div>
+      {filesList.length === 0 ? (
+        <EmptyState
+          icon={FolderTree}
+          title="No folder scanned"
+          description="Select a folder on your system to inspect hierarchical directory storage without preloaded dummy trees."
+          onTrySample={handleTrySample}
+          sampleLabel="Try a sample directory structure"
+        />
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: 1, maxWidth: 360 }}>
+              <input
+                className="control-input"
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+                placeholder="Filter file paths in tree…"
+                style={{ width: '100%', paddingLeft: 30 }}
+              />
+              <Search
+                size={13}
+                style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
+              />
+            </div>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              {filesList.length} files scanned
+            </span>
+          </div>
 
-      <div className="sys-tree-box">
-        <code>{tree}</code>
-      </div>
+          <div className="sys-tree-box">
+            <code>{tree}</code>
+          </div>
+        </>
+      )}
     </SysCard>
   );
 }

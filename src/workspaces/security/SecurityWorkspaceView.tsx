@@ -22,6 +22,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { SecurityEngine, PasswordStrengthResult, PemDecodedResult } from '../../engines/security/security.engine';
+import { Slider } from '../../components/ui';
 import './SecurityWorkspaceView.css';
 
 interface SecurityWorkspaceViewProps {
@@ -348,55 +349,16 @@ function PasswordGeneratorView() {
         title="Password Rules & Entropy"
         subtitle="CSPRNG random generation with entropy calculated via Web Crypto API"
       >
-        <div className="sec-info-banner">
-          <ShieldAlert size={16} />
-          <span>
-            Passwords operate strictly in ephemeral memory and are never persisted to disk or cloud.
-          </span>
-        </div>
-
         <div className="control-group">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <label className="control-label">Length: {length} characters</label>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {lengthPresets.map((lp) => (
-                <button
-                  key={lp}
-                  type="button"
-                  className={`sec-chip-btn ${length === lp ? 'active' : ''}`}
-                  onClick={() => setLength(lp)}
-                >
-                  {lp}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="sec-slider-control">
-            <button
-              type="button"
-              className="sec-stepper-btn"
-              onClick={() => setLength((l) => Math.max(4, l - 1))}
-              aria-label="Decrease length"
-            >
-              -
-            </button>
-            <input
-              type="range"
-              min={4}
-              max={128}
-              value={length}
-              onChange={(e) => setLength(Number(e.target.value))}
-              className="sec-range-input"
-            />
-            <button
-              type="button"
-              className="sec-stepper-btn"
-              onClick={() => setLength((l) => Math.min(128, l + 1))}
-              aria-label="Increase length"
-            >
-              +
-            </button>
-          </div>
+          <label className="control-label">Length</label>
+          <Slider
+            min={4}
+            max={128}
+            step={1}
+            value={length}
+            onChange={setLength}
+            unit="chars"
+          />
         </div>
 
         <div className="sec-checkboxes">
@@ -1111,17 +1073,9 @@ function SecureShredView() {
       title="Secure Multi-Pass Data Shredder"
       subtitle="Sanitizes file buffers with multi-pass zero-fill, ones-fill, and CSPRNG random patterns"
     >
-      <div className="sec-info-banner sec-ssd-notice">
-        <AlertTriangle size={18} />
-        <div>
-          <strong>Notice on Solid-State Drives (SSDs) & Flash Media:</strong>
-          <p style={{ margin: '4px 0 0' }}>
-            Modern solid-state drives (SSDs) and flash memory employ internal wear-leveling algorithms that
-            remap logical blocks. While multi-pass overwriting completely scrambles accessible file contents,
-            physical flash cells may retain traces until hardware garbage collection or ATA Secure Erase.
-          </p>
-        </div>
-      </div>
+      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 12px' }}>
+        Overwrites file buffers with cryptographic entropy. SSD wear-leveling limits apply.
+      </p>
 
       <div className="sec-file-drop">
         <input
@@ -1149,9 +1103,9 @@ function SecureShredView() {
             value={passes}
             onChange={(e) => setPasses(Number(e.target.value) as any)}
           >
-            <option value={3}>DoD 5220.22-M (3 passes)</option>
-            <option value={7}>Gutmann Standard (7 passes)</option>
-            <option value={1}>Zero-fill (1 pass)</option>
+            <option value={1}>Random overwrite (1 pass, default)</option>
+            <option value={3}>Multi-pass overwrite (3 passes)</option>
+            <option value={7}>Gutmann pattern (7 passes)</option>
           </select>
         </div>
 

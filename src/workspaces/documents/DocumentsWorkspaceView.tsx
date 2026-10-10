@@ -22,6 +22,7 @@ import {
   FileText
 } from 'lucide-react';
 import { HistoryService } from '../../core/services/history.service';
+import { pluralWord } from '../../core/utils/plural';
 import './DocumentsWorkspaceView.css';
 
 interface DocumentsWorkspaceViewProps {
@@ -830,10 +831,10 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
             <div className="doc-editor-pane">
               {metrics && (
                 <div className="doc-metrics-bar">
-                  <span className="doc-metric-item"><strong>{metrics.words}</strong> words</span>
-                  <span className="doc-metric-item"><strong>{metrics.characters}</strong> characters</span>
-                  <span className="doc-metric-item"><strong>{metrics.lines}</strong> lines</span>
-                  <span className="doc-metric-item"><strong>{metrics.paragraphs}</strong> paragraphs</span>
+                  <span className="doc-metric-item"><strong>{metrics.words}</strong> {pluralWord(metrics.words, 'word')}</span>
+                  <span className="doc-metric-item"><strong>{metrics.characters}</strong> {pluralWord(metrics.characters, 'character')}</span>
+                  <span className="doc-metric-item"><strong>{metrics.lines}</strong> {pluralWord(metrics.lines, 'line')}</span>
+                  <span className="doc-metric-item"><strong>{metrics.paragraphs}</strong> {pluralWord(metrics.paragraphs, 'paragraph')}</span>
                 </div>
               )}
 

@@ -62,6 +62,7 @@ import { SecurityWorkspaceView } from '../../workspaces/security/SecurityWorkspa
 import { NetworkWorkspaceView } from '../../workspaces/network/NetworkWorkspaceView';
 import { DesignWorkspaceView } from '../../workspaces/design/DesignWorkspaceView';
 import { SystemWorkspaceView } from '../../workspaces/system/SystemWorkspaceView';
+import { plural } from '../../core/utils/plural';
 import './WorkbenchShell.css';
 
 interface VersionItem {
@@ -2124,7 +2125,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
       if (activeGroup.id === 'data-query') return 'Execute SQL';
       if (activeUtility.id === 'data-dedup') return 'Deduplicate Rows';
       if (activeUtility.id === 'data-columns' || activeUtility.id === 'data-transpose') return 'Transpose Data';
-      return 'Transform Data';
+      return 'Export view';
     }
 
     if (workspace.id === 'text') {
@@ -3412,29 +3413,16 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                     {/* Timeline Trimming Controls */}
                     <div className="panel-options-section">
                       <label className="option-label">Trim Points</label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                        <div>
-                          <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Start (s)</label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            className="workbench-input"
-                            value={Math.round(mediaTrimRange.start * 100) / 100}
-                            onChange={(e) => setMediaTrimRange({ ...mediaTrimRange, start: parseFloat(e.target.value) || 0 })}
-                          />
+                      <div style={{ padding: '8px 10px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '11px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Selection:</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontWeight: 600 }}>
+                            {Math.round(mediaTrimRange.start * 10) / 10}s – {Math.round(mediaTrimRange.end * 10) / 10}s
+                          </span>
                         </div>
-                        <div>
-                          <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>End (s)</label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            min="0.1"
-                            className="workbench-input"
-                            value={Math.round(mediaTrimRange.end * 100) / 100}
-                            onChange={(e) => setMediaTrimRange({ ...mediaTrimRange, end: parseFloat(e.target.value) || 1 })}
-                          />
-                        </div>
+                        <span style={{ color: 'var(--text-muted)' }}>
+                          Drag handles directly on the waveform canvas to trim audio.
+                        </span>
                       </div>
                     </div>
 
@@ -3591,20 +3579,6 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
                             {c.label}
                           </button>
                         ))}
-                      </div>
-                    </div>
-
-                    <div className="panel-options-section">
-                      <label className="option-label">Archive & Safety Status</label>
-                      <div className="panel-stat-box" style={{ background: 'var(--bg)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Compression</span>
-                          <span style={{ fontWeight: 600 }}>DEFLATE Level 6</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Path Traversal Safety</span>
-                          <span style={{ color: 'var(--success)', fontWeight: 600 }}>Zip Slip Protected</span>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -4424,7 +4398,15 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
           summaryText={
             files.length > 1
               ? `${files[0].name} +${files.length - 1} · ${Math.round(files.reduce((a, b) => a + (b.size || 0), 0) / 1024)} KB`
-              : `${files[0]?.name} · ${workspace.id === 'images' ? 'Image' : workspace.id === 'documents' ? 'Document' : workspace.id === 'data' ? `${dataFormat.toUpperCase()}` : workspace.id === 'text' ? 'Text' : `${pages.length} pages`} · ${Math.round((files[0]?.size || 0) / 1024)} KB`
+              : `${files[0]?.name} · ${
+                  workspace.id === 'images' ? 'Image' :
+                  workspace.id === 'documents' ? 'Document' :
+                  workspace.id === 'data' ? `${dataFormat.toUpperCase()}` :
+                  workspace.id === 'text' ? 'Text' :
+                  workspace.id === 'media' ? `${Math.floor(mediaTrimRange.end)}s audio` :
+                  workspace.id === 'files' ? `${plural(files.length, 'file')}` :
+                  `${plural(pages.length, 'page')}`
+                } · ${Math.round((files[0]?.size || 0) / 1024)} KB`
           }
           summaryTooltip={
             files.map((f) => `${f.name} (${Math.round((f.size || 0) / 1024)} KB)`).join('\n')
@@ -4447,7 +4429,7 @@ export const WorkbenchShell: React.FC<WorkbenchShellProps> = ({
             workspace.id === 'data' ? `Download ${dataFormat.toUpperCase()}` :
             workspace.id === 'text' ? 'Download Text' :
             workspace.id === 'media' ? `Download ${mediaTargetFormat.toUpperCase()}` :
-            workspace.id === 'files' ? 'Download Archive' :
+            workspace.id === 'files' ? (activeUtility.id === 'files-batch-rename' || activeUtility.id === 'batch-rename' ? 'Download Renamed Files' : 'Download Archive') :
             'Download PDF'
           }
           onPrimaryAction={handlePrimaryProcess}

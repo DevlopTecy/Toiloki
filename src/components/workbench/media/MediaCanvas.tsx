@@ -609,22 +609,11 @@ export const MediaCanvas: React.FC<MediaCanvasProps> = ({
                 <h4 className="tuning-card-title">Volume & Dynamics Processing</h4>
                 <div className="tuning-row">
                   <div className="tuning-label-row">
-                    <span>Gain Adjustment (dB)</span>
+                    <span>Gain Level</span>
                     <span className="tuning-val-tag">{gainDb > 0 ? `+${gainDb}` : gainDb} dB</span>
                   </div>
-                  <input
-                    type="range"
-                    min="-18"
-                    max="18"
-                    step="1"
-                    value={gainDb}
-                    onChange={(e) => onGainDbChange(parseInt(e.target.value, 10))}
-                    className="tuning-slider"
-                  />
-                  <div className="slider-ticks">
-                    <span>-18 dB</span>
-                    <span>0 dB (Unity)</span>
-                    <span>+18 dB</span>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Unified gain dynamics slider is configured in the options panel.
                   </div>
                 </div>
 

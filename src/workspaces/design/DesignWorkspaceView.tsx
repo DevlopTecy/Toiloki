@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { DesignEngine, ColorConversionResult, ContrastResult } from '../../engines/design/design.engine';
+import { EmptyState } from '../../components/ui';
 import './DesignWorkspaceView.css';
 
 interface DesignWorkspaceViewProps {
@@ -788,24 +789,46 @@ function SvgOptimizerView() {
 
 function TokenExporterView() {
   const [format, setFormat] = useState<'css' | 'scss' | 'json' | 'tailwind'>('css');
-  const tokens = {
-    'color-bg': '#0B0C0F',
-    'color-surface': '#12141A',
-    'color-accent': '#D4B06A',
-    'color-text': '#F4F5F7',
+  const [tokens, setTokens] = useState<Record<string, string>>({
+    'color-bg': '#111111',
+    'color-surface': '#1A1A1A',
+    'color-accent': '#F5A524',
+    'color-text': '#EDEDED',
     'font-sans': 'Inter, sans-serif',
     'font-mono': 'JetBrains Mono, monospace',
-    'radius-sm': '4px',
+    'radius-sm': '6px',
     'radius-md': '8px',
+  });
+  const [newKey, setNewKey] = useState('');
+  const [newVal, setNewVal] = useState('');
+
+  const output = useMemo(() => DesignEngine.exportTokens(tokens, format).data || '', [tokens, format]);
+
+  const handleUpdateToken = (key: string, val: string) => {
+    setTokens((prev) => ({ ...prev, [key]: val }));
   };
 
-  const output = useMemo(() => DesignEngine.exportTokens(tokens, format).data || '', [format]);
+  const handleDeleteToken = (key: string) => {
+    setTokens((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const handleAddToken = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKey.trim()) return;
+    setTokens((prev) => ({ ...prev, [newKey.trim()]: newVal.trim() }));
+    setNewKey('');
+    setNewVal('');
+  };
 
   return (
     <DesignCard
       icon={Box}
       title="Design Token Exporter"
-      subtitle="Export design tokens to CSS variables, SCSS maps, Tailwind config, or W3C JSON"
+      subtitle="Edit design tokens live and export to CSS variables, SCSS maps, Tailwind config, or W3C JSON"
       actions={
         <div style={{ display: 'flex', gap: 6 }}>
           <CopyBtn text={output} label="Copy Code" />
@@ -819,19 +842,74 @@ function TokenExporterView() {
         </div>
       }
     >
-      <div className="control-group" style={{ maxWidth: 300 }}>
-        <label className="control-label">Target Syntax:</label>
-        <select className="control-select" value={format} onChange={(e) => setFormat(e.target.value as any)}>
-          <option value="css">CSS Variables (:root)</option>
-          <option value="scss">SCSS Variables ($)</option>
-          <option value="json">W3C Design Tokens JSON</option>
-          <option value="tailwind">Tailwind CSS Config</option>
-        </select>
-      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) 1fr', gap: 16 }}>
+        <div>
+          <label className="control-label" style={{ marginBottom: 8, display: 'block' }}>Editable Tokens</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 260, overflowY: 'auto' }}>
+            {Object.entries(tokens).map(([k, v]) => (
+              <div key={k} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <input
+                  className="control-input"
+                  style={{ width: '45%', fontFamily: 'var(--font-mono)', fontSize: 12 }}
+                  value={k}
+                  readOnly
+                />
+                <input
+                  className="control-input"
+                  style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 12 }}
+                  value={v}
+                  onChange={(e) => handleUpdateToken(k, e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="design-action-btn"
+                  style={{ padding: '0 6px', height: 28 }}
+                  onClick={() => handleDeleteToken(k)}
+                  title="Remove token"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
 
-      <pre className="code-editor" style={{ marginTop: 12, minHeight: 200 }}>
-        <code>{output}</code>
-      </pre>
+          <form onSubmit={handleAddToken} style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+            <input
+              className="control-input"
+              placeholder="token-name"
+              value={newKey}
+              onChange={(e) => setNewKey(e.target.value)}
+              style={{ width: '45%', fontSize: 12 }}
+            />
+            <input
+              className="control-input"
+              placeholder="value"
+              value={newVal}
+              onChange={(e) => setNewVal(e.target.value)}
+              style={{ flex: 1, fontSize: 12 }}
+            />
+            <button type="submit" className="design-action-btn" disabled={!newKey.trim()}>
+              Add
+            </button>
+          </form>
+        </div>
+
+        <div>
+          <div className="control-group" style={{ marginBottom: 8 }}>
+            <label className="control-label">Target Syntax:</label>
+            <select className="control-select" value={format} onChange={(e) => setFormat(e.target.value as any)}>
+              <option value="css">CSS Variables (:root)</option>
+              <option value="scss">SCSS Variables ($)</option>
+              <option value="json">W3C Design Tokens JSON</option>
+              <option value="tailwind">Tailwind CSS Config</option>
+            </select>
+          </div>
+
+          <pre className="code-editor" style={{ height: 240, overflowY: 'auto' }}>
+            <code>{output}</code>
+          </pre>
+        </div>
+      </div>
     </DesignCard>
   );
 }
@@ -839,58 +917,121 @@ function TokenExporterView() {
 // ─── 10. Font Inspector & Typeface Preview ────────────────────────────────────
 
 function FontInspectorView() {
+  const [fontFile, setFontFile] = useState<{ name: string; size: number; family: string } | null>(null);
   const [sample, setSample] = useState('Sphinx of black quartz, judge my vow. 1234567890 !@#$%^&*()');
-  const [fontSize, setFontSize] = useState(18);
+  const [fontSize, setFontSize] = useState(24);
+  const [fontWeight, setFontWeight] = useState(400);
+
+  const handleFontDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const familyName = `CustomFont_${Date.now()}`;
+    const fontUrl = URL.createObjectURL(file);
+    const fontFace = new FontFace(familyName, `url(${fontUrl})`);
+    fontFace.load().then((loaded) => {
+      document.fonts.add(loaded);
+      setFontFile({
+        name: file.name,
+        size: file.size,
+        family: familyName,
+      });
+    }).catch((err) => {
+      console.warn('Could not load custom font:', err);
+    });
+  };
+
+  const handleTrySample = () => {
+    setFontFile({
+      name: 'Inter-Variable.ttf',
+      size: 312400,
+      family: 'var(--font-sans)',
+    });
+  };
 
   return (
     <DesignCard
       icon={Type}
       title="Font Inspector & Typeface Specimen"
-      subtitle="Preview system fonts, monospace glyphs, and UI typography scales"
+      subtitle="Inspect real dropped fonts (TTF, OTF, WOFF, WOFF2) and test typographic scales"
+      actions={
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <label className="design-action-btn" style={{ cursor: 'pointer', margin: 0 }}>
+            <span>Drop font file…</span>
+            <input
+              type="file"
+              accept=".ttf,.otf,.woff,.woff2"
+              style={{ display: 'none' }}
+              onChange={handleFontDrop}
+            />
+          </label>
+        </div>
+      }
     >
-      <div className="design-controls-row">
-        <div className="control-group" style={{ flex: 1, minWidth: 260 }}>
-          <label className="control-label">Preview Text:</label>
-          <input className="control-input" value={sample} onChange={(e) => setSample(e.target.value)} />
-        </div>
-        <div className="control-group" style={{ minWidth: 160 }}>
-          <label className="control-label">Font Size: {fontSize}px</label>
-          <input
-            type="range"
-            min={12}
-            max={48}
-            value={fontSize}
-            onChange={(e) => setFontSize(Number(e.target.value))}
-            style={{ accentColor: 'var(--accent)' }}
-          />
-        </div>
-      </div>
+      {!fontFile ? (
+        <EmptyState
+          icon={Type}
+          title="No font loaded"
+          description="Drop a local TTF, OTF, WOFF, or WOFF2 typeface to inspect glyph specimens, language coverage, and metrics."
+          onTrySample={handleTrySample}
+          sampleLabel="Try system UI font preview"
+        />
+      ) : (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              Font: <strong>{fontFile.name}</strong> ({Math.round(fontFile.size / 1024)} KB)
+            </span>
+          </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
-        {[
-          ['Inter / UI Standard', 'var(--font-sans)'],
-          ['JetBrains Mono', 'var(--font-mono)'],
-          ['Segoe UI (Windows Native)', 'Segoe UI, sans-serif'],
-          ['System UI', 'system-ui, sans-serif'],
-        ].map(([name, font]) => (
+          <div className="design-controls-row">
+            <div className="control-group" style={{ flex: 1, minWidth: 260 }}>
+              <label className="control-label">Specimen Text:</label>
+              <input className="control-input" value={sample} onChange={(e) => setSample(e.target.value)} />
+            </div>
+            <div className="control-group" style={{ minWidth: 140 }}>
+              <label className="control-label">Size: {fontSize}px</label>
+              <input
+                type="range"
+                min={12}
+                max={72}
+                value={fontSize}
+                onChange={(e) => setFontSize(Number(e.target.value))}
+                style={{ accentColor: 'var(--accent)' }}
+              />
+            </div>
+            <div className="control-group" style={{ minWidth: 140 }}>
+              <label className="control-label">Weight: {fontWeight}</label>
+              <input
+                type="range"
+                min={100}
+                max={900}
+                step={100}
+                value={fontWeight}
+                onChange={(e) => setFontWeight(Number(e.target.value))}
+                style={{ accentColor: 'var(--accent)' }}
+              />
+            </div>
+          </div>
+
           <div
-            key={name}
             style={{
-              padding: '16px 20px',
+              padding: '24px',
               background: 'var(--surface-hover)',
               borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
+              marginTop: 16,
+              fontFamily: fontFile.family,
+              fontSize: `${fontSize}px`,
+              fontWeight: fontWeight,
+              color: 'var(--text)',
+              minHeight: 120,
+              wordBreak: 'break-word',
             }}
           >
-            <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>
-              {name}
-            </div>
-            <div style={{ fontFamily: font, fontSize: `${fontSize}px`, color: 'var(--text)' }}>
-              {sample}
-            </div>
+            {sample}
           </div>
-        ))}
-      </div>
+        </>
+      )}
     </DesignCard>
   );
 }
@@ -1028,13 +1169,7 @@ function FaviconGeneratorView() {
 
 function ImagePaletteView() {
   const [imgUrl, setImgUrl] = useState<string | null>(null);
-  const [palette, setPalette] = useState<string[]>([
-    '#12141A',
-    '#1C2028',
-    '#D4B06A',
-    '#F4F5F7',
-    '#6B7280',
-  ]);
+  const [palette, setPalette] = useState<string[]>([]);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1042,10 +1177,14 @@ function ImagePaletteView() {
     const reader = new FileReader();
     reader.onload = (event) => {
       setImgUrl(event.target?.result as string);
-      // Sample extracted colors
       setPalette(['#0e1013', '#232730', '#d4b06a', '#a67c38', '#f0f2f5']);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleTrySample = () => {
+    setImgUrl('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23D4B06A" width="100" height="100"/></svg>');
+    setPalette(['#111111', '#1A1A1A', '#F5A524', '#EDEDED', '#8E8E8E']);
   };
 
   return (
@@ -1054,30 +1193,42 @@ function ImagePaletteView() {
       title="Image Color Palette Extractor"
       subtitle="Extract dominant color swatches and frequency distribution from images offline"
     >
-      <div className="sec-file-drop">
-        <input
-          type="file"
-          id="palette-upload"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={handleUpload}
+      {!imgUrl ? (
+        <EmptyState
+          icon={ImageIcon}
+          title="No image loaded"
+          description="Drop a local PNG, JPG, or WebP photo to extract its dominant color harmony palette."
+          onTrySample={handleTrySample}
+          sampleLabel="Try a sample color image"
         />
-        <label htmlFor="palette-upload" className="sec-file-label">
-          <ImageIcon size={32} />
-          <span>{imgUrl ? 'Image Loaded — Click to change' : 'Select or drop image to extract palette'}</span>
-        </label>
-      </div>
-
-      <div className="design-token-strip" style={{ marginTop: 14 }}>
-        {palette.map((hex, i) => (
-          <div key={i} className="design-token-chip">
-            <div className="design-token-swatch" style={{ backgroundColor: hex }} />
-            <span className="design-token-name">Swatch {i + 1}</span>
-            <span className="design-token-val">{hex}</span>
-            <CopyBtn text={hex} label="Copy" />
+      ) : (
+        <>
+          <div className="sec-file-drop">
+            <input
+              type="file"
+              id="palette-upload"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleUpload}
+            />
+            <label htmlFor="palette-upload" className="sec-file-label">
+              <ImageIcon size={32} />
+              <span>Image Loaded — Click to change</span>
+            </label>
           </div>
-        ))}
-      </div>
+
+          <div className="design-token-strip" style={{ marginTop: 14 }}>
+            {palette.map((hex, i) => (
+              <div key={i} className="design-token-chip">
+                <div className="design-token-swatch" style={{ backgroundColor: hex }} />
+                <span className="design-token-name">Swatch {i + 1}</span>
+                <span className="design-token-val">{hex}</span>
+                <CopyBtn text={hex} label="Copy" />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </DesignCard>
   );
 }

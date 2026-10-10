@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { HistoryService } from '../../core/services/history.service';
 import { SplitEditor } from '../../components/common/SplitEditor';
+import { plural } from '../../core/utils/plural';
 import './DeveloperWorkspaceView.css';
 
 interface DeveloperWorkspaceViewProps {
@@ -39,9 +40,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
   onToggleFavorite,
 }) => {
   // Code Formatter State
-  const [codeSnippet, setCodeSnippet] = useState(
-    '{"service":"Toiloki","version":"1.0.0","settings":{"localProcessing":true,"telemetry":false,"offlineOnly":true}}'
-  );
+  const [codeSnippet, setCodeSnippet] = useState('');
   const [formattedCode, setFormattedCode] = useState('');
   const [jsonViewMode, setJsonViewMode] = useState<'formatted' | 'tree'>('formatted');
   const [sortJsonKeys, setSortJsonKeys] = useState(false);
@@ -50,15 +49,11 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
   const [copied, setCopied] = useState(false);
 
   // JWT Inspector State
-  const [jwtInput, setJwtInput] = useState(
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFsaWNlIE1vcmdhbiIsImFkbWluIjp0cnVlLCJpYXQiOjE3MjAwMDAwMDAsImV4cCI6MTg1MDAwMDAwMH0.signature'
-  );
+  const [jwtInput, setJwtInput] = useState('');
   const [jwtData, setJwtData] = useState<any>(null);
 
   // Encode / Decode State
-  const [encodeInput, setEncodeInput] = useState(
-    'https://toiloki.local/api/v1/query?tag=utility&lang=en'
-  );
+  const [encodeInput, setEncodeInput] = useState('');
   const [encodeOutput, setEncodeOutput] = useState('');
   const [encodeMode, setEncodeMode] = useState<'standard' | 'urlsafe'>('standard');
 
@@ -79,9 +74,7 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
     '([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})'
   );
   const [regexFlags, setRegexFlags] = useState('g');
-  const [regexText, setRegexText] = useState(
-    'Contact the team at support@toiloki.local or sales-team@enterprise.org for offline licenses.'
-  );
+  const [regexText, setRegexText] = useState('');
   const [regexMatches, setRegexMatches] = useState<any[]>([]);
 
   // HTTP Status Reference Search
@@ -319,11 +312,11 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
               if (formatError) setFormatError(null);
             }}
             inputLabel="Input Code"
-            inputMeta={`${codeSnippet.split('\n').length} lines`}
+            inputMeta={plural(codeSnippet.trim() ? codeSnippet.split('\n').length : 0, 'line')}
             outputValue={formatError ? `Syntax error: ${formatError}` : formattedCode}
             onOutputChange={setFormattedCode}
             outputLabel="Formatted Output"
-            outputMeta={`${formattedCode.split('\n').length} lines`}
+            outputMeta={plural(formattedCode.trim() ? formattedCode.split('\n').length : 0, 'line')}
             stats={`${codeSnippet.length} chars in • ${formattedCode ? formattedCode.length : 0} chars out`}
           />
         )}
@@ -336,8 +329,23 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
               <span style={{ fontSize: '14px' }}>🔒</span>
               <span><strong>Offline Inspection:</strong> Signature verification requires a secret or public key; payload decoded for offline inspection only.</span>
             </div>
-            <div className="jwt-input-header">
+            <div className="jwt-input-header" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <span className="field-label">Encoded JWT Token:</span>
+              {!jwtInput.trim() && (
+                <button
+                  className="tool-btn secondary small-btn"
+                  onClick={() => {
+                    const sample = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFsaWNlIE1vcmdhbiIsImFkbWluIjp0cnVlLCJpYXQiOjE3MjAwMDAwMDAsImV4cCI6MTg1MDAwMDAwMH0.signature';
+                    setJwtInput(sample);
+                    const res = DevEngine.decodeJwt(sample);
+                    if (res.success) setJwtData(res.data);
+                  }}
+                  type="button"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  Try a sample JWT
+                </button>
+              )}
               <button
                 className="tool-btn secondary small-btn"
                 onClick={() => { setJwtInput(''); setJwtData(null); }}
@@ -409,7 +417,19 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         {/* Encode / Decode */}
         {(utilityId === 'dev-base64' || utilityId === 'dev-url') && (
           <div className="encode-container">
-            <span className="field-label">Input Text:</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <span className="field-label">Input Text:</span>
+              {!encodeInput.trim() && (
+                <button
+                  className="tool-btn secondary small-btn"
+                  onClick={() => setEncodeInput('https://toiloki.local/api/v1/query?tag=utility&lang=en')}
+                  type="button"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  Try sample text
+                </button>
+              )}
+            </div>
             <textarea
               className="monospace-code-editor encode-area"
               value={encodeInput}
@@ -658,7 +678,24 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
               />
             </div>
 
-            <span className="field-label">Sample Input Text:</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span className="field-label">Input Text:</span>
+              {!regexText.trim() && (
+                <button
+                  className="tool-btn secondary small-btn"
+                  onClick={() => {
+                    const sample = 'Contact the team at support@toiloki.local or sales-team@enterprise.org for offline licenses.';
+                    setRegexText(sample);
+                    const res = DevEngine.testRegex(regexPattern, regexFlags, sample);
+                    if (res.success && res.data) setRegexMatches(res.data.matches);
+                  }}
+                  type="button"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  Try sample text
+                </button>
+              )}
+            </div>
             <textarea
               className="monospace-code-editor regex-text-area"
               value={regexText}

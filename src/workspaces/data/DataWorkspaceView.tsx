@@ -29,8 +29,11 @@ import {
   ShieldCheck,
   FileDiff,
   Terminal,
+  Database,
 } from 'lucide-react';
 import { DataTable } from '../../components/common/DataTable';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { plural } from '../../core/utils/plural';
 import './DataWorkspaceView.css';
 
 interface DataWorkspaceViewProps {
@@ -53,9 +56,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
   onToggleFavorite,
 }) => {
   const [files, setFiles] = useState<SelectedFile[]>([]);
-  const [dataInput, setDataInput] = useState<string>(
-    'id,name,role,department,salary\n1,Alice Morgan,Lead Engineer,Backend,125000\n2,Bob Jenkins,UI Designer,Product,95000\n3,Carol Zhao,Data Scientist,Analytics,118000\n4,David Kim,DevOps Architect,Infrastructure,130000\n5,Elena Rossi,QA Engineer,Quality,88000'
-  );
+  const [dataInput, setDataInput] = useState<string>('');
 
   // Converter format options
   const [sourceFormat, setSourceFormat] = useState('csv');
@@ -69,9 +70,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
   const [jsonPathExpr, setJsonPathExpr] = useState('$.*');
 
   // Join CSV
-  const [secondaryCsv, setSecondaryCsv] = useState(
-    'id,location,manager\n1,San Francisco,Sarah Connor\n2,New York,John Doe\n3,London,Emma Watson\n6,Tokyo,Kenji Sato'
-  );
+  const [secondaryCsv, setSecondaryCsv] = useState('');
   const [joinKeyA, setJoinKeyA] = useState('id');
   const [joinKeyB, setJoinKeyB] = useState('id');
   const [joinType, setJoinType] = useState<'inner' | 'left' | 'outer'>('inner');
@@ -91,32 +90,14 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
   const [tsRootName, setTsRootName] = useState('Employee');
 
   // JSON Schema
-  const [schemaInput, setSchemaInput] = useState(
-    JSON.stringify(
-      {
-        type: 'object',
-        required: ['id', 'name', 'salary'],
-        properties: {
-          id: { type: 'number' },
-          name: { type: 'string' },
-          salary: { type: 'number' },
-        },
-      },
-      null,
-      2
-    )
-  );
+  const [schemaInput, setSchemaInput] = useState('');
 
   // SQL on CSV
   const [sqlQuery, setSqlQuery] = useState('SELECT * WHERE salary > 100000 ORDER BY salary DESC');
 
   // JSON Diff
-  const [jsonDiffLeft, setJsonDiffLeft] = useState(
-    JSON.stringify({ name: 'Toiloki', version: '1.0.0', features: ['offline', 'privacy'], settings: { darkTheme: true } }, null, 2)
-  );
-  const [jsonDiffRight, setJsonDiffRight] = useState(
-    JSON.stringify({ name: 'Toiloki Suite', version: '2.0.0', features: ['offline', 'privacy', 'speed'], settings: { darkTheme: true, accentColor: 'orange' } }, null, 2)
-  );
+  const [jsonDiffLeft, setJsonDiffLeft] = useState('');
+  const [jsonDiffRight, setJsonDiffRight] = useState('');
   const [diffReport, setDiffReport] = useState<{
     added: Array<{ path: string; value: any }>;
     removed: Array<{ path: string; value: any }>;
@@ -146,8 +127,8 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Seed sample data according to current utility
-  useEffect(() => {
+  // Sample data getter (only populated upon explicit user click, never preloaded or auto-saved)
+  const handleTrySample = () => {
     switch (utilityId) {
       case 'data-ndjson-tsv':
         setDataInput('id,name,department\n101,Alice,Core\n102,Bob,Design\n103,Charlie,Security');
@@ -178,7 +159,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         setSecondaryCsv('id,location,manager\n1,San Francisco,Sarah Connor\n2,New York,John Doe\n3,London,Emma Watson\n6,Tokyo,Kenji Sato');
         break;
       case 'data-encoding-fixer':
-        setDataInput('Toilokiâ€™s offline suite protects user privacyâ€¦ It wonâ€™t leak metadata or contact Ã©xternal servers.');
+        setDataInput('Toiloki’s offline suite protects user privacy… It won’t leak metadata or contact external servers.');
         break;
       case 'data-json-to-typescript':
         setDataInput(
@@ -196,10 +177,35 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
           )
         );
         break;
+      case 'data-json-diff':
+        setJsonDiffLeft(JSON.stringify({ name: 'Toiloki', version: '1.0.0', features: ['offline', 'privacy'], settings: { darkTheme: true } }, null, 2));
+        setJsonDiffRight(JSON.stringify({ name: 'Toiloki Suite', version: '2.0.0', features: ['offline', 'privacy', 'speed'], settings: { darkTheme: true, accentColor: 'orange' } }, null, 2));
+        break;
+      case 'data-json-schema-validator':
+        setDataInput(JSON.stringify({ id: 1, name: 'Alice Morgan', salary: 125000 }, null, 2));
+        setSchemaInput(
+          JSON.stringify(
+            {
+              type: 'object',
+              required: ['id', 'name', 'salary'],
+              properties: {
+                id: { type: 'number' },
+                name: { type: 'string' },
+                salary: { type: 'number' },
+              },
+            },
+            null,
+            2
+          )
+        );
+        break;
       default:
+        setDataInput(
+          'id,name,role,department,salary\n1,Alice Morgan,Lead Engineer,Backend,125000\n2,Bob Jenkins,UI Designer,Product,95000\n3,Carol Zhao,Data Scientist,Analytics,118000\n4,David Kim,DevOps Architect,Infrastructure,130000\n5,Elena Rossi,QA Engineer,Quality,88000'
+        );
         break;
     }
-  }, [utilityId]);
+  };
 
   // Parse CSV for table viewer / transformers
   const parsedTable = useMemo(() => {
@@ -562,7 +568,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
           workspaceId: 'data',
           groupId,
           utilityId,
-          input: files[0]?.name || `${dataInput.split('\n').length} lines`,
+          input: files[0]?.name || plural(dataInput.trim() ? dataInput.split('\n').length : 0, 'line'),
           output: summary,
           status: 'completed',
         });
@@ -632,7 +638,17 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
         )}
 
         {/* Interactive Custom Controls Header based on utility */}
-        {!outputData && !isProcessing && (
+        {!outputData && !isProcessing && !dataInput.trim() && !jsonDiffLeft.trim() && !schemaInput.trim() && files.length === 0 ? (
+          <EmptyState
+            icon={Database}
+            title="No data loaded"
+            description="Paste CSV, TSV, or JSON data to format, convert, and inspect records offline."
+            actionLabel="Start with blank input"
+            onAction={() => setDataInput('\n')}
+            onTrySample={handleTrySample}
+            sampleLabel="Try a sample dataset"
+          />
+        ) : !outputData && !isProcessing && (
           <div className="data-editor-container">
             {utilityId === 'data-ndjson-tsv' && (
               <div className="converter-selectors-bar">
@@ -807,7 +823,7 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
                 <div className="editor-top-label-bar">
                   <span className="editor-lang-badge">Input Data Payload</span>
                   <span className="editor-lines-badge">
-                    {dataInput.split('\n').length} lines • {parsedTable.rows.length ? `${parsedTable.rows.length} rows` : ''}
+                    {plural(dataInput.trim() ? dataInput.split('\n').length : 0, 'line')}{parsedTable.rows.length ? ` • ${plural(parsedTable.rows.length, 'row')}` : ''}
                   </span>
                 </div>
                 <textarea

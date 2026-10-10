@@ -59,6 +59,34 @@ export const FilesCanvas: React.FC<FilesCanvasProps> = ({
   const [filterQuery, setFilterQuery] = useState<string>('');
   const [archiveSearch, setArchiveSearch] = useState<string>('');
   const [copiedHashIndex, setCopiedHashIndex] = useState<number | null>(null);
+  const [computedHashes, setComputedHashes] = useState<Record<string, string>>({});
+
+  // Compute real cryptographic hashes for files
+  React.useEffect(() => {
+    let active = true;
+    files.forEach(async (f) => {
+      try {
+        let buf = f.buffer;
+        if (!buf && f.file) {
+          buf = new Uint8Array(await f.file.arrayBuffer());
+        }
+        if (buf && buf.byteLength > 0) {
+          const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+          const hashHex = Array.from(new Uint8Array(hashBuf))
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('');
+          if (active) {
+            setComputedHashes((prev) => ({ ...prev, [f.name]: hashHex }));
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to compute hash:', err);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [files]);
 
   // Compute live rename results
   const renameResults = useMemo(() => {
@@ -299,10 +327,6 @@ export const FilesCanvas: React.FC<FilesCanvasProps> = ({
                 <span className="stat-label">Compression Ratio</span>
                 <span className="stat-value highlight-accent">{archiveStats.savingsPercent}% saved</span>
               </div>
-              <div className="archive-stat-item safety-badge">
-                <ShieldCheck size={14} className="safety-icon" />
-                <span>Zip Slip Protection Active</span>
-              </div>
             </div>
 
             {/* Archive Entries Table */}
@@ -369,11 +393,7 @@ export const FilesCanvas: React.FC<FilesCanvasProps> = ({
                   </thead>
                   <tbody>
                     {files.map((file, idx) => {
-                      // Deterministic hash based on buffer length and filename
-                      const syntheticHash = Array.from(file.name + (file.buffer?.length || 1024))
-                        .reduce((acc, char, i) => acc + ((char.charCodeAt(0) * (i + 13)) % 16).toString(16), '')
-                        .padEnd(64, 'e8f1b2c4a9d70315')
-                        .slice(0, 64);
+                      const hashValue = computedHashes[file.name] || 'Calculating digest…';
 
                       return (
                         <tr key={`hash-${file.name}-${idx}`} className="file-row">
@@ -387,14 +407,15 @@ export const FilesCanvas: React.FC<FilesCanvasProps> = ({
                             {formatBytes(file.buffer?.length || 0)}
                           </td>
                           <td className="td-hash monospace">
-                            <span className="hash-code-snippet">{syntheticHash}</span>
+                            <span className="hash-code-snippet">{hashValue}</span>
                           </td>
                           <td className="td-actions">
                             <button
                               type="button"
                               className="copy-hash-btn"
-                              onClick={() => copyHash(syntheticHash, idx)}
+                              onClick={() => copyHash(hashValue, idx)}
                               title="Copy SHA-256 Hash"
+                              disabled={!computedHashes[file.name]}
                             >
                               {copiedHashIndex === idx ? <Check size={13} /> : <Copy size={13} />}
                               <span>{copiedHashIndex === idx ? 'Copied' : 'Copy'}</span>

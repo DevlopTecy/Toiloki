@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ToolLayout } from '../../components/common/ToolLayout';
 import { SplitEditor } from '../../components/common/SplitEditor';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { TextEngine, CaseType } from '../../engines/text/text.engine';
 import { DiffEngine, DiffChange } from '../../engines/diff/diff.engine';
 import { DevEngine } from '../../engines/developer/dev.engine';
 import { GitCompare, Filter, Hash, Table, Shuffle, FileText, CheckCircle2 } from 'lucide-react';
 import { HistoryService } from '../../core/services/history.service';
+import { plural } from '../../core/utils/plural';
 import './TextWorkspaceView.css';
 
 interface TextWorkspaceViewProps {
@@ -27,19 +29,16 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
   isFavorite,
   onToggleFavorite,
 }) => {
-  // Input & Output states
+  // Input & Output states - starts completely empty without synthetic preloaded text
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
+  const [isEditingBlank, setIsEditingBlank] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeCaseOption, setActiveCaseOption] = useState<string>('case-upper');
 
   // Compare diff state
-  const [compareLeft, setCompareLeft] = useState(
-    'First line of original document.\nSecond line with some parameters.\nThird line unchanged.\nFourth line for testing.'
-  );
-  const [compareRight, setCompareRight] = useState(
-    'First line of original document.\nSecond line with updated production parameters.\nThird line unchanged.\nFifth line newly appended.'
-  );
+  const [compareLeft, setCompareLeft] = useState('');
+  const [compareRight, setCompareRight] = useState('');
   const [diffChanges, setDiffChanges] = useState<DiffChange[] | null>(null);
 
   // Specific tool parameters
@@ -59,11 +58,11 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
   const [freqExcludeStop, setFreqExcludeStop] = useState<boolean>(true);
   const [entityFilter, setEntityFilter] = useState<'all' | 'emails' | 'urls' | 'phones' | 'ipAddresses' | 'dates' | 'hashtags'>('all');
 
-  // Seed sample data according to current utility
-  useEffect(() => {
-    switch (utilityId) {
+  // Sample data getter (only loaded upon explicit user request, never preloaded or saved to history)
+  const getSampleTextForUtility = (uId: string): string => {
+    switch (uId) {
       case 'text-extract-entities':
-        setInputText(
+        return (
           'Contact engineering at dev-ops@toiloki.org or security team via sec-report@toiloki.dev.\n' +
           'Access dashboard at https://toiloki.dev/dashboard or documentation at http://docs.local.\n' +
           'Direct hotline: +1 (800) 555-0199 or office line (415) 888-2345.\n' +
@@ -71,54 +70,57 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
           'Key milestones recorded on 2026-10-03 and 2026-12-31.\n' +
           'Tags: #privacy #offline #localfirst #zeroCloud'
         );
-        break;
       case 'text-find-duplicate-paras':
-        setInputText(
+        return (
           'Toiloki runs 100% offline without telemetry or server tracking.\n\n' +
           'Second paragraph explaining local-first file processing pipelines.\n\n' +
           'Toiloki runs 100% offline without telemetry or server tracking.\n\n' +
           'All document parsing executes strictly in memory using WebAssembly and pure TypeScript.\n\n' +
           'Second paragraph explaining local-first file processing pipelines.'
         );
-        break;
       case 'text-slugify':
-        setInputText('Building High-Performance Local-First Desktop Suites with Zero Telemetry in 2026!');
-        break;
+        return 'Building High-Performance Local-First Desktop Suites with Zero Telemetry in 2026!';
       case 'text-natural-sort':
-        setInputText('item1\nitem10\nitem2\nitem20\nitem3\nrelease-v1.2.0\nrelease-v1.10.0\nrelease-v1.2.1\nbeta-4\nbeta-12');
-        break;
+        return 'item1\nitem10\nitem2\nitem20\nitem3\nrelease-v1.2.0\nrelease-v1.10.0\nrelease-v1.2.1\nbeta-4\nbeta-12';
       case 'text-to-table':
-        setInputText('Name,Role,Department,Status\nAlice Vance,Lead Architect,Core Engine,Active\nBob Miller,UI/UX Engineer,Design,Active\nCharlie King,Security Specialist,Privacy,Away\nDiana Ross,QA Lead,Verification,Active');
-        break;
+        return 'Name,Role,Department,Status\nAlice Vance,Lead Architect,Core Engine,Active\nBob Miller,UI/UX Engineer,Design,Active\nCharlie King,Security Specialist,Privacy,Away\nDiana Ross,QA Lead,Verification,Active';
       case 'text-multi-file-regex':
-        setInputText('Developer alert: contact alice@corp.internal or support@service.com for assistance. Backup: admin@corp.internal.');
-        break;
+        return 'Developer alert: contact alice@corp.internal or support@service.com for assistance. Backup: admin@corp.internal.';
       case 'text-word-frequency':
-        setInputText(
+        return (
           'Local suite architecture provides deterministic performance. ' +
           'The suite runs entirely offline. Deterministic code guarantees consistency across multiple operations. ' +
           'The local suite privacy guarantee protects sensitive data.'
         );
-        break;
-      case 'text-lorem-ipsum':
-        setInputText('');
-        break;
       default:
-        if (!inputText) {
-          setInputText(
-            'The quick brown fox jumps over the lazy dog.\n\nToiloki provides offline local utilities with zero tracking.\nExtra whitespace and duplicate lines can be cleaned in milliseconds.'
-          );
-        }
-        break;
+        return (
+          'The quick brown fox jumps over the lazy dog.\n\n' +
+          'Toiloki provides offline local utilities with zero tracking.\n' +
+          'Extra whitespace and duplicate lines can be cleaned in milliseconds.'
+        );
     }
-  }, [utilityId]);
+  };
+
+  const handleTrySample = () => {
+    setIsEditingBlank(true);
+    setInputText(getSampleTextForUtility(utilityId));
+  };
+
+  const handleTryDiffSample = () => {
+    setCompareLeft(
+      'First line of original document.\nSecond line with some parameters.\nThird line unchanged.\nFourth line for testing.'
+    );
+    setCompareRight(
+      'First line of original document.\nSecond line with updated production parameters.\nThird line unchanged.\nFifth line newly appended.'
+    );
+  };
 
   // Sync activeCaseOption or trigger transform when utilityId changes
   useEffect(() => {
     if (utilityId.startsWith('case-')) {
       setActiveCaseOption(utilityId);
-      runTransform(utilityId);
-    } else {
+      if (inputText.trim()) runTransform(utilityId);
+    } else if (utilityId === 'text-lorem-ipsum' || inputText.trim()) {
       runTransform(utilityId);
     }
   }, [
@@ -147,6 +149,11 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
   }, [inputText]);
 
   const runTransform = (actionId: string) => {
+    if (!inputText.trim() && actionId !== 'text-lorem-ipsum') {
+      setOutputText('');
+      return;
+    }
+
     let result = '';
 
     if (actionId.startsWith('case-')) {
@@ -309,15 +316,17 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
 
     setOutputText(result);
 
-    HistoryService.record({
-      toolName,
-      workspaceId: 'text',
-      groupId,
-      utilityId: actionId || utilityId,
-      input: `${inputText.length} chars`,
-      output: `Completed ${actionId}`,
-      status: 'completed',
-    });
+    if (inputText.trim() || actionId === 'text-lorem-ipsum') {
+      HistoryService.record({
+        toolName,
+        workspaceId: 'text',
+        groupId,
+        utilityId: actionId || utilityId,
+        input: `${inputText.length} chars`,
+        output: `Completed ${actionId}`,
+        status: 'completed',
+      });
+    }
   };
 
   const handleSwap = () => {
@@ -330,6 +339,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
     setInputText('');
     setOutputText('');
     setDiffChanges(null);
+    setIsEditingBlank(false);
   };
 
   const handleCopyOutput = async () => {
@@ -728,7 +738,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
               </div>
             </div>
 
-            <div className="compare-actions-bar">
+            <div className="compare-actions-bar" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <button
                 type="button"
                 className="toiloki-btn toiloki-btn-primary"
@@ -737,6 +747,16 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
                 <GitCompare size={15} />
                 <span>Compare Side-by-Side</span>
               </button>
+              {!compareLeft.trim() && !compareRight.trim() && (
+                <button
+                  type="button"
+                  className="toiloki-empty-sample-link"
+                  onClick={handleTryDiffSample}
+                  style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '12px', textDecoration: 'underline' }}
+                >
+                  Try sample comparison
+                </button>
+              )}
             </div>
 
             {diffChanges && (
@@ -767,6 +787,16 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
               </div>
             )}
           </div>
+        ) : !inputText.trim() && !isEditingBlank && utilityId !== 'text-lorem-ipsum' ? (
+          <EmptyState
+            icon={FileText}
+            title="No text entered"
+            description="Enter or paste text to perform case conversions, line operations, regex transformations, or text analysis offline."
+            actionLabel="Start with blank editor"
+            onAction={() => setIsEditingBlank(true)}
+            onTrySample={handleTrySample}
+            sampleLabel="Try sample text"
+          />
         ) : (
           /* TEMPLATE B: Shared Split Editor */
           <SplitEditor
@@ -788,7 +818,7 @@ export const TextWorkspaceView: React.FC<TextWorkspaceViewProps> = ({
             onOutputChange={setOutputText}
             outputLabel="Output"
             outputMeta={`${outputText.length} chars`}
-            stats={`${metrics.words} words • ${metrics.characters} chars • ${metrics.lines} lines`}
+            stats={`${plural(metrics.words, 'word')} • ${plural(metrics.characters, 'char')} • ${plural(metrics.lines, 'line')}`}
           />
         )}
       </div>
