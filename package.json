@@ -34,7 +34,9 @@
       "electron/**/*",
       "package.json"
     ],
+    "icon": "build/icon.ico",
     "win": {
+      "icon": "build/icon.ico",
       "signAndEditExecutable": false,
       "target": [
         "nsis",
@@ -47,10 +49,14 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Toiloki"
+      "shortcutName": "Toiloki",
+      "installerIcon": "build/installerIcon.ico",
+      "uninstallerIcon": "build/uninstallerIcon.ico",
+      "installerHeaderIcon": "build/installerIcon.ico"
     }
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
     "@types/jszip": "^3.4.1",
     "adm-zip": "^0.5.16",
     "cronstrue": "^3.27.0",
@@ -71,8 +77,7 @@
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "yaml": "^2.7.0",
-    "@tauri-apps/api": "^2.0.0"
+    "yaml": "^2.7.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0",
@@ -89,8 +94,8 @@
     "electron": "^32.3.3",
     "electron-builder": "^25.1.8",
     "playwright": "^1.63.0",
+    "rcedit": "^5.0.2",
     "typescript": "~5.7.2",
     "vite": "^6.1.0"
   }
 }
-
