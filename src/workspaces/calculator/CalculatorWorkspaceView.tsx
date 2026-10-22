@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { CalcEngine, StatsResult, DiscountResult } from '../../engines/calculator/calc.engine';
 import { FinanceEngine, LoanResult, AmortizationRow } from '../../engines/calculator/finance.engine';
 import { DateEngine, AgeResult, DateDiffResult, BusinessDaysResult } from '../../engines/calculator/date.engine';
-import { Copy, Check, RotateCcw, ArrowRightLeft, Equal } from 'lucide-react';
+import { Copy, Check, RotateCcw, ArrowRightLeft, Equal, Play, Pause, Flag, Globe, Clock, Plus, Trash2, Volume2 } from 'lucide-react';
 import { HistoryService } from '../../core/services/history.service';
 import { CalcKeypad } from '../../components/common/CalcKeypad';
 import './CalculatorWorkspaceView.css';
@@ -1009,6 +1009,18 @@ export const CalculatorWorkspaceView: React.FC<CalculatorWorkspaceViewProps> = (
       {/* ─── NUMBER TO WORDS ─── */}
       {utilityId === 'calc-number-to-words' && <NumberToWordsCalc />}
 
+      {/* ─── TIME DURATION ─── */}
+      {utilityId === 'calc-time-duration' && <TimeDurationCalc />}
+
+      {/* ─── TIMEZONE CONVERTER ─── */}
+      {utilityId === 'calc-timezone-converter' && <TimezoneConverterCalc />}
+
+      {/* ─── TIMER & STOPWATCH ─── */}
+      {utilityId === 'calc-timer-stopwatch' && <TimerStopwatchCalc />}
+
+      {/* ─── MANUAL CURRENCY ─── */}
+      {utilityId === 'calc-currency-manual' && <ManualCurrencyCalc />}
+
     </div>
   );
 };
@@ -1677,6 +1689,562 @@ function NumberToWordsCalc() {
           <div style={{ fontSize: 16, color: 'var(--text)', lineHeight: 1.6, textTransform: 'capitalize' }}>{result}</div>
         </div>
       )}
+    </CalcCard>
+  );
+}
+
+// ─── Time Duration Calculator ─────────────────────────────────────────────────
+function TimeDurationCalc() {
+  const [segments, setSegments] = React.useState<Array<{ id: string; hours: number; minutes: number; seconds: number; op: 'add' | 'sub' }>>([
+    { id: '1', hours: 2, minutes: 45, seconds: 0, op: 'add' },
+    { id: '2', hours: 1, minutes: 15, seconds: 30, op: 'add' },
+  ]);
+
+  const addSegment = (op: 'add' | 'sub' = 'add') => {
+    setSegments(s => [...s, { id: String(Date.now() + Math.random()), hours: 0, minutes: 30, seconds: 0, op }]);
+  };
+
+  const updateSegment = (id: string, field: 'hours' | 'minutes' | 'seconds' | 'op', val: any) => {
+    setSegments(s => s.map(seg => seg.id === id ? { ...seg, [field]: val } : seg));
+  };
+
+  const removeSegment = (id: string) => {
+    setSegments(s => s.filter(seg => seg.id !== id));
+  };
+
+  const totalSec = React.useMemo(() => {
+    let sec = 0;
+    segments.forEach(s => {
+      const segSec = s.hours * 3600 + s.minutes * 60 + s.seconds;
+      if (s.op === 'add') sec += segSec;
+      else sec -= segSec;
+    });
+    return Math.max(0, sec);
+  }, [segments]);
+
+  const formatted = React.useMemo(() => {
+    const d = Math.floor(totalSec / 86400);
+    const remD = totalSec % 86400;
+    const h = Math.floor(remD / 3600);
+    const remH = remD % 3600;
+    const m = Math.floor(remH / 60);
+    const s = remH % 60;
+    return {
+      days: d,
+      hours: h,
+      minutes: m,
+      seconds: s,
+      totalHours: (totalSec / 3600).toFixed(2),
+      totalMinutes: Math.floor(totalSec / 60),
+    };
+  }, [totalSec]);
+
+  return (
+    <CalcCard title="Time Duration Calculator">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {segments.map((seg) => (
+          <div key={seg.id} style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--bg)', padding: '8px 12px', borderRadius: 6 }}>
+            <select
+              className="control-input"
+              style={{ width: 65, fontWeight: 700, color: seg.op === 'add' ? 'var(--success)' : 'var(--danger)' }}
+              value={seg.op}
+              onChange={e => updateSegment(seg.id, 'op', e.target.value)}
+            >
+              <option value="add">+</option>
+              <option value="sub">−</option>
+            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <input
+                type="number"
+                min={0}
+                className="control-input"
+                style={{ width: 60 }}
+                value={seg.hours}
+                onChange={e => updateSegment(seg.id, 'hours', Math.max(0, Number(e.target.value)))}
+              />
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>h</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <input
+                type="number"
+                min={0}
+                max={59}
+                className="control-input"
+                style={{ width: 60 }}
+                value={seg.minutes}
+                onChange={e => updateSegment(seg.id, 'minutes', Math.max(0, Math.min(59, Number(e.target.value))))}
+              />
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>m</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <input
+                type="number"
+                min={0}
+                max={59}
+                className="control-input"
+                style={{ width: 60 }}
+                value={seg.seconds}
+                onChange={e => updateSegment(seg.id, 'seconds', Math.max(0, Math.min(59, Number(e.target.value))))}
+              />
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>s</span>
+            </div>
+            {segments.length > 1 && (
+              <button
+                type="button"
+                className="tool-btn secondary small-btn"
+                style={{ marginLeft: 'auto', color: 'var(--danger)' }}
+                onClick={() => removeSegment(seg.id)}
+              >
+                <Trash2 size={12} />
+              </button>
+            )}
+          </div>
+        ))}
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+          <button className="tool-btn secondary small-btn" onClick={() => addSegment('add')} type="button">
+            <Plus size={12} />
+            <span>Add Segment (+)</span>
+          </button>
+          <button className="tool-btn secondary small-btn" onClick={() => addSegment('sub')} type="button">
+            <span>Subtract Segment (−)</span>
+          </button>
+        </div>
+
+        <div style={{ marginTop: 16, padding: '16px', background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)' }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 8 }}>Total Combined Duration</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 8 }}>
+            {formatted.days > 0 ? `${formatted.days}d ` : ''}
+            {formatted.hours}h {formatted.minutes}m {formatted.seconds}s
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+            <div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>TOTAL HOURS</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>{formatted.totalHours} hrs</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>TOTAL MINUTES</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>{formatted.totalMinutes} min</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>TOTAL SECONDS</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>{totalSec} s</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </CalcCard>
+  );
+}
+
+// ─── World Timezone Converter ─────────────────────────────────────────────────
+function TimezoneConverterCalc() {
+  const [hour, setHour] = React.useState(12);
+  const [minute] = React.useState(0);
+
+  const zones = [
+    { city: 'London', tz: 'Europe/London', country: 'United Kingdom' },
+    { city: 'New York', tz: 'America/New_York', country: 'United States' },
+    { city: 'San Francisco', tz: 'America/Los_Angeles', country: 'United States' },
+    { city: 'Tokyo', tz: 'Asia/Tokyo', country: 'Japan' },
+    { city: 'Sydney', tz: 'Australia/Sydney', country: 'Australia' },
+    { city: 'Dubai', tz: 'Asia/Dubai', country: 'United Arab Emirates' },
+    { city: 'Mumbai', tz: 'Asia/Kolkata', country: 'India' },
+    { city: 'Singapore', tz: 'Asia/Singapore', country: 'Singapore' },
+    { city: 'UTC (GMT)', tz: 'UTC', country: 'Coordinated Universal Time' },
+  ];
+
+  const baseDate = React.useMemo(() => {
+    const now = new Date();
+    now.setHours(hour, minute, 0, 0);
+    return now;
+  }, [hour, minute]);
+
+  return (
+    <CalcCard title="World Timezone Converter">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: 8, border: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>Base Time Scrubber</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
+              {String(hour).padStart(2, '0')}:{String(minute).padStart(2, '0')}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={23}
+            value={hour}
+            onChange={e => setHour(Number(e.target.value))}
+            className="control-slider"
+            style={{ width: '100%' }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+            <span>12 AM (00:00)</span>
+            <span>6 AM</span>
+            <span>12 PM (Noon)</span>
+            <span>6 PM</span>
+            <span>11 PM (23:00)</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+          {zones.map(z => {
+            let timeStr = '';
+            let dateStr = '';
+            try {
+              timeStr = new Intl.DateTimeFormat('en-US', {
+                timeZone: z.tz,
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+              }).format(baseDate);
+
+              dateStr = new Intl.DateTimeFormat('en-US', {
+                timeZone: z.tz,
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+              }).format(baseDate);
+            } catch {
+              timeStr = 'N/A';
+            }
+
+            return (
+              <div key={z.tz} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{z.city}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{z.country}</div>
+                  </div>
+                  <span style={{ fontSize: 10, background: 'var(--bg)', padding: '2px 6px', borderRadius: 4, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                    {z.tz}
+                  </span>
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginTop: 8 }}>
+                  {timeStr}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 2 }}>
+                  {dateStr}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </CalcCard>
+  );
+}
+
+// ─── Timer & Stopwatch ────────────────────────────────────────────────────────
+function TimerStopwatchCalc() {
+  const [tab, setTab] = React.useState<'timer' | 'stopwatch'>('timer');
+
+  const [timerMinutes, setTimerMinutes] = React.useState(25);
+  const [timerRemaining, setTimerRemaining] = React.useState(25 * 60);
+  const [timerActive, setTimerActive] = React.useState(false);
+
+  const [stopwatchTime, setStopwatchTime] = React.useState(0);
+  const [stopwatchActive, setStopwatchActive] = React.useState(false);
+  const [laps, setLaps] = React.useState<number[]>([]);
+
+  const playBeep = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.8);
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    let interval: any = null;
+    if (timerActive) {
+      interval = setInterval(() => {
+        setTimerRemaining(prev => {
+          if (prev <= 1) {
+            setTimerActive(false);
+            playBeep();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerActive]);
+
+  React.useEffect(() => {
+    let interval: any = null;
+    if (stopwatchActive) {
+      const start = performance.now() - stopwatchTime;
+      interval = setInterval(() => {
+        setStopwatchTime(performance.now() - start);
+      }, 10);
+    }
+    return () => clearInterval(interval);
+  }, [stopwatchActive]);
+
+  const setTimerPreset = (m: number) => {
+    setTimerActive(false);
+    setTimerMinutes(m);
+    setTimerRemaining(m * 60);
+  };
+
+  const formatTimer = (sec: number) => {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return `${h > 0 ? String(h).padStart(2, '0') + ':' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  const formatStopwatch = (ms: number) => {
+    const m = Math.floor(ms / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    const milli = Math.floor((ms % 1000) / 10);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(milli).padStart(2, '0')}`;
+  };
+
+  return (
+    <CalcCard title="Timer & Stopwatch">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="segmented-chip-row" style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+          <button
+            type="button"
+            className={`segmented-chip-btn ${tab === 'timer' ? 'active' : ''}`}
+            onClick={() => setTab('timer')}
+          >
+            Countdown Timer
+          </button>
+          <button
+            type="button"
+            className={`segmented-chip-btn ${tab === 'stopwatch' ? 'active' : ''}`}
+            onClick={() => setTab('stopwatch')}
+          >
+            Stopwatch
+          </button>
+        </div>
+
+        {tab === 'timer' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+              {[1, 5, 10, 15, 25, 45, 60].map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  className="tool-btn secondary small-btn"
+                  onClick={() => setTimerPreset(m)}
+                >
+                  {m === 25 ? '25m (Pomodoro)' : `${m}m`}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ fontSize: 56, fontWeight: 700, fontFamily: 'var(--font-mono)', color: timerRemaining === 0 ? 'var(--danger)' : 'var(--text)', padding: '24px 0' }}>
+              {formatTimer(timerRemaining)}
+            </div>
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                className={`tool-btn ${timerActive ? 'secondary' : 'primary'}`}
+                style={{ minWidth: 120 }}
+                onClick={() => setTimerActive(a => !a)}
+                type="button"
+              >
+                {timerActive ? <Pause size={14} /> : <Play size={14} />}
+                <span>{timerActive ? 'Pause' : timerRemaining === 0 ? 'Restart' : 'Start'}</span>
+              </button>
+              <button
+                className="tool-btn secondary"
+                onClick={() => { setTimerActive(false); setTimerRemaining(timerMinutes * 60); }}
+                type="button"
+              >
+                <RotateCcw size={14} />
+                <span>Reset</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div style={{ fontSize: 56, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent)', padding: '24px 0' }}>
+              {formatStopwatch(stopwatchTime)}
+            </div>
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                className={`tool-btn ${stopwatchActive ? 'secondary' : 'primary'}`}
+                style={{ minWidth: 120 }}
+                onClick={() => setStopwatchActive(a => !a)}
+                type="button"
+              >
+                {stopwatchActive ? <Pause size={14} /> : <Play size={14} />}
+                <span>{stopwatchActive ? 'Stop' : 'Start'}</span>
+              </button>
+              {stopwatchActive && (
+                <button
+                  className="tool-btn secondary"
+                  onClick={() => setLaps(l => [stopwatchTime, ...l])}
+                  type="button"
+                >
+                  <Flag size={14} />
+                  <span>Lap</span>
+                </button>
+              )}
+              <button
+                className="tool-btn secondary"
+                onClick={() => { setStopwatchActive(false); setStopwatchTime(0); setLaps([]); }}
+                type="button"
+              >
+                <RotateCcw size={14} />
+                <span>Reset</span>
+              </button>
+            </div>
+
+            {laps.length > 0 && (
+              <div style={{ width: '100%', maxWidth: 400, background: 'var(--surface)', borderRadius: 6, padding: 12, border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 8 }}>LAPS ({laps.length})</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 180, overflowY: 'auto' }}>
+                  {laps.map((lap, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontFamily: 'var(--font-mono)', padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Lap {laps.length - idx}</span>
+                      <span style={{ color: 'var(--text)', fontWeight: 600 }}>{formatStopwatch(lap)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </CalcCard>
+  );
+}
+
+// ─── Offline Currency Converter ───────────────────────────────────────────────
+function ManualCurrencyCalc() {
+  const defaultRates: Record<string, number> = {
+    USD: 1.0,
+    EUR: 0.92,
+    GBP: 0.79,
+    JPY: 154.5,
+    CAD: 1.38,
+    AUD: 1.52,
+    INR: 86.8,
+    CHF: 0.89,
+    CNY: 7.24,
+    SGD: 1.34,
+  };
+
+  const [rates, setRates] = React.useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem('toiloki_currency_rates');
+      return saved ? JSON.parse(saved) : defaultRates;
+    } catch {
+      return defaultRates;
+    }
+  });
+
+  const [amount, setAmount] = React.useState(100);
+  const [fromCurr, setFromCurr] = React.useState('USD');
+  const [toCurr, setToCurr] = React.useState('EUR');
+  const [savedNotice, setSavedNotice] = React.useState(false);
+
+  const converted = React.useMemo(() => {
+    const fromRate = rates[fromCurr] || 1.0;
+    const toRate = rates[toCurr] || 1.0;
+    const inUsd = amount / fromRate;
+    return (inUsd * toRate).toFixed(2);
+  }, [amount, fromCurr, toCurr, rates]);
+
+  const updateRate = (curr: string, val: number) => {
+    setRates(r => {
+      const next = { ...r, [curr]: val };
+      try {
+        localStorage.setItem('toiloki_currency_rates', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    setSavedNotice(true);
+    setTimeout(() => setSavedNotice(false), 1500);
+  };
+
+  const swap = () => {
+    setFromCurr(toCurr);
+    setToCurr(fromCurr);
+  };
+
+  return (
+    <CalcCard title="Offline Currency Converter (Manual Rates)">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 12, alignItems: 'center' }}>
+          <div>
+            <label className="control-label">Amount & From:</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="number"
+                min={0}
+                className="control-input"
+                value={amount}
+                onChange={e => setAmount(Number(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <select className="control-input" style={{ width: 90 }} value={fromCurr} onChange={e => setFromCurr(e.target.value)}>
+                {Object.keys(rates).map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <button className="tool-btn secondary small-btn" onClick={swap} type="button" style={{ marginTop: 18 }}>
+            <ArrowRightLeft size={14} />
+          </button>
+
+          <div>
+            <label className="control-label">Converted To:</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                readOnly
+                className="control-input"
+                value={converted}
+                style={{ flex: 1, fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}
+              />
+              <select className="control-input" style={{ width: 90 }} value={toCurr} onChange={e => setToCurr(e.target.value)}>
+                {Object.keys(rates).map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Currency Rates Table */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>Exchange Rates (relative to 1.00 USD)</span>
+            {savedNotice && <span style={{ fontSize: 11, color: 'var(--success)' }}>✓ Rates Saved Offline</span>}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8 }}>
+            {Object.entries(rates).map(([curr, rate]) => (
+              <div key={curr} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg)', padding: '6px 8px', borderRadius: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', width: 35 }}>{curr}:</span>
+                <input
+                  type="number"
+                  step={0.01}
+                  className="control-input"
+                  style={{ flex: 1, padding: '2px 6px', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+                  value={rate}
+                  onChange={e => updateRate(curr, Number(e.target.value))}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </CalcCard>
   );
 }

@@ -337,3 +337,146 @@
   align-items: center;
   gap: 10px;
 }
+
+/* ─── Tree Inspector & Controls Bar ─── */
+.data-controls-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  flex-wrap: wrap;
+}
+
+.data-controls-strip-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.data-view-mode-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.data-view-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.data-view-tab-btn:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.data-view-tab-btn.active {
+  color: var(--text);
+  background: var(--surface-hover);
+  font-weight: 600;
+}
+
+.data-tree-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  max-height: 480px;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+.data-tree-item {
+  display: flex;
+  flex-direction: column;
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
+  margin-left: 6px;
+  position: relative;
+}
+
+.data-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 2px 4px;
+  border-radius: var(--radius-xs);
+}
+
+.data-tree-row:hover {
+  background: var(--surface-hover);
+}
+
+.data-tree-toggle-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.data-tree-toggle-btn:hover {
+  color: var(--text);
+}
+
+.data-tree-key {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.data-tree-val-str {
+  color: var(--success);
+  word-break: break-all;
+}
+
+.data-tree-val-num {
+  color: var(--accent);
+}
+
+.data-tree-val-bool {
+  color: var(--accent);
+}
+
+.data-tree-val-null {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.data-tree-meta-badge {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  background: var(--surface-hover);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.column-manage-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-hover);
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+}
+

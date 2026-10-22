@@ -1,7 +1,7 @@
 # Phase 8 QA Sweep Report: Automated Permanent UI Sweep Test
 
 **Date**: October 6, 2026  
-**Auditor**: Antigravity Automated QA Runner & Architecture Auditor  
+**Auditor**: Automated QA Runner & Architecture Auditor  
 **Suite**: Toiloki Offline Desktop Suite  
 **Commit**: Phase 8  
 **Test Suite Script**: `tests/phase8-ui-sweep.test.cjs`  

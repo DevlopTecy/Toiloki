@@ -371,14 +371,19 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
               accept={
                 utilityId === 'img-svg-to-png'
                   ? ['.svg']
-                  : ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff', '.tif']
+                  : utilityId === 'img-heic-converter'
+                    ? ['.heic', '.heif', '.png', '.jpg', '.jpeg']
+                    : utilityId === 'img-avif-converter'
+                      ? ['.avif', '.png', '.jpg', '.jpeg', '.webp']
+                      : ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff', '.tif', '.avif', '.heic', '.heif']
               }
               multiple={
                 utilityId === 'multi-img-pdf' ||
                 utilityId === 'img-collage-sheet' ||
                 utilityId === 'img-sprite-sheet' ||
                 utilityId === 'img-gif-webp-builder' ||
-                utilityId === 'img-before-after'
+                utilityId === 'img-before-after' ||
+                utilityId === 'img-batch-watermark'
               }
               files={files}
               onFilesChanged={setFiles}
@@ -387,14 +392,19 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
                   ? 'Select or drop 2 images to compare'
                   : utilityId === 'img-collage-sheet' ||
                     utilityId === 'img-sprite-sheet' ||
-                    utilityId === 'img-gif-webp-builder'
+                    utilityId === 'img-gif-webp-builder' ||
+                    utilityId === 'img-batch-watermark'
                     ? 'Select or drop multiple image files'
                     : 'Select or drop an image file'
               }
               sublabel={
                 utilityId === 'img-svg-to-png'
                   ? 'Supports SVG vector image files'
-                  : 'Supports PNG, JPG, WebP, BMP, and TIFF files'
+                  : utilityId === 'img-heic-converter'
+                    ? 'Supports Apple HEIC & HEIF format photos'
+                    : utilityId === 'img-avif-converter'
+                      ? 'Supports AVIF next-generation compressed image files'
+                      : 'Supports PNG, JPG, WebP, BMP, and TIFF files'
               }
             />
           </div>
@@ -798,7 +808,7 @@ export const ImagesWorkspaceView: React.FC<ImagesWorkspaceViewProps> = ({
                 )}
 
                 {/* Compression & Quality */}
-                {(utilityId === 'img-converter' || utilityId === 'img-optimizer') && (
+                {(utilityId === 'img-converter' || utilityId === 'img-optimizer' || utilityId === 'img-heic-converter' || utilityId === 'img-avif-converter') && (
                   <div className="control-group-block">
                     <span className="group-heading">Compression & Format</span>
                     <div className="input-field">

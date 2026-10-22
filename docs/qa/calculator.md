@@ -2,7 +2,7 @@
 
 **Workspace**: Calculator & Converters  
 **Date**: October 6, 2026  
-**Auditor**: Antigravity Automated QA Runner & Workspace Auditor  
+**Auditor**: Automated QA Runner & Workspace Auditor  
 **Suite**: Toiloki Offline Desktop Suite  
 **Commit**: Phase 6A  
 

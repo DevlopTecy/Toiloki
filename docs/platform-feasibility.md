@@ -2,7 +2,7 @@
 
 **Status**: Verified & Specified (Phase 9)  
 **Date**: October 6, 2026  
-**Auditor**: Antigravity Automated QA Runner & Architecture Auditor  
+**Auditor**: Automated QA Runner & Architecture Auditor  
 **Runtime Abstraction**: `src/core/platform/platform-adapter.ts`  
 
 ---

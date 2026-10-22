@@ -1140,4 +1140,377 @@ export class DataEngine {
       };
     }
   }
+
+  /**
+   * Validate CSV syntax, RFC-4180 compliance, header uniqueness, and column alignment
+   */
+  static validateCsv(csvText: string): EngineResult<{
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+    rowCount: number;
+    columnCount: number;
+    delimiter: string;
+    headers: string[];
+  }> {
+    const start = performance.now();
+    try {
+      if (!csvText || !csvText.trim()) {
+        return {
+          success: false,
+          error: 'CSV input is empty',
+          elapsedMs: 0,
+        };
+      }
+      const clean = this.stripBom(csvText);
+      const delim = this.detectCsvDelimiter(clean);
+      const errors: string[] = [];
+      const warnings: string[] = [];
+
+      const parsed = Papa.parse<string[]>(clean, {
+        delimiter: delim,
+        skipEmptyLines: false,
+      });
+
+      if (parsed.errors && parsed.errors.length > 0) {
+        for (const err of parsed.errors) {
+          errors.push(`Row ${err.row !== undefined ? err.row + 1 : 'unknown'}: ${err.message}`);
+        }
+      }
+
+      const rows = parsed.data || [];
+      if (rows.length === 0) {
+        return {
+          success: true,
+          data: {
+            valid: false,
+            errors: ['No rows detected in CSV data.'],
+            warnings: [],
+            rowCount: 0,
+            columnCount: 0,
+            delimiter: delim,
+            headers: [],
+          },
+          elapsedMs: Math.round(performance.now() - start),
+        };
+      }
+
+      const headers = (rows[0] || []).map((h) => (h !== undefined && h !== null ? String(h).trim() : ''));
+      const colCount = headers.length;
+
+      const seenHeaders = new Set<string>();
+      headers.forEach((h, idx) => {
+        if (!h) {
+          warnings.push(`Column ${idx + 1} has an empty header title.`);
+        } else if (seenHeaders.has(h.toLowerCase())) {
+          warnings.push(`Duplicate column header "${h}" detected at column ${idx + 1}.`);
+        } else {
+          seenHeaders.add(h.toLowerCase());
+        }
+      });
+
+      for (let r = 1; r < rows.length; r++) {
+        const row = rows[r];
+        if (r === rows.length - 1 && row.length === 1 && !row[0].trim()) continue;
+        if (row.length !== colCount) {
+          errors.push(`Row ${r + 1} has ${row.length} columns (expected ${colCount}).`);
+        }
+      }
+
+      const valid = errors.length === 0;
+
+      return {
+        success: true,
+        data: {
+          valid,
+          errors,
+          warnings,
+          rowCount: Math.max(0, rows.length - 1),
+          columnCount: colCount,
+          delimiter: delim,
+          headers,
+        },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
+
+  /**
+   * Validate YAML syntax, structure, duplicate keys, and indentation
+   */
+  static validateYaml(yamlText: string): EngineResult<{
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+    parsed?: any;
+  }> {
+    const start = performance.now();
+    try {
+      if (!yamlText || !yamlText.trim()) {
+        return {
+          success: false,
+          error: 'YAML input is empty',
+          elapsedMs: 0,
+        };
+      }
+
+      const doc = yaml.parseDocument(yamlText, { prettyErrors: true });
+      const errors = (doc.errors || []).map((e) => e.message);
+      const warnings = (doc.warnings || []).map((w) => w.message);
+
+      return {
+        success: true,
+        data: {
+          valid: errors.length === 0,
+          errors,
+          warnings,
+          parsed: errors.length === 0 ? doc.toJSON() : undefined,
+        },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
+
+  /**
+   * Sort and filter tabular CSV data
+   */
+  static sortAndFilterCsv(
+    csvText: string,
+    options: {
+      sortCol?: string;
+      sortAsc?: boolean;
+      filterCol?: string;
+      filterOp?: 'contains' | 'equals' | 'starts_with' | 'gt' | 'lt' | 'not_empty';
+      filterVal?: string;
+    }
+  ): EngineResult<string> {
+    const start = performance.now();
+    try {
+      const clean = this.stripBom(csvText);
+      const parsed = Papa.parse<string[]>(clean, { skipEmptyLines: true });
+      const allRows = parsed.data || [];
+      if (allRows.length === 0) {
+        return { success: true, data: '', metadata: { rowCount: 0 }, elapsedMs: 0 };
+      }
+      const headers = allRows[0];
+      let rows = allRows.slice(1);
+
+      if (options.filterCol && options.filterOp) {
+        const colIdx = headers.indexOf(options.filterCol);
+        if (colIdx !== -1) {
+          const val = (options.filterVal || '').toLowerCase();
+          rows = rows.filter((r) => {
+            const cell = (r[colIdx] ?? '').trim();
+            const cellLower = cell.toLowerCase();
+            switch (options.filterOp) {
+              case 'contains':
+                return cellLower.includes(val);
+              case 'equals':
+                return cellLower === val;
+              case 'starts_with':
+                return cellLower.startsWith(val);
+              case 'gt': {
+                const nCell = Number(cell);
+                const nVal = Number(val);
+                return !isNaN(nCell) && !isNaN(nVal) && nCell > nVal;
+              }
+              case 'lt': {
+                const nCell = Number(cell);
+                const nVal = Number(val);
+                return !isNaN(nCell) && !isNaN(nVal) && nCell < nVal;
+              }
+              case 'not_empty':
+                return cell.length > 0;
+              default:
+                return true;
+            }
+          });
+        }
+      }
+
+      if (options.sortCol) {
+        const colIdx = headers.indexOf(options.sortCol);
+        if (colIdx !== -1) {
+          const asc = options.sortAsc !== false;
+          rows.sort((a, b) => {
+            const valA = (a[colIdx] ?? '').trim();
+            const valB = (b[colIdx] ?? '').trim();
+            const numA = Number(valA);
+            const numB = Number(valB);
+            if (!isNaN(numA) && !isNaN(numB) && valA !== '' && valB !== '') {
+              return asc ? numA - numB : numB - numA;
+            }
+            return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+          });
+        }
+      }
+
+      const result = Papa.unparse([headers, ...rows]);
+      return {
+        success: true,
+        data: result,
+        metadata: { rowCount: rows.length, columnCount: headers.length },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
+
+  /**
+   * Column Manager: reorder, rename, include/exclude columns
+   */
+  static transformCsvColumns(
+    csvText: string,
+    options: {
+      columnsToKeep?: string[];
+      columnRenames?: Record<string, string>;
+      dropEmptyColumns?: boolean;
+    }
+  ): EngineResult<string> {
+    const start = performance.now();
+    try {
+      const clean = this.stripBom(csvText);
+      const parsed = Papa.parse<string[]>(clean, { skipEmptyLines: true });
+      const allRows = parsed.data || [];
+      if (allRows.length === 0) {
+        return { success: true, data: '', metadata: { rowCount: 0 }, elapsedMs: 0 };
+      }
+      const origHeaders = allRows[0];
+      const dataRows = allRows.slice(1);
+
+      let activeIndices: number[] = [];
+      if (options.columnsToKeep && options.columnsToKeep.length > 0) {
+        activeIndices = options.columnsToKeep
+          .map((col) => origHeaders.indexOf(col))
+          .filter((idx) => idx !== -1);
+      } else {
+        activeIndices = origHeaders.map((_, i) => i);
+      }
+
+      if (options.dropEmptyColumns) {
+        activeIndices = activeIndices.filter((colIdx) => {
+          return dataRows.some((row) => (row[colIdx] ?? '').trim().length > 0);
+        });
+      }
+
+      const newHeaders = activeIndices.map((idx) => {
+        const orig = origHeaders[idx];
+        return options.columnRenames?.[orig] || orig;
+      });
+
+      const newRows = dataRows.map((row) => {
+        return activeIndices.map((idx) => row[idx] ?? '');
+      });
+
+      const result = Papa.unparse([newHeaders, ...newRows]);
+      return {
+        success: true,
+        data: result,
+        metadata: { rowCount: newRows.length, columnCount: newHeaders.length },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
+
+  /**
+   * Format / clean cell values in tabular CSV data
+   */
+  static formatCsvValues(
+    csvText: string,
+    options: {
+      trimWhitespace?: boolean;
+      caseTransform?: 'none' | 'lowercase' | 'uppercase' | 'titlecase';
+      emptyReplacement?: string;
+      roundDecimals?: number;
+      targetColumn?: string;
+    }
+  ): EngineResult<{ csv: string; modifiedCellsCount: number }> {
+    const start = performance.now();
+    try {
+      const clean = this.stripBom(csvText);
+      const parsed = Papa.parse<string[]>(clean, { skipEmptyLines: true });
+      const allRows = parsed.data || [];
+      if (allRows.length === 0) {
+        return { success: true, data: { csv: '', modifiedCellsCount: 0 }, elapsedMs: 0 };
+      }
+      const headers = allRows[0];
+      const dataRows = allRows.slice(1);
+      let modifiedCount = 0;
+
+      const targetIdx = options.targetColumn ? headers.indexOf(options.targetColumn) : -1;
+
+      const formattedRows = dataRows.map((row) => {
+        return row.map((cell, colIdx) => {
+          if (targetIdx !== -1 && colIdx !== targetIdx) return cell;
+
+          let val = cell ?? '';
+          const orig = val;
+
+          if (options.trimWhitespace) {
+            val = val.trim();
+          }
+
+          if (val === '' && options.emptyReplacement !== undefined) {
+            val = options.emptyReplacement;
+          }
+
+          if (options.caseTransform === 'lowercase') {
+            val = val.toLowerCase();
+          } else if (options.caseTransform === 'uppercase') {
+            val = val.toUpperCase();
+          } else if (options.caseTransform === 'titlecase') {
+            val = val.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
+          }
+
+          if (options.roundDecimals !== undefined && options.roundDecimals >= 0) {
+            const num = Number(val);
+            if (!isNaN(num) && val.trim() !== '') {
+              val = num.toFixed(options.roundDecimals);
+            }
+          }
+
+          if (val !== orig) modifiedCount++;
+          return val;
+        });
+      });
+
+      const result = Papa.unparse([headers, ...formattedRows]);
+      return {
+        success: true,
+        data: { csv: result, modifiedCellsCount: modifiedCount },
+        metadata: { rowCount: formattedRows.length, columnCount: headers.length },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
 }
+

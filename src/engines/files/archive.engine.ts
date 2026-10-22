@@ -428,6 +428,59 @@ export class ArchiveEngine {
       };
     }
   }
+
+  /**
+   * Check if buffer matches 7z file signature
+   */
+  static is7zArchive(buffer: Uint8Array): boolean {
+    if (buffer.length < 6) return false;
+    return (
+      buffer[0] === 0x37 &&
+      buffer[1] === 0x7a &&
+      buffer[2] === 0xbc &&
+      buffer[3] === 0xaf &&
+      buffer[4] === 0x27 &&
+      buffer[5] === 0x1c
+    );
+  }
+
+  /**
+   * Inspect 7z archive header and metadata
+   */
+  static inspect7z(buffer: Uint8Array): EngineResult<ArchiveEntry[]> {
+    const start = performance.now();
+    try {
+      if (!ArchiveEngine.is7zArchive(buffer)) {
+        throw new Error('File does not match standard 7z signature (37 7A BC AF 27 1C)');
+      }
+      const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+      const majorVer = view.getUint8(6);
+      const minorVer = view.getUint8(7);
+      const nextHeaderOffset = Number(view.getBigUint64(12, true));
+      const nextHeaderSize = Number(view.getBigUint64(20, true));
+
+      const entries: ArchiveEntry[] = [
+        {
+          name: `7z Archive (v${majorVer}.${minorVer}, Header: ${nextHeaderSize}B at offset 0x${nextHeaderOffset.toString(16)})`,
+          size: buffer.length,
+          compressedSize: buffer.length,
+          isDir: false,
+        },
+      ];
+
+      return {
+        success: true,
+        data: entries,
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
 }
 
 

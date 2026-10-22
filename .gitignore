@@ -6,3 +6,4 @@ dist-electron/
 Thumbs.db
 .tmp/
 mega_prompt*.txt
+*.tsbuildinfo

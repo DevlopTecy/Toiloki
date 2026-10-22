@@ -475,4 +475,207 @@ export class FileOpsEngine {
   static formatChecksumManifest(items: Array<{ name: string; hash: string }>): string {
     return items.map((it) => `${it.hash}  ${it.name}`).join('\n') + '\n';
   }
+
+  /**
+   * Split a large buffer into sequential byte chunks
+   */
+  static splitBuffer(
+    buffer: Uint8Array,
+    chunkSizeBytes: number,
+    baseName: string
+  ): Array<{ name: string; buffer: Uint8Array; partNumber: number; totalParts: number }> {
+    const totalParts = Math.max(1, Math.ceil(buffer.length / chunkSizeBytes));
+    const parts = [];
+    for (let i = 0; i < totalParts; i++) {
+      const start = i * chunkSizeBytes;
+      const end = Math.min(start + chunkSizeBytes, buffer.length);
+      const chunk = buffer.slice(start, end);
+      const pad = String(i + 1).padStart(3, '0');
+      parts.push({
+        name: `${baseName}.part${pad}`,
+        buffer: chunk,
+        partNumber: i + 1,
+        totalParts,
+      });
+    }
+    return parts;
+  }
+
+  /**
+   * Join multiple sequential byte chunks back into a single Uint8Array
+   */
+  static joinBuffers(chunks: Array<{ name: string; buffer: Uint8Array }>): Uint8Array {
+    const sorted = [...chunks].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    const totalLength = sorted.reduce((acc, c) => acc + c.buffer.length, 0);
+    const joined = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const c of sorted) {
+      joined.set(c.buffer, offset);
+      offset += c.buffer.length;
+    }
+    return joined;
+  }
+
+  /**
+   * Generate hierarchical text tree from list of paths
+   */
+  static generateTextTree(
+    paths: string[],
+    options: { format?: 'unicode' | 'ascii' | 'markdown' } = {}
+  ): string {
+    const fmt = options.format || 'unicode';
+    const isAscii = fmt === 'ascii';
+    const pipe = isAscii ? '|-- ' : '├── ';
+    const last = isAscii ? '`-- ' : '└── ';
+    const line = isAscii ? '|   ' : '│   ';
+    const blank = '    ';
+
+    interface TreeNode {
+      name: string;
+      children: Map<string, TreeNode>;
+      isFile: boolean;
+    }
+
+    const root: TreeNode = { name: 'root', children: new Map(), isFile: false };
+
+    for (const p of paths) {
+      const parts = p.replace(/^[\\/]+/, '').split(/[\\/]+/);
+      let curr = root;
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        if (!part) continue;
+        const isFile = i === parts.length - 1;
+        if (!curr.children.has(part)) {
+          curr.children.set(part, { name: part, children: new Map(), isFile });
+        }
+        curr = curr.children.get(part)!;
+      }
+    }
+
+    const lines: string[] = ['.'];
+    function printNode(node: TreeNode, prefix: string) {
+      const entries = Array.from(node.children.values());
+      entries.sort((a, b) => {
+        if (a.isFile !== b.isFile) return a.isFile ? 1 : -1;
+        return a.name.localeCompare(b.name);
+      });
+
+      entries.forEach((child, idx) => {
+        const isLastChild = idx === entries.length - 1;
+        const connector = isLastChild ? last : pipe;
+        lines.push(`${prefix}${connector}${child.name}`);
+        const nextPrefix = prefix + (isLastChild ? blank : line);
+        printNode(child, nextPrefix);
+      });
+    }
+
+    printNode(root, '');
+    return lines.join('\n');
+  }
+
+  /**
+   * Categorize files by type or date into organized folders
+   */
+  static organizeFiles(
+    files: Array<{ name: string; buffer?: Uint8Array; size?: number; date?: string }>,
+    scheme: 'type' | 'date'
+  ): Record<string, Array<{ name: string; targetPath: string }>> {
+    const groups: Record<string, Array<{ name: string; targetPath: string }>> = {};
+
+    const typeCategories: Record<string, string[]> = {
+      Documents: ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'pages', 'md'],
+      Spreadsheets: ['csv', 'tsv', 'xlsx', 'xls', 'ods', 'numbers'],
+      Images: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'heic', 'avif'],
+      Audio: ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'wma'],
+      Video: ['mp4', 'mov', 'mkv', 'avi', 'webm', 'wmv'],
+      Archives: ['zip', 'tar', 'gz', '7z', 'rar', 'bz2'],
+      Code: ['js', 'ts', 'jsx', 'tsx', 'html', 'css', 'json', 'yaml', 'yml', 'py', 'java', 'c', 'cpp', 'rs'],
+    };
+
+    for (const f of files) {
+      const dot = f.name.lastIndexOf('.');
+      const ext = dot !== -1 ? f.name.slice(dot + 1).toLowerCase() : '';
+      let folder = 'Other';
+
+      if (scheme === 'type') {
+        for (const [cat, extensions] of Object.entries(typeCategories)) {
+          if (extensions.includes(ext)) {
+            folder = cat;
+            break;
+          }
+        }
+      } else {
+        const d = f.date ? new Date(f.date) : new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        folder = `${yyyy}-${mm}`;
+      }
+
+      if (!groups[folder]) groups[folder] = [];
+      groups[folder].push({
+        name: f.name,
+        targetPath: `${folder}/${f.name}`,
+      });
+    }
+
+    return groups;
+  }
+
+  /**
+   * Compare two sets of files (Folder A vs Folder B)
+   */
+  static async compareFolders(
+    filesA: Array<{ name: string; buffer?: Uint8Array; size?: number }>,
+    filesB: Array<{ name: string; buffer?: Uint8Array; size?: number }>
+  ): Promise<{
+    addedInB: string[];
+    removedInB: string[];
+    modified: string[];
+    identical: string[];
+  }> {
+    const mapA = new Map<string, { size: number; buffer?: Uint8Array }>();
+    const mapB = new Map<string, { size: number; buffer?: Uint8Array }>();
+
+    for (const f of filesA) {
+      mapA.set(f.name, { size: f.size ?? f.buffer?.length ?? 0, buffer: f.buffer });
+    }
+    for (const f of filesB) {
+      mapB.set(f.name, { size: f.size ?? f.buffer?.length ?? 0, buffer: f.buffer });
+    }
+
+    const addedInB: string[] = [];
+    const removedInB: string[] = [];
+    const modified: string[] = [];
+    const identical: string[] = [];
+
+    for (const [name, infoB] of mapB.entries()) {
+      if (!mapA.has(name)) {
+        addedInB.push(name);
+      } else {
+        const infoA = mapA.get(name)!;
+        if (infoA.size !== infoB.size) {
+          modified.push(name);
+        } else if (infoA.buffer && infoB.buffer) {
+          const hashA = (await FileOpsEngine.calculateSha256(infoA.buffer)).data;
+          const hashB = (await FileOpsEngine.calculateSha256(infoB.buffer)).data;
+          if (hashA === hashB) {
+            identical.push(name);
+          } else {
+            modified.push(name);
+          }
+        } else {
+          identical.push(name);
+        }
+      }
+    }
+
+    for (const name of mapA.keys()) {
+      if (!mapB.has(name)) {
+        removedInB.push(name);
+      }
+    }
+
+    return { addedInB, removedInB, modified, identical };
+  }
 }
+

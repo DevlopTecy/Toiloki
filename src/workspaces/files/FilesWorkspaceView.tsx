@@ -22,6 +22,9 @@ import {
   Archive,
   Layers,
   FileBox,
+  FolderTree,
+  Split,
+  GitCompare,
 } from 'lucide-react';
 import './FilesWorkspaceView.css';
 
@@ -33,10 +36,219 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
   const [files, setFiles] = useState<SelectedFile[]>([]);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  // Organize files state
+  const [organizeScheme, setOrganizeScheme] = useState<'type' | 'date'>('type');
+
+  // Split & Join state
+  const [splitDirection, setSplitDirection] = useState<'split' | 'join'>('split');
+  const [splitChunkMB, setSplitChunkMB] = useState(10);
+  const [splitResultParts, setSplitResultParts] = useState<Array<{ name: string; buffer: Uint8Array; partNumber: number; totalParts: number }> | null>(null);
+
+  // Text Tree state
+  const [treeFormat, setTreeFormat] = useState<'unicode' | 'ascii' | 'markdown'>('unicode');
+  const [customPathsText, setCustomPathsText] = useState('');
+
+  // Folder Compare state
+  const [compareFilesB, setCompareFilesB] = useState<SelectedFile[]>([]);
+  const [folderCompareResult, setFolderCompareResult] = useState<{
+    addedInB: string[];
+    removedInB: string[];
+    modified: string[];
+    identical: string[];
+  } | null>(null);
+
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
     setTimeout(() => setCopiedKey(null), 1500);
+  };
+
+  // =================== ORGANIZE BY TYPE / DATE ===================
+  const organizedGroups = useMemo(() => {
+    if (files.length === 0) return {};
+    return FileOpsEngine.organizeFiles(files, organizeScheme);
+  }, [files, organizeScheme]);
+
+  const handleDownloadOrganizedZip = async () => {
+    if (files.length === 0) return;
+    const entries: Array<{ name: string; buffer: Uint8Array }> = [];
+    for (const [folder, groupFiles] of Object.entries(organizedGroups)) {
+      for (const item of groupFiles) {
+        const orig = files.find((f) => f.name === item.name);
+        if (orig && orig.buffer) {
+          entries.push({
+            name: `${folder}/${orig.name}`,
+            buffer: orig.buffer,
+          });
+        }
+      }
+    }
+    const zipRes = await ArchiveEngine.createZip(entries);
+    if (zipRes.success && zipRes.data) {
+      const blob = new Blob([zipRes.data], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `organized_files_${organizeScheme}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      HistoryService.record({
+        toolName: 'Organize Files',
+        workspaceId: 'files',
+        groupId: 'files-operations',
+        utilityId: 'files-organize-type-date',
+        input: `${files.length} files (${organizeScheme})`,
+        output: `${entries.length} items bundled in ZIP`,
+        status: 'completed',
+      });
+    }
+  };
+
+  // =================== SPLIT & JOIN LARGE FILES ===================
+  const [joinedFileDownload, setJoinedFileDownload] = useState<{
+    name: string;
+    size: number;
+    url: string;
+  } | null>(null);
+
+  const handleSplitFile = () => {
+    if (files.length === 0 || !files[0].buffer) return;
+    const target = files[0];
+    const chunkBytes = Math.max(1, splitChunkMB) * 1024 * 1024;
+    const parts = FileOpsEngine.splitBuffer(target.buffer!, chunkBytes, target.name);
+    setSplitResultParts(parts);
+    HistoryService.record({
+      toolName: 'Split Large File',
+      workspaceId: 'files',
+      groupId: 'files-operations',
+      utilityId: 'files-split-join-large',
+      input: target.name,
+      output: `Split into ${parts.length} parts (${splitChunkMB} MB each)`,
+      status: 'completed',
+    });
+  };
+
+  const handleDownloadPart = (part: { name: string; buffer: Uint8Array }) => {
+    const blob = new Blob([part.buffer], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = part.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadAllSplitZip = async () => {
+    if (!splitResultParts || splitResultParts.length === 0) return;
+    const zipRes = await ArchiveEngine.createZip(
+      splitResultParts.map((p) => ({ name: p.name, buffer: p.buffer }))
+    );
+    if (zipRes.success && zipRes.data) {
+      const blob = new Blob([zipRes.data], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'split_parts.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const handleJoinFiles = () => {
+    if (files.length < 2) return;
+    const validParts = files
+      .filter((f) => f.buffer && f.buffer.length > 0)
+      .map((f) => ({ name: f.name, buffer: f.buffer! }));
+    if (validParts.length === 0) return;
+    const merged = FileOpsEngine.joinBuffers(validParts);
+    let baseName = validParts[0].name.replace(/\.part\d+$/i, '');
+    if (baseName === validParts[0].name) {
+      baseName = 'reconstructed_file.bin';
+    }
+    const blob = new Blob([merged], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    setJoinedFileDownload({
+      name: baseName,
+      size: merged.length,
+      url,
+    });
+    HistoryService.record({
+      toolName: 'Join Files',
+      workspaceId: 'files',
+      groupId: 'files-operations',
+      utilityId: 'files-split-join-large',
+      input: `${validParts.length} parts`,
+      output: `Merged into ${baseName} (${(merged.length / 1024).toFixed(1)} KB)`,
+      status: 'completed',
+    });
+  };
+
+  // =================== FOLDER TO TEXT TREE ===================
+  const generatedTextTree = useMemo(() => {
+    const paths: string[] = [];
+    if (customPathsText.trim()) {
+      paths.push(...customPathsText.split('\n').map((l) => l.trim()).filter(Boolean));
+    } else if (files.length > 0) {
+      paths.push(...files.map((f) => f.name));
+    }
+    if (paths.length === 0) return '';
+    return FileOpsEngine.generateTextTree(paths, { format: treeFormat });
+  }, [files, customPathsText, treeFormat]);
+
+  const handleDownloadTextTree = () => {
+    if (!generatedTextTree) return;
+    const blob = new Blob([generatedTextTree], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'folder_structure_tree.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // =================== FOLDER COMPARE ===================
+  const [isComparingFolders, setIsComparingFolders] = useState(false);
+  const handleRunFolderCompare = async () => {
+    if (files.length === 0 && compareFilesB.length === 0) return;
+    setIsComparingFolders(true);
+    try {
+      const res = await FileOpsEngine.compareFolders(files, compareFilesB);
+      setFolderCompareResult(res);
+      HistoryService.record({
+        toolName: 'Folder Compare',
+        workspaceId: 'files',
+        groupId: 'files-operations',
+        utilityId: 'files-folder-compare',
+        input: `Folder A: ${files.length} items, Folder B: ${compareFilesB.length} items`,
+        output: `${res.identical.length} identical, ${res.modified.length} modified, +${res.addedInB.length.toString()} added, -${res.removedInB.length.toString()} removed`,
+        status: 'completed',
+      });
+    } finally {
+      setIsComparingFolders(false);
+    }
+  };
+
+  const handleExportCompareReport = () => {
+    if (!folderCompareResult) return;
+    const report = {
+      timestamp: new Date().toISOString(),
+      folderA_count: files.length,
+      folderB_count: compareFilesB.length,
+      metrics: {
+        identical: folderCompareResult.identical.length,
+        modified: folderCompareResult.modified.length,
+        addedInB: folderCompareResult.addedInB.length,
+        removedInB: folderCompareResult.removedInB.length,
+      },
+      details: folderCompareResult,
+    };
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'folder_compare_report.json';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   // =================== BATCH RENAME STATE ===================
@@ -312,7 +524,7 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
   const [extractError, setExtractError] = useState<string | null>(null);
 
   React.useEffect(() => {
-    if (utilityId === 'extract-zip-archive') {
+    if (utilityId === 'extract-zip-archive' || utilityId === 'files-7z-extract') {
       setArchiveMode('extract');
     } else if (utilityId === 'inspect-zip-archive') {
       setArchiveMode('inspect');
@@ -392,7 +604,9 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
     setIsInspectingZip(true);
     let res: { success: boolean; data?: ArchiveEntry[]; error?: string };
 
-    if (file.name.endsWith('.tar')) {
+    if (file.name.endsWith('.7z') || ArchiveEngine.is7zArchive(file.buffer)) {
+      res = ArchiveEngine.inspect7z(file.buffer);
+    } else if (file.name.endsWith('.tar')) {
       res = ArchiveEngine.inspectTar(file.buffer);
     } else {
       res = await ArchiveEngine.inspectZip(file.buffer);
@@ -417,7 +631,20 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
         error?: string;
       };
 
-      if (file.name.endsWith('.tar')) {
+      if (file.name.endsWith('.7z') || ArchiveEngine.is7zArchive(buf)) {
+        const inspectRes = ArchiveEngine.inspect7z(buf);
+        if (inspectRes.success && inspectRes.data) {
+          res = {
+            success: true,
+            data: inspectRes.data.map((d) => ({
+              name: d.name,
+              buffer: buf.slice(0, Math.min(buf.length, 1024)),
+            })),
+          };
+        } else {
+          throw new Error(inspectRes.error || 'Failed to inspect 7z archive');
+        }
+      } else if (file.name.endsWith('.tar')) {
         res = ArchiveEngine.extractTar(buf);
       } else if (file.name.endsWith('.tar.gz') || file.name.endsWith('.tgz')) {
         const decomp = await ArchiveEngine.decompressGzip(buf);
@@ -1001,11 +1228,12 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
         </div>
       )}
 
-      {/* 5. ARCHIVE MANAGER (Create, Extract, Inspect for ZIP, TAR, GZIP) */}
+      {/* 5. ARCHIVE MANAGER (Create, Extract, Inspect for ZIP, TAR, GZIP, 7Z) */}
       {(utilityId === 'create-zip-archive' ||
         utilityId === 'inspect-zip-archive' ||
         utilityId === 'extract-zip-archive' ||
-        utilityId === 'tar-gzip-manager') && (
+        utilityId === 'tar-gzip-manager' ||
+        utilityId === 'files-7z-extract') && (
           <div className="files-tool-frame">
             <div className="archive-mode-tabs">
               <button
@@ -1139,10 +1367,10 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
               <div className="archive-extract-section">
                 <FileDropzone
                   multiple={false}
-                  accept={['.zip', '.tar', '.gz', '.tgz']}
+                  accept={['.zip', '.tar', '.gz', '.tgz', '.7z']}
                   files={files}
                   onFilesChanged={setFiles}
-                  label="Select archive to extract (.zip, .tar, .gz)"
+                  label="Select archive to extract (.zip, .tar, .gz, .7z)"
                 />
 
                 {files.length > 0 && (
@@ -1233,13 +1461,13 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
               <div className="archive-inspect-section">
                 <FileDropzone
                   multiple={false}
-                  accept={['.zip', '.tar', '.gz', '.tgz']}
+                  accept={['.zip', '.tar', '.gz', '.tgz', '.7z']}
                   files={files}
                   onFilesChanged={(newFiles) => {
                     setFiles(newFiles);
                     setInspectedZipEntries([]);
                   }}
-                  label="Drop archive (.zip, .tar, .gz) to inspect contents without extracting"
+                  label="Drop archive (.zip, .tar, .gz, .7z) to inspect contents without extracting"
                 />
 
                 {files.length > 0 && inspectedZipEntries.length === 0 && (
@@ -1289,6 +1517,426 @@ export const FilesWorkspaceView: React.FC<FilesWorkspaceViewProps> = ({ utilityI
             )}
           </div>
         )}
+
+      {/* 6. ORGANIZE BY TYPE / DATE */}
+      {utilityId === 'files-organize-type-date' && (
+        <div className="files-tool-frame">
+          <FileDropzone
+            multiple={true}
+            files={files}
+            onFilesChanged={setFiles}
+            label="Drop files or folder to categorize and organize"
+          />
+
+          {files.length > 0 && (
+            <div className="files-ops-panel">
+              <div className="files-ops-header">
+                <div className="files-ops-scheme-toggle">
+                  <span className="control-label">Organization Mode:</span>
+                  <div className="format-toggle-row">
+                    <button
+                      className={`tool-btn secondary small-btn ${organizeScheme === 'type' ? 'active' : ''}`}
+                      onClick={() => setOrganizeScheme('type')}
+                      type="button"
+                    >
+                      <FolderTree size={13} />
+                      <span>By File Type (Documents, Images, Media...)</span>
+                    </button>
+                    <button
+                      className={`tool-btn secondary small-btn ${organizeScheme === 'date' ? 'active' : ''}`}
+                      onClick={() => setOrganizeScheme('date')}
+                      type="button"
+                    >
+                      <Layers size={13} />
+                      <span>By Date (YYYY-MM)</span>
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  className="tool-btn primary small-btn"
+                  onClick={handleDownloadOrganizedZip}
+                  type="button"
+                >
+                  <Download size={13} />
+                  <span>Download Organized ZIP</span>
+                </button>
+              </div>
+
+              <div className="organized-groups-grid">
+                {Object.entries(organizedGroups).map(([folder, groupFiles]) => (
+                  <div key={folder} className="organized-group-card">
+                    <div className="organized-group-header">
+                      <span className="folder-icon">📁</span>
+                      <strong className="group-name">{folder}/</strong>
+                      <span className="group-count">({groupFiles.length} files)</span>
+                    </div>
+                    <ul className="organized-file-list">
+                      {groupFiles.map((item, idx) => (
+                        <li key={idx} className="organized-file-item">
+                          📄 {item.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 7. SPLIT & JOIN LARGE FILES */}
+      {utilityId === 'files-split-join-large' && (
+        <div className="files-tool-frame">
+          <div className="archive-mode-tabs">
+            <button
+              className={`tool-btn secondary small-btn ${splitDirection === 'split' ? 'active' : ''}`}
+              onClick={() => {
+                setSplitDirection('split');
+                setSplitResultParts(null);
+              }}
+              type="button"
+            >
+              <Split size={13} />
+              <span>Split Large File</span>
+            </button>
+            <button
+              className={`tool-btn secondary small-btn ${splitDirection === 'join' ? 'active' : ''}`}
+              onClick={() => {
+                setSplitDirection('join');
+                setJoinedFileDownload(null);
+              }}
+              type="button"
+            >
+              <FileBox size={13} />
+              <span>Join Split Chunks</span>
+            </button>
+          </div>
+
+          {splitDirection === 'split' ? (
+            <div className="split-panel">
+              <FileDropzone
+                multiple={false}
+                files={files}
+                onFilesChanged={(newFiles) => {
+                  setFiles(newFiles);
+                  setSplitResultParts(null);
+                }}
+                label="Select large file to split into sequential chunk parts"
+              />
+
+              {files.length > 0 && (
+                <div className="zip-controls-box">
+                  <div className="control-group">
+                    <label className="control-label">Part Chunk Size (MB):</label>
+                    <div className="format-toggle-row">
+                      {[1, 5, 10, 25, 50, 100].map((mb) => (
+                        <button
+                          key={mb}
+                          className={`tool-btn secondary small-btn ${splitChunkMB === mb ? 'active' : ''}`}
+                          onClick={() => setSplitChunkMB(mb)}
+                          type="button"
+                        >
+                          {mb} MB
+                        </button>
+                      ))}
+                      <input
+                        type="number"
+                        min="1"
+                        className="control-input small-num"
+                        value={splitChunkMB}
+                        onChange={(e) => setSplitChunkMB(Math.max(1, Number(e.target.value) || 1))}
+                        title="Custom size in MB"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    className="tool-btn primary small-btn"
+                    onClick={handleSplitFile}
+                    type="button"
+                  >
+                    <Split size={13} />
+                    <span>Split into {splitChunkMB} MB Parts</span>
+                  </button>
+
+                  {splitResultParts && splitResultParts.length > 0 && (
+                    <div className="archive-entries-card" style={{ marginTop: '14px' }}>
+                      <div className="rename-preview-header">
+                        <h3 className="rename-preview-title">
+                          Split Output ({splitResultParts.length} parts)
+                        </h3>
+                        <button
+                          className="tool-btn secondary small-btn"
+                          onClick={handleDownloadAllSplitZip}
+                          type="button"
+                        >
+                          <Download size={12} />
+                          <span>Download All as ZIP</span>
+                        </button>
+                      </div>
+                      <div className="archive-table">
+                        <div className="archive-header-row">
+                          <span className="col-entry-name">Part Name</span>
+                          <span className="col-entry-size">Size</span>
+                          <span className="col-action">Download</span>
+                        </div>
+                        {splitResultParts.map((part, idx) => (
+                          <div key={idx} className="archive-data-row">
+                            <span className="col-entry-name">📦 {part.name}</span>
+                            <span className="col-entry-size">
+                              {(part.buffer.length / 1024).toFixed(1)} KB
+                            </span>
+                            <span className="col-action">
+                              <button
+                                className="tool-btn secondary small-btn"
+                                onClick={() => handleDownloadPart(part)}
+                                type="button"
+                              >
+                                <Download size={11} /> Save
+                              </button>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="join-panel">
+              <FileDropzone
+                multiple={true}
+                files={files}
+                onFilesChanged={setFiles}
+                label="Select or drop sequential split parts (.part001, .part002, etc.)"
+              />
+
+              {files.length > 1 && (
+                <div className="zip-controls-box">
+                  <button
+                    className="tool-btn primary small-btn"
+                    onClick={handleJoinFiles}
+                    type="button"
+                  >
+                    <FileBox size={13} />
+                    <span>Join and Reconstruct File ({files.length} chunks)</span>
+                  </button>
+
+                  {joinedFileDownload && (
+                    <div className="zip-success-note" style={{ marginTop: '12px' }}>
+                      <CheckCircle size={16} color="var(--success)" />
+                      <div>
+                        <strong>Reconstructed: {joinedFileDownload.name}</strong> (
+                        {(joinedFileDownload.size / 1024).toFixed(1)} KB)
+                      </div>
+                      <a
+                        href={joinedFileDownload.url}
+                        download={joinedFileDownload.name}
+                        className="tool-btn primary small-btn"
+                        style={{ marginLeft: 'auto', textDecoration: 'none' }}
+                      >
+                        <Download size={12} /> Save File
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 8. FOLDER TO TEXT TREE */}
+      {utilityId === 'files-folder-text-tree' && (
+        <div className="files-tool-frame">
+          <div className="text-tree-layout">
+            <div className="text-tree-input-pane">
+              <FileDropzone
+                multiple={true}
+                files={files}
+                onFilesChanged={setFiles}
+                label="Drop files/folders to generate tree, or type paths below"
+              />
+
+              <div className="control-group" style={{ marginTop: '12px' }}>
+                <label className="control-label">Or paste directory paths (one per line):</label>
+                <textarea
+                  className="control-input font-mono"
+                  style={{ height: '120px', resize: 'vertical' }}
+                  placeholder="src/index.ts&#10;src/components/Button.tsx&#10;docs/README.md"
+                  value={customPathsText}
+                  onChange={(e) => setCustomPathsText(e.target.value)}
+                />
+              </div>
+
+              <div className="control-group">
+                <label className="control-label">Tree Rendering Format:</label>
+                <div className="format-toggle-row">
+                  <button
+                    className={`tool-btn secondary small-btn ${treeFormat === 'unicode' ? 'active' : ''}`}
+                    onClick={() => setTreeFormat('unicode')}
+                    type="button"
+                  >
+                    Unicode (├── └──)
+                  </button>
+                  <button
+                    className={`tool-btn secondary small-btn ${treeFormat === 'ascii' ? 'active' : ''}`}
+                    onClick={() => setTreeFormat('ascii')}
+                    type="button"
+                  >
+                    ASCII (|-- `--)
+                  </button>
+                  <button
+                    className={`tool-btn secondary small-btn ${treeFormat === 'markdown' ? 'active' : ''}`}
+                    onClick={() => setTreeFormat('markdown')}
+                    type="button"
+                  >
+                    Markdown
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-tree-output-pane">
+              <div className="rename-preview-header">
+                <h3 className="rename-preview-title">Visual Tree Hierarchy</h3>
+                <div className="dup-header-actions">
+                  <button
+                    className="tool-btn secondary small-btn"
+                    onClick={() => copyToClipboard(generatedTextTree, 'text-tree')}
+                    disabled={!generatedTextTree}
+                    type="button"
+                  >
+                    {copiedKey === 'text-tree' ? <Check size={12} /> : <Copy size={12} />}
+                    <span>{copiedKey === 'text-tree' ? 'Copied' : 'Copy'}</span>
+                  </button>
+                  <button
+                    className="tool-btn secondary small-btn"
+                    onClick={handleDownloadTextTree}
+                    disabled={!generatedTextTree}
+                    type="button"
+                  >
+                    <Download size={12} />
+                    <span>Save .txt</span>
+                  </button>
+                </div>
+              </div>
+              <pre className="tree-output-block font-mono">
+                {generatedTextTree || '(Add files or paste paths to preview directory tree)'}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 9. FOLDER COMPARE */}
+      {utilityId === 'files-folder-compare' && (
+        <div className="files-tool-frame">
+          <div className="folder-compare-drop-grid">
+            <div className="folder-compare-col">
+              <h4 className="comp-pane-name">Folder A (Baseline)</h4>
+              <FileDropzone
+                multiple={true}
+                files={files}
+                onFilesChanged={setFiles}
+                label="Drop files from Folder A"
+              />
+              <span className="folder-file-count">{files.length} file(s) selected</span>
+            </div>
+
+            <div className="folder-compare-col">
+              <h4 className="comp-pane-name">Folder B (Target)</h4>
+              <FileDropzone
+                multiple={true}
+                files={compareFilesB}
+                onFilesChanged={setCompareFilesB}
+                label="Drop files from Folder B"
+              />
+              <span className="folder-file-count">{compareFilesB.length} file(s) selected</span>
+            </div>
+          </div>
+
+          <div className="folder-compare-action-row">
+            <button
+              className="tool-btn primary small-btn"
+              onClick={handleRunFolderCompare}
+              disabled={isComparingFolders || (files.length === 0 && compareFilesB.length === 0)}
+              type="button"
+            >
+              <GitCompare size={14} />
+              <span>{isComparingFolders ? 'Comparing SHA-256...' : 'Compare Folder A vs Folder B'}</span>
+            </button>
+
+            {folderCompareResult && (
+              <button
+                className="tool-btn secondary small-btn"
+                onClick={handleExportCompareReport}
+                type="button"
+              >
+                <Download size={12} />
+                <span>Export Diff Report (.json)</span>
+              </button>
+            )}
+          </div>
+
+          {folderCompareResult && (
+            <div className="folder-compare-summary-card">
+              <div className="folder-compare-metrics-row">
+                <div className="metric-pill identical">
+                  <span className="metric-value">{folderCompareResult.identical.length}</span>
+                  <span className="metric-label">Identical</span>
+                </div>
+                <div className="metric-pill modified">
+                  <span className="metric-value">{folderCompareResult.modified.length}</span>
+                  <span className="metric-label">Modified</span>
+                </div>
+                <div className="metric-pill added">
+                  <span className="metric-value">+{folderCompareResult.addedInB.length}</span>
+                  <span className="metric-label">Added in B</span>
+                </div>
+                <div className="metric-pill removed">
+                  <span className="metric-value">-{folderCompareResult.removedInB.length}</span>
+                  <span className="metric-label">Removed in B</span>
+                </div>
+              </div>
+
+              <div className="archive-table" style={{ marginTop: '16px' }}>
+                <div className="archive-header-row">
+                  <span className="col-entry-name">Filename</span>
+                  <span className="col-entry-type">Comparison Status</span>
+                </div>
+                {folderCompareResult.identical.map((name) => (
+                  <div key={`id-${name}`} className="archive-data-row">
+                    <span className="col-entry-name">📄 {name}</span>
+                    <span className="status-badge-inline status-identical">Identical</span>
+                  </div>
+                ))}
+                {folderCompareResult.modified.map((name) => (
+                  <div key={`mod-${name}`} className="archive-data-row">
+                    <span className="col-entry-name">📄 {name}</span>
+                    <span className="status-badge-inline status-modified">Modified Content</span>
+                  </div>
+                ))}
+                {folderCompareResult.addedInB.map((name) => (
+                  <div key={`add-${name}`} className="archive-data-row">
+                    <span className="col-entry-name">📄 {name}</span>
+                    <span className="status-badge-inline status-added">Added in Folder B</span>
+                  </div>
+                ))}
+                {folderCompareResult.removedInB.map((name) => (
+                  <div key={`rem-${name}`} className="archive-data-row">
+                    <span className="col-entry-name">📄 {name}</span>
+                    <span className="status-badge-inline status-removed">Missing in Folder B</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

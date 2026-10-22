@@ -30,11 +30,89 @@ import {
   FileDiff,
   Terminal,
   Database,
+  ChevronRight,
+  ChevronDown,
+  SlidersHorizontal,
+  Layers,
+  Type,
 } from 'lucide-react';
 import { DataTable } from '../../components/common/DataTable';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { plural } from '../../core/utils/plural';
 import './DataWorkspaceView.css';
+
+interface DataTreeNodeProps {
+  label: string | number;
+  value: unknown;
+  depth?: number;
+  searchFilter?: string;
+}
+
+const DataTreeNode: React.FC<DataTreeNodeProps> = ({ label, value, depth = 0, searchFilter = '' }) => {
+  const [isOpen, setIsOpen] = useState(depth < 2);
+
+  const isObject = value !== null && typeof value === 'object';
+  const isArray = Array.isArray(value);
+
+  if (isObject) {
+    const entries = isArray
+      ? (value as unknown[]).map((v, i) => [i, v] as [number, unknown])
+      : Object.entries(value as Record<string, unknown>);
+
+    const count = entries.length;
+
+    return (
+      <div className="data-tree-item">
+        <div className="data-tree-row">
+          <button
+            type="button"
+            className="data-tree-toggle-btn"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? 'Collapse node' : 'Expand node'}
+          >
+            {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </button>
+          <span className="data-tree-key">{label}:</span>
+          <span className="data-tree-meta-badge">
+            {isArray ? `Array(${count})` : `Object{${count}}`}
+          </span>
+        </div>
+        {isOpen && (
+          <div>
+            {entries.map(([k, v]) => (
+              <DataTreeNode
+                key={String(k)}
+                label={k}
+                value={v}
+                depth={depth + 1}
+                searchFilter={searchFilter}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const strVal = String(value);
+  let typeClass = 'data-tree-val-str';
+  if (typeof value === 'number') typeClass = 'data-tree-val-num';
+  else if (typeof value === 'boolean') typeClass = 'data-tree-val-bool';
+  else if (value === null || value === undefined) typeClass = 'data-tree-val-null';
+
+  return (
+    <div className="data-tree-item">
+      <div className="data-tree-row">
+        <span className="data-tree-key">{label}:</span>
+        <span className={typeClass}>
+          {typeof value === 'string' ? `"${strVal}"` : strVal}
+        </span>
+        <span className="data-tree-meta-badge">{value === null ? 'null' : typeof value}</span>
+      </div>
+    </div>
+  );
+};
+
 
 interface DataWorkspaceViewProps {
   groupId: string;
@@ -111,6 +189,28 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
   const [filterKeyword, setFilterKeyword] = useState('');
   const [hiddenCols, setHiddenCols] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'table' | 'tree' | 'editor'>('table');
+
+  // Sort & Filter
+  const [sfSortCol, setSfSortCol] = useState('');
+  const [sfSortAsc, setSfSortAsc] = useState(true);
+  const [sfFilterCol, setSfFilterCol] = useState('');
+  const [sfFilterOp, setSfFilterOp] = useState<'contains' | 'equals' | 'starts_with' | 'gt' | 'lt' | 'not_empty'>('contains');
+  const [sfFilterVal, setSfFilterVal] = useState('');
+
+  // Column Manager
+  const [activeCols, setActiveCols] = useState<string[]>([]);
+  const [colRenames, setColRenames] = useState<Record<string, string>>({});
+  const [dropEmptyCols, setDropEmptyCols] = useState(false);
+
+  // Format Values
+  const [fmtTrim, setFmtTrim] = useState(true);
+  const [fmtCase, setFmtCase] = useState<'none' | 'lowercase' | 'uppercase' | 'titlecase'>('none');
+  const [fmtEmptyRepl, setFmtEmptyRepl] = useState('');
+  const [fmtRoundDec, setFmtRoundDec] = useState<number | ''>('');
+  const [fmtTargetCol, setFmtTargetCol] = useState('');
+
+  // Tree search
+  const [treeSearch, setTreeSearch] = useState('');
 
   // Processing & Results
   const [outputData, setOutputData] = useState<string | null>(null);
@@ -199,6 +299,48 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
           )
         );
         break;
+      case 'json-tree':
+      case 'validate-json':
+        setDataInput(
+          JSON.stringify(
+            {
+              suite: 'Toiloki Local Utility Suite',
+              version: '2.0.0',
+              offline: true,
+              metrics: { toolsCount: 56, passRate: 100, activeWorkspaces: 13 },
+              team: [
+                { id: 1, name: 'Alice Morgan', role: 'Security Architect' },
+                { id: 2, name: 'Bob Jenkins', role: 'UI Engineer' },
+              ],
+              features: {
+                encryption: 'AES-256-GCM',
+                zeroTelemetry: true,
+                localCache: 'IndexedDB',
+              },
+            },
+            null,
+            2
+          )
+        );
+        break;
+      case 'xml-tree':
+      case 'validate-xml':
+        setDataInput(
+          `<?xml version="1.0" encoding="UTF-8"?>\n<toiloki version="2.0.0">\n  <configuration offline="true">\n    <workspaces count="13">\n      <workspace id="data" active="true">Data Workspace</workspace>\n      <workspace id="developer" active="true">Developer Workspace</workspace>\n    </workspaces>\n    <security auditPassed="true" />\n  </configuration>\n</toiloki>`
+        );
+        break;
+      case 'yaml-viewer':
+      case 'validate-yaml':
+        setDataInput(
+          `name: Toiloki Local Suite\nversion: 2.0.0\noffline_only: true\nenvironment:\n  platform: desktop\n  sandbox: strict\nworkspaces:\n  - id: data\n    name: Data & Formats\n    tools: 24\n  - id: developer\n    name: Developer Utilities\n    tools: 30\nperformance:\n  max_memory_mb: 512\n  parallel_workers: 4\n`
+        );
+        break;
+      case 'validate-csv':
+      case 'csv-viewer':
+      case 'xlsx-viewer':
+      case 'data-sort-filter':
+      case 'data-columns':
+      case 'data-format-values':
       default:
         setDataInput(
           'id,name,role,department,salary\n1,Alice Morgan,Lead Engineer,Backend,125000\n2,Bob Jenkins,UI Designer,Product,95000\n3,Carol Zhao,Data Scientist,Analytics,118000\n4,David Kim,DevOps Architect,Infrastructure,130000\n5,Elena Rossi,QA Engineer,Quality,88000'
@@ -255,14 +397,46 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
     }
   }, [dataInput, filterKeyword, sortCol, sortAsc]);
 
-  // Parsed JSON tree for JSON preview
-  const parsedTree = useMemo(() => {
+  // Parsed hierarchical tree for JSON/XML/YAML preview
+  const activeParsedTree = useMemo(() => {
+    if (!dataInput.trim()) return null;
     try {
+      if (utilityId === 'json-tree' || utilityId === 'validate-json') {
+        return JSON.parse(dataInput);
+      }
+      if (utilityId === 'xml-tree' || utilityId === 'validate-xml') {
+        const res = DataEngine.xmlToJson(dataInput);
+        return res.success && res.data ? JSON.parse(res.data) : null;
+      }
+      if (utilityId === 'yaml-viewer' || utilityId === 'validate-yaml') {
+        const res = DataEngine.yamlToJson(dataInput);
+        return res.success && res.data ? JSON.parse(res.data) : null;
+      }
       return JSON.parse(dataInput);
     } catch {
       return null;
     }
-  }, [dataInput]);
+  }, [dataInput, utilityId]);
+
+  // Tabular records for DataTable
+  const dataTableRows = useMemo(() => {
+    if (!parsedTable.headers.length) return [];
+    return parsedTable.rows.map((row) => {
+      const obj: Record<string, unknown> = {};
+      parsedTable.headers.forEach((h, i) => {
+        obj[h] = row[i] ?? '';
+      });
+      return obj;
+    });
+  }, [parsedTable]);
+
+  useEffect(() => {
+    if (parsedTable.headers.length > 0) {
+      if (!sfSortCol) setSfSortCol(parsedTable.headers[0]);
+      if (!sfFilterCol) setSfFilterCol(parsedTable.headers[0]);
+      if (activeCols.length === 0) setActiveCols(parsedTable.headers);
+    }
+  }, [parsedTable.headers]);
 
   const handleFilesChanged = async (newFiles: SelectedFile[]) => {
     setFiles(newFiles);
@@ -509,6 +683,126 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
           setOutputData(res.data);
           success = true;
           summary = 'Formatted YAML';
+        }
+      } else if (utilityId === 'validate-csv') {
+        const res = DataEngine.validateCsv(dataInput);
+        if (res.success && res.data) {
+          const v = res.data;
+          setValidationStatus({
+            valid: v.valid,
+            message: v.valid
+              ? `Valid CSV format. ${v.rowCount} records, ${v.columnCount} columns. Delimiter detected: "${v.delimiter}".`
+              : `CSV validation issues detected (${v.errors.length} error(s)): ${v.errors.join('; ')}`,
+          });
+          const report =
+            (v.valid ? '✓ CSV VALIDATION PASSED\n\n' : '⚠ CSV VALIDATION FAILED\n\n') +
+            `• Delimiter: ${v.delimiter === '\t' ? 'TAB' : v.delimiter}\n` +
+            `• Records: ${v.rowCount}\n` +
+            `• Columns: ${v.columnCount}\n` +
+            `• Headers: ${v.headers.join(', ')}\n\n` +
+            (v.errors.length > 0 ? `Errors:\n${v.errors.map((e) => `  ✗ ${e}`).join('\n')}\n\n` : '') +
+            (v.warnings.length > 0 ? `Warnings:\n${v.warnings.map((w) => `  ! ${w}`).join('\n')}\n\n` : '') +
+            dataInput;
+          setOutputData(report);
+          success = true;
+          summary = v.valid ? `Valid CSV (${v.rowCount} rows)` : `CSV Invalid (${v.errors.length} errors)`;
+        } else {
+          setErrorMsg(res.error || 'Failed to validate CSV');
+        }
+      } else if (utilityId === 'validate-yaml') {
+        const res = DataEngine.validateYaml(dataInput);
+        if (res.success && res.data) {
+          const v = res.data;
+          setValidationStatus({
+            valid: v.valid,
+            message: v.valid
+              ? 'Valid YAML document. Structure and syntax check passed with 0 errors.'
+              : `YAML syntax issues detected: ${v.errors.join('; ')}`,
+          });
+          const report =
+            (v.valid ? '✓ YAML VALIDATION PASSED\n\n' : '⚠ YAML VALIDATION FAILED\n\n') +
+            (v.errors.length > 0 ? `Errors:\n${v.errors.map((e) => `  ✗ ${e}`).join('\n')}\n\n` : '') +
+            (v.warnings.length > 0 ? `Warnings:\n${v.warnings.map((w) => `  ! ${w}`).join('\n')}\n\n` : '') +
+            dataInput;
+          setOutputData(report);
+          success = true;
+          summary = v.valid ? 'YAML Valid' : `YAML Invalid (${v.errors.length} errors)`;
+        } else {
+          setErrorMsg(res.error || 'Failed to validate YAML');
+        }
+      } else if (utilityId === 'data-sort-filter') {
+        const res = DataEngine.sortAndFilterCsv(dataInput, {
+          sortCol: sfSortCol || undefined,
+          sortAsc: sfSortAsc,
+          filterCol: sfFilterCol || undefined,
+          filterOp: sfFilterOp,
+          filterVal: sfFilterVal,
+        });
+        if (res.success && res.data) {
+          setOutputData(res.data);
+          success = true;
+          summary = `Sorted & filtered CSV: ${res.metadata?.rowCount || 0} rows remaining`;
+        } else {
+          setErrorMsg(res.error || 'Failed to sort/filter data');
+        }
+      } else if (utilityId === 'data-columns') {
+        const res = DataEngine.transformCsvColumns(dataInput, {
+          columnsToKeep: activeCols.length > 0 ? activeCols : undefined,
+          columnRenames: colRenames,
+          dropEmptyColumns: dropEmptyCols,
+        });
+        if (res.success && res.data) {
+          setOutputData(res.data);
+          success = true;
+          summary = `Transformed columns: ${res.metadata?.columnCount || 0} columns preserved`;
+        } else {
+          setErrorMsg(res.error || 'Failed to transform columns');
+        }
+      } else if (utilityId === 'data-format-values') {
+        const res = DataEngine.formatCsvValues(dataInput, {
+          trimWhitespace: fmtTrim,
+          caseTransform: fmtCase,
+          emptyReplacement: fmtEmptyRepl || undefined,
+          roundDecimals: typeof fmtRoundDec === 'number' ? fmtRoundDec : undefined,
+          targetColumn: fmtTargetCol || undefined,
+        });
+        if (res.success && res.data) {
+          setOutputData(res.data.csv);
+          success = true;
+          summary = `Formatted values: ${res.data.modifiedCellsCount} cell(s) modified`;
+        } else {
+          setErrorMsg(res.error || 'Failed to format values');
+        }
+      } else if (utilityId === 'csv-viewer' || utilityId === 'xlsx-viewer') {
+        setOutputData(dataInput);
+        success = true;
+        summary = `Inspected tabular data (${parsedTable.rows.length} rows, ${parsedTable.headers.length} columns)`;
+      } else if (utilityId === 'json-tree') {
+        try {
+          const parsed = JSON.parse(dataInput);
+          setOutputData(JSON.stringify(parsed, null, 2));
+          success = true;
+          summary = `Parsed JSON tree (${Array.isArray(parsed) ? `${parsed.length} items` : `${Object.keys(parsed).length} keys`})`;
+        } catch (err) {
+          setErrorMsg(err instanceof Error ? err.message : 'Invalid JSON format');
+        }
+      } else if (utilityId === 'xml-tree') {
+        const res = DataEngine.xmlToJson(dataInput);
+        if (res.success && res.data) {
+          setOutputData(DataEngine.formatXml(dataInput).data || dataInput);
+          success = true;
+          summary = 'Parsed XML hierarchy tree';
+        } else {
+          setErrorMsg(res.error || 'Invalid XML document');
+        }
+      } else if (utilityId === 'yaml-viewer') {
+        const res = DataEngine.yamlToJson(dataInput);
+        if (res.success && res.data) {
+          setOutputData(dataInput);
+          success = true;
+          summary = 'Parsed YAML hierarchy tree';
+        } else {
+          setErrorMsg(res.error || 'Invalid YAML document');
         }
       } else if (utilityId.startsWith('validate-')) {
         if (utilityId === 'validate-json') {
@@ -783,6 +1077,233 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
               </div>
             )}
 
+            {/* Sort & Filter Controls */}
+            {utilityId === 'data-sort-filter' && (
+              <div className="data-controls-strip">
+                <span className="data-controls-strip-label">Sort:</span>
+                <select
+                  className="control-input"
+                  value={sfSortCol}
+                  onChange={(e) => setSfSortCol(e.target.value)}
+                  style={{ minWidth: '120px' }}
+                >
+                  <option value="">(None)</option>
+                  {parsedTable.headers.map((h) => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="segmented-chip-btn"
+                  onClick={() => setSfSortAsc(!sfSortAsc)}
+                >
+                  <ArrowUpDown size={12} />
+                  <span>{sfSortAsc ? 'Ascending' : 'Descending'}</span>
+                </button>
+
+                <span className="data-controls-strip-label" style={{ marginLeft: '12px' }}>Filter:</span>
+                <select
+                  className="control-input"
+                  value={sfFilterCol}
+                  onChange={(e) => setSfFilterCol(e.target.value)}
+                  style={{ minWidth: '120px' }}
+                >
+                  <option value="">(All Columns)</option>
+                  {parsedTable.headers.map((h) => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+                <select
+                  className="control-input"
+                  value={sfFilterOp}
+                  onChange={(e) => setSfFilterOp(e.target.value as any)}
+                  style={{ width: '130px' }}
+                >
+                  <option value="contains">Contains</option>
+                  <option value="equals">Equals</option>
+                  <option value="starts_with">Starts With</option>
+                  <option value="gt">Greater Than (&gt;)</option>
+                  <option value="lt">Less Than (&lt;)</option>
+                  <option value="not_empty">Not Empty</option>
+                </select>
+                {sfFilterOp !== 'not_empty' && (
+                  <input
+                    type="text"
+                    className="control-input"
+                    placeholder="Filter keyword..."
+                    value={sfFilterVal}
+                    onChange={(e) => setSfFilterVal(e.target.value)}
+                    style={{ flex: 1, minWidth: '140px' }}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Column Manager Controls */}
+            {utilityId === 'data-columns' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span className="data-controls-strip-label">Manage Columns ({parsedTable.headers.length} available):</span>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={dropEmptyCols}
+                      onChange={(e) => setDropEmptyCols(e.target.checked)}
+                    />
+                    <span>Drop entirely empty columns</span>
+                  </label>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {parsedTable.headers.map((h) => {
+                    const isKept = activeCols.includes(h);
+                    return (
+                      <div key={h} className="column-manage-item">
+                        <input
+                          type="checkbox"
+                          checked={isKept}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setActiveCols([...activeCols, h]);
+                            } else {
+                              setActiveCols(activeCols.filter((col) => col !== h));
+                            }
+                          }}
+                        />
+                        <span style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 500 }}>{h}</span>
+                        {isKept && (
+                          <input
+                            type="text"
+                            placeholder="Rename..."
+                            value={colRenames[h] ?? ''}
+                            onChange={(e) => setColRenames({ ...colRenames, [h]: e.target.value })}
+                            className="control-input"
+                            style={{ width: '90px', padding: '2px 6px', fontSize: '10.5px' }}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Format Values Controls */}
+            {utilityId === 'data-format-values' && (
+              <div className="data-controls-strip">
+                <span className="data-controls-strip-label">Target:</span>
+                <select
+                  className="control-input"
+                  value={fmtTargetCol}
+                  onChange={(e) => setFmtTargetCol(e.target.value)}
+                  style={{ minWidth: '120px' }}
+                >
+                  <option value="">(All Columns)</option>
+                  {parsedTable.headers.map((h) => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={fmtTrim}
+                    onChange={(e) => setFmtTrim(e.target.checked)}
+                  />
+                  <span>Trim Spaces</span>
+                </label>
+
+                <span className="data-controls-strip-label" style={{ marginLeft: '8px' }}>Case:</span>
+                <select
+                  className="control-input"
+                  value={fmtCase}
+                  onChange={(e) => setFmtCase(e.target.value as any)}
+                  style={{ width: '110px' }}
+                >
+                  <option value="none">Preserve</option>
+                  <option value="lowercase">lowercase</option>
+                  <option value="uppercase">UPPERCASE</option>
+                  <option value="titlecase">Title Case</option>
+                </select>
+
+                <span className="data-controls-strip-label" style={{ marginLeft: '8px' }}>Replace Empty:</span>
+                <input
+                  type="text"
+                  placeholder="e.g. N/A"
+                  value={fmtEmptyRepl}
+                  onChange={(e) => setFmtEmptyRepl(e.target.value)}
+                  className="control-input"
+                  style={{ width: '80px' }}
+                />
+
+                <span className="data-controls-strip-label" style={{ marginLeft: '8px' }}>Decimals:</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={8}
+                  placeholder="e.g. 2"
+                  value={fmtRoundDec}
+                  onChange={(e) => setFmtRoundDec(e.target.value === '' ? '' : parseInt(e.target.value))}
+                  className="control-input"
+                  style={{ width: '60px' }}
+                />
+              </div>
+            )}
+
+            {/* View Mode Switcher for Viewers */}
+            {(utilityId === 'csv-viewer' || utilityId === 'xlsx-viewer') && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="data-view-mode-tabs">
+                  <button
+                    type="button"
+                    className={`data-view-tab-btn ${viewMode === 'table' ? 'active' : ''}`}
+                    onClick={() => setViewMode('table')}
+                  >
+                    <Table size={13} />
+                    <span>Table View</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`data-view-tab-btn ${viewMode === 'editor' ? 'active' : ''}`}
+                    onClick={() => setViewMode('editor')}
+                  >
+                    <Code size={13} />
+                    <span>Raw CSV</span>
+                  </button>
+                </div>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  {parsedTable.rows.length} rows • {parsedTable.headers.length} columns
+                </span>
+              </div>
+            )}
+
+            {(utilityId === 'json-tree' || utilityId === 'xml-tree' || utilityId === 'yaml-viewer') && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="data-view-mode-tabs">
+                  <button
+                    type="button"
+                    className={`data-view-tab-btn ${viewMode === 'tree' ? 'active' : ''}`}
+                    onClick={() => setViewMode('tree')}
+                  >
+                    <Layers size={13} />
+                    <span>Tree Inspector</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`data-view-tab-btn ${viewMode === 'editor' ? 'active' : ''}`}
+                    onClick={() => setViewMode('editor')}
+                  >
+                    <Code size={13} />
+                    <span>Raw Code</span>
+                  </button>
+                </div>
+                {activeParsedTree && (
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Structure parsed cleanly
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* Split Dual Editors for Diff, Schema Validation, or CSV Join */}
             {utilityId === 'data-json-diff' ? (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -816,6 +1337,16 @@ export const DataWorkspaceView: React.FC<DataWorkspaceViewProps> = ({
                   <div className="editor-top-label-bar"><span className="editor-lang-badge">Secondary CSV (Table B)</span></div>
                   <textarea className="monospace-editor" style={{ height: '240px' }} value={secondaryCsv} onChange={(e) => setSecondaryCsv(e.target.value)} />
                 </div>
+              </div>
+            ) : (utilityId === 'csv-viewer' || utilityId === 'xlsx-viewer') && viewMode === 'table' && parsedTable.headers.length > 0 ? (
+              /* Tabular View Mode */
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px' }}>
+                <DataTable columns={parsedTable.headers} data={dataTableRows} pageSize={15} />
+              </div>
+            ) : (utilityId === 'json-tree' || utilityId === 'xml-tree' || utilityId === 'yaml-viewer') && viewMode === 'tree' && activeParsedTree ? (
+              /* Tree Inspector View Mode */
+              <div className="data-tree-wrapper">
+                <DataTreeNode label="root" value={activeParsedTree} depth={0} />
               </div>
             ) : (
               /* Single Main Input Editor */

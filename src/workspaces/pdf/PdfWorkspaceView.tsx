@@ -93,7 +93,9 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
 
   // Extended 17 Utilities State
   const [cropMargins, setCropMargins] = useState({ top: 36, right: 36, bottom: 36, left: 36 });
-  const [textContentInput, setTextContentInput] = useState('Confidential & Proprietary');
+  const [textContentInput, setTextContentInput] = useState(
+    utilityId === 'sign-pdf' ? 'Digitally Signed by Toiloki User' : 'Confidential & Proprietary'
+  );
   const [textX, setTextX] = useState(50);
   const [textY, setTextY] = useState(50);
   const [textFontSize, setTextFontSize] = useState(14);
@@ -545,7 +547,7 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
         } else {
           setErrorMsg(res.error || 'Failed to crop pages.');
         }
-      } else if (utilityId === 'add-text') {
+      } else if (utilityId === 'add-text' || utilityId === 'sign-pdf') {
         const buf = files[0].buffer;
         if (!buf) return;
         setProgressPercent(50);
@@ -1281,17 +1283,17 @@ export const PdfWorkspaceView: React.FC<PdfWorkspaceViewProps> = ({
                   </div>
                 )}
 
-                {/* Add Text options */}
-                {utilityId === 'add-text' && (
+                {/* Add Text & Signature options */}
+                {(utilityId === 'add-text' || utilityId === 'sign-pdf') && (
                   <div className="options-grid-2">
                     <div className="option-row" style={{ gridColumn: 'span 2' }}>
-                      <label className="option-label">Text to Insert:</label>
+                      <label className="option-label">{utilityId === 'sign-pdf' ? 'Signature Stamp Content:' : 'Text to Insert:'}</label>
                       <input
                         type="text"
                         className="control-input"
                         value={textContentInput}
                         onChange={(e) => setTextContentInput(e.target.value)}
-                        placeholder="Enter text..."
+                        placeholder={utilityId === 'sign-pdf' ? 'Digitally Signed by [Name] - [Date]' : 'Enter text...'}
                       />
                     </div>
                     <div className="option-row">

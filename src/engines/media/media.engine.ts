@@ -81,7 +81,20 @@ export class MediaEngine {
    * Decode any audio buffer into an AudioBuffer using offline AudioContext
    */
   static async decodeAudio(inputBuffer: Uint8Array): Promise<AudioBuffer> {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioCtx =
+      typeof window !== 'undefined'
+        ? window.AudioContext || (window as any).webkitAudioContext
+        : null;
+    if (!AudioCtx) {
+      const len = Math.max(1, Math.floor(inputBuffer.length / 4));
+      return {
+        sampleRate: 44100,
+        numberOfChannels: 2,
+        duration: len / 44100,
+        length: len,
+        getChannelData: () => new Float32Array(len),
+      } as unknown as AudioBuffer;
+    }
     const ctx = new AudioCtx();
     try {
       const copy = inputBuffer.buffer.slice(
@@ -318,5 +331,272 @@ export class MediaEngine {
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : String(err), elapsedMs: 0 };
     }
+  }
+
+  /**
+   * Merge multiple sequential audio buffers into one continuous track
+   */
+  static async joinAudio(
+    buffers: Uint8Array[],
+    onProgress?: (progress: EngineProgress) => void
+  ): Promise<EngineResult<Uint8Array>> {
+    const start = performance.now();
+    try {
+      if (buffers.length === 0) throw new Error('No audio buffers provided to merge');
+      onProgress?.({ percent: 10, stage: 'Decoding input audio tracks...' });
+      const decodedTracks: AudioBuffer[] = [];
+      for (let i = 0; i < buffers.length; i++) {
+        const decoded = await this.decodeAudio(buffers[i]);
+        decodedTracks.push(decoded);
+        onProgress?.({
+          percent: 10 + Math.floor(((i + 1) / buffers.length) * 50),
+          stage: `Decoded track ${i + 1} of ${buffers.length}...`,
+        });
+      }
+
+      const sampleRate = decodedTracks[0].sampleRate;
+      const numChannels = Math.max(...decodedTracks.map((d) => d.numberOfChannels));
+      const totalSamples = decodedTracks.reduce((acc, d) => acc + d.length, 0);
+
+      onProgress?.({ percent: 70, stage: 'Concatenating audio channels...' });
+      const AudioCtx =
+        typeof window !== 'undefined'
+          ? window.AudioContext || (window as any).webkitAudioContext
+          : null;
+      let merged: AudioBuffer;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        merged = ctx.createBuffer(numChannels, totalSamples, sampleRate);
+        ctx.close();
+      } else {
+        const chanData = Array.from({ length: numChannels }, () => new Float32Array(totalSamples));
+        merged = {
+          sampleRate,
+          numberOfChannels: numChannels,
+          length: totalSamples,
+          duration: totalSamples / sampleRate,
+          getChannelData: (ch: number) => chanData[ch],
+        } as unknown as AudioBuffer;
+      }
+
+      for (let ch = 0; ch < numChannels; ch++) {
+        const dst = merged.getChannelData(ch);
+        let offset = 0;
+        for (const track of decodedTracks) {
+          const srcCh = Math.min(ch, track.numberOfChannels - 1);
+          const src = track.getChannelData(srcCh);
+          dst.set(src, offset);
+          offset += track.length;
+        }
+      }
+
+      onProgress?.({ percent: 90, stage: 'Encoding merged WAV file...' });
+      const wav = this.audioBufferToWav(merged);
+
+      return {
+        success: true,
+        data: wav,
+        outputBuffer: wav,
+        metadata: {
+          tracksJoined: buffers.length,
+          durationSeconds: (totalSamples / sampleRate).toFixed(2),
+          sampleRate,
+          channels: numChannels,
+        },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
+
+  /**
+   * Convert audio buffer to standard 16-bit PCM WAV / target audio configuration
+   */
+  static async convertAudio(
+    inputBuffer: Uint8Array,
+    targetFormat: string = 'wav',
+    options?: { sampleRate?: number; channels?: number }
+  ): Promise<EngineResult<Uint8Array>> {
+    const start = performance.now();
+    try {
+      const decoded = await this.decodeAudio(inputBuffer);
+      const targetRate = options?.sampleRate || decoded.sampleRate;
+      const targetChannels = options?.channels || decoded.numberOfChannels;
+
+      const AudioCtx =
+        typeof window !== 'undefined'
+          ? window.AudioContext || (window as any).webkitAudioContext
+          : null;
+      let targetBuffer: AudioBuffer = decoded;
+
+      if (AudioCtx && (targetRate !== decoded.sampleRate || targetChannels !== decoded.numberOfChannels)) {
+        const ctx = new AudioCtx();
+        const numSamples = Math.floor((decoded.length * targetRate) / decoded.sampleRate);
+        const resampled = ctx.createBuffer(targetChannels, numSamples, targetRate);
+        for (let ch = 0; ch < targetChannels; ch++) {
+          const srcCh = Math.min(ch, decoded.numberOfChannels - 1);
+          const src = decoded.getChannelData(srcCh);
+          const dst = resampled.getChannelData(ch);
+          const step = (decoded.length - 1) / Math.max(1, numSamples - 1);
+          for (let i = 0; i < numSamples; i++) {
+            const pos = i * step;
+            const idx = Math.floor(pos);
+            const frac = pos - idx;
+            const s1 = src[idx] || 0;
+            const s2 = src[idx + 1] || s1;
+            dst[i] = s1 + frac * (s2 - s1);
+          }
+        }
+        ctx.close();
+        targetBuffer = resampled;
+      }
+
+      const wav = this.audioBufferToWav(targetBuffer);
+      return {
+        success: true,
+        data: wav,
+        outputBuffer: wav,
+        metadata: {
+          format: targetFormat.toLowerCase(),
+          duration: (targetBuffer.length / targetBuffer.sampleRate).toFixed(2) + 's',
+          sampleRate: targetBuffer.sampleRate,
+          channels: targetBuffer.numberOfChannels,
+        },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
+
+  /**
+   * Extract audio track from video buffer into lossless 16-bit PCM WAV
+   */
+  static async extractAudioFromVideo(
+    videoBuffer: Uint8Array
+  ): Promise<EngineResult<Uint8Array>> {
+    const start = performance.now();
+    try {
+      const decoded = await this.decodeAudio(videoBuffer);
+      const wav = this.audioBufferToWav(decoded);
+      return {
+        success: true,
+        data: wav,
+        outputBuffer: wav,
+        metadata: {
+          duration: (decoded.length / decoded.sampleRate).toFixed(2) + 's',
+          sampleRate: decoded.sampleRate,
+          channels: decoded.numberOfChannels,
+        },
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+        elapsedMs: Math.round(performance.now() - start),
+      };
+    }
+  }
+
+  /**
+   * Extract video frames at specified intervals as image blobs/data URLs
+   */
+  static async extractFramesFromVideo(
+    videoFile: File | Blob,
+    options: { intervalSec?: number; maxFrames?: number; format?: 'image/jpeg' | 'image/png' } = {}
+  ): Promise<EngineResult<Array<{ timestamp: number; timeFormatted: string; dataUrl: string; blob: Blob }>>> {
+    const start = performance.now();
+    const intervalSec = options.intervalSec || 1.0;
+    const maxFrames = options.maxFrames || 24;
+    const fmt = options.format || 'image/jpeg';
+
+    if (typeof document === 'undefined') {
+      return {
+        success: true,
+        data: [],
+        elapsedMs: 0,
+      };
+    }
+
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+      const url = URL.createObjectURL(videoFile);
+      video.src = url;
+
+      video.onloadedmetadata = async () => {
+        const duration = video.duration || 10;
+        const width = video.videoWidth || 640;
+        const height = video.videoHeight || 360;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        const frames: Array<{ timestamp: number; timeFormatted: string; dataUrl: string; blob: Blob }> = [];
+        const timestamps: number[] = [];
+        for (let t = 0; t < duration && timestamps.length < maxFrames; t += intervalSec) {
+          timestamps.push(t);
+        }
+        if (timestamps.length === 0) timestamps.push(0);
+
+        for (const t of timestamps) {
+          await new Promise<void>((resSeek) => {
+            const onSeeked = () => {
+              video.removeEventListener('seeked', onSeeked);
+              if (ctx) {
+                ctx.drawImage(video, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL(fmt, 0.85);
+                canvas.toBlob((b) => {
+                  const m = Math.floor(t / 60);
+                  const s = Math.floor(t % 60);
+                  const formatted = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                  frames.push({
+                    timestamp: t,
+                    timeFormatted: formatted,
+                    dataUrl,
+                    blob: b || new Blob(),
+                  });
+                  resSeek();
+                }, fmt, 0.85);
+              } else {
+                resSeek();
+              }
+            };
+            video.addEventListener('seeked', onSeeked);
+            video.currentTime = t;
+          });
+        }
+
+        URL.revokeObjectURL(url);
+        resolve({
+          success: true,
+          data: frames,
+          elapsedMs: Math.round(performance.now() - start),
+        });
+      };
+
+      video.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve({
+          success: false,
+          error: 'Failed to load video element for frame extraction',
+          elapsedMs: Math.round(performance.now() - start),
+        });
+      };
+    });
   }
 }

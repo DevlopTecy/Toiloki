@@ -6,6 +6,7 @@ import { ErrorPanel } from '../../components/common/ErrorPanel';
 import { DiffEngine, DiffChange } from '../../engines/diff/diff.engine';
 import { TextEngine } from '../../engines/text/text.engine';
 import { DocumentEngine } from '../../engines/documents/document.engine';
+import { PdfEngine } from '../../engines/pdf/pdf.engine';
 import {
   Download,
   Copy,
@@ -19,7 +20,10 @@ import {
   Replace,
   FileSearch,
   Eye,
-  FileText
+  FileText,
+  Clock,
+  FileCheck,
+  AlignLeft,
 } from 'lucide-react';
 import { HistoryService } from '../../core/services/history.service';
 import { pluralWord } from '../../core/utils/plural';
@@ -69,6 +73,13 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
     { id: '2', find: 'telemetry', replace: 'tracking', matchCase: false, matchWholeWord: true, isRegex: false },
   ]);
   const [batchResultReport, setBatchResultReport] = useState<string | null>(null);
+
+  // Text Cleanup Options
+  const [cleanExtraSpaces, setCleanExtraSpaces] = useState(true);
+  const [cleanBlankLines, setCleanBlankLines] = useState(true);
+  const [cleanLineEndings, setCleanLineEndings] = useState(true);
+  const [cleanInvisibleChars, setCleanInvisibleChars] = useState(true);
+  const [cleanResultDelta, setCleanResultDelta] = useState<number | null>(null);
 
   // Markdown Editor state
   const [mdPreviewActive, setMdPreviewActive] = useState(true);
@@ -177,7 +188,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
     setIsProcessing(true);
     setErrorMsg(null);
     try {
-      if (utilityId.includes('export') || utilityId === 'doc-markdown-editor') {
+      if (utilityId.includes('export') || utilityId === 'doc-markdown-editor' || utilityId === 'edit-text') {
         let ext = 'txt';
         let content = editorText;
         if (utilityId === 'export-html') {
@@ -190,6 +201,27 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
           ext = 'rtf';
           const conv = DocumentEngine.textToRtf(editorText);
           if (conv.success && conv.data) content = conv.data;
+        } else if (utilityId === 'export-pdf') {
+          const res = await PdfEngine.createFromText(editorText, { title: 'Exported Document' });
+          if (!res.success || !res.data) throw new Error(res.error || 'Failed to generate PDF');
+          setOutputResult({
+            buffer: res.data,
+            ext: 'pdf',
+            fileName: 'document_export.pdf',
+          });
+          HistoryService.record({
+            toolName,
+            workspaceId: 'documents',
+            groupId,
+            utilityId,
+            input: 'Document Editor Text',
+            output: 'Exported PDF document',
+            status: 'completed',
+          });
+          return;
+        } else if (utilityId === 'export-txt' || utilityId === 'edit-text') {
+          ext = 'txt';
+          content = editorText;
         }
 
         const encoder = new TextEncoder();
@@ -206,6 +238,29 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
         let outText = '';
         let outExt = 'txt';
         const rawBuf = f.buffer || new Uint8Array();
+
+        if ((utilityId === 'rtf-to-pdf' || (f.name.toLowerCase().endsWith('.rtf') && utilityId.includes('pdf'))) && f.buffer) {
+          const text = new TextDecoder().decode(rawBuf);
+          const rtfRes = DocumentEngine.rtfToText(text);
+          const cleanText = rtfRes.data || text;
+          const pdfRes = await PdfEngine.createFromText(cleanText, { title: f.name.replace(/\.[^.]+$/, '') });
+          if (!pdfRes.success || !pdfRes.data) throw new Error(pdfRes.error || 'Failed to convert RTF to PDF');
+          setOutputResult({
+            buffer: pdfRes.data,
+            ext: 'pdf',
+            fileName: `${f.name.replace(/\.[^.]+$/, '')}.pdf`,
+          });
+          HistoryService.record({
+            toolName,
+            workspaceId: 'documents',
+            groupId,
+            utilityId,
+            input: f.name,
+            output: 'Converted RTF to PDF',
+            status: 'completed',
+          });
+          return;
+        }
 
         if ((utilityId === 'pdf-to-docx' || f.name.toLowerCase().endsWith('.pdf')) && f.buffer) {
           const res = await DocumentEngine.pdfToDocx(f.buffer);
@@ -310,6 +365,20 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
     setReplaceCount(occurrences);
   };
 
+  const handleExecuteCleanup = () => {
+    const origLen = editorText.length;
+    const res = TextEngine.cleanText(editorText, {
+      removeExtraSpaces: cleanExtraSpaces,
+      removeBlankLines: cleanBlankLines,
+      normalizeLineEndings: cleanLineEndings,
+      stripInvisibleChars: cleanInvisibleChars,
+    });
+    if (res.success && res.data !== undefined) {
+      setEditorText(res.data);
+      setCleanResultDelta(origLen - res.data.length);
+    }
+  };
+
   const handleExecuteBatchReplace = () => {
     const res = DocumentEngine.batchFindReplace(editorText, batchRules);
     if (res.success && res.data) {
@@ -407,7 +476,9 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                       ? ['.md', '.markdown']
                       : utilityId === 'html-to-pdf-doc'
                         ? ['.html', '.htm']
-                        : ['.txt', '.rtf']
+                        : utilityId === 'rtf-to-pdf'
+                          ? ['.rtf']
+                          : ['.txt', '.rtf']
               }
               multiple={false}
               files={files}
@@ -829,7 +900,42 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
           utilityId !== 'doc-batch-find-replace' &&
           !outputResult && (
             <div className="doc-editor-pane">
-              {metrics && (
+              {utilityId === 'doc-stats' && metrics ? (
+                <div className="doc-stats-grid">
+                  <div className="doc-stat-card">
+                    <span className="doc-stat-val">{metrics.words}</span>
+                    <span className="doc-stat-lbl">Total Words</span>
+                  </div>
+                  <div className="doc-stat-card">
+                    <span className="doc-stat-val">{metrics.characters}</span>
+                    <span className="doc-stat-lbl">Characters (spaces)</span>
+                  </div>
+                  <div className="doc-stat-card">
+                    <span className="doc-stat-val">{metrics.charactersNoSpaces}</span>
+                    <span className="doc-stat-lbl">Characters (no spaces)</span>
+                  </div>
+                  <div className="doc-stat-card">
+                    <span className="doc-stat-val">{metrics.lines}</span>
+                    <span className="doc-stat-lbl">Lines</span>
+                  </div>
+                  <div className="doc-stat-card">
+                    <span className="doc-stat-val">{metrics.sentences}</span>
+                    <span className="doc-stat-lbl">Sentences</span>
+                  </div>
+                  <div className="doc-stat-card">
+                    <span className="doc-stat-val">{metrics.paragraphs}</span>
+                    <span className="doc-stat-lbl">Paragraphs</span>
+                  </div>
+                  <div className="doc-stat-card">
+                    <span className="doc-stat-val">{metrics.readingTimeMin} min</span>
+                    <span className="doc-stat-lbl">Reading Time (~200 wpm)</span>
+                  </div>
+                  <div className="doc-stat-card">
+                    <span className="doc-stat-val">{metrics.speakingTimeMin} min</span>
+                    <span className="doc-stat-lbl">Speaking Time (~130 wpm)</span>
+                  </div>
+                </div>
+              ) : metrics && (
                 <div className="doc-metrics-bar">
                   <span className="doc-metric-item"><strong>{metrics.words}</strong> {pluralWord(metrics.words, 'word')}</span>
                   <span className="doc-metric-item"><strong>{metrics.characters}</strong> {pluralWord(metrics.characters, 'character')}</span>
@@ -838,7 +944,58 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                 </div>
               )}
 
-              {utilityId === 'find-replace' && (
+              {/* Text Cleanup Controls */}
+              {utilityId === 'text-cleanup' && (
+                <div className="text-cleanup-strip">
+                  <label className="cleanup-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={cleanExtraSpaces}
+                      onChange={(e) => setCleanExtraSpaces(e.target.checked)}
+                    />
+                    <span>Strip Extra Spaces</span>
+                  </label>
+                  <label className="cleanup-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={cleanBlankLines}
+                      onChange={(e) => setCleanBlankLines(e.target.checked)}
+                    />
+                    <span>Remove Duplicate Blank Lines</span>
+                  </label>
+                  <label className="cleanup-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={cleanLineEndings}
+                      onChange={(e) => setCleanLineEndings(e.target.checked)}
+                    />
+                    <span>Normalize Line Endings (CRLF &rarr; LF)</span>
+                  </label>
+                  <label className="cleanup-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={cleanInvisibleChars}
+                      onChange={(e) => setCleanInvisibleChars(e.target.checked)}
+                    />
+                    <span>Strip Zero-Width & Invisible Chars</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="tool-btn primary small-btn"
+                    onClick={handleExecuteCleanup}
+                  >
+                    <FileCheck size={13} />
+                    <span>Clean Document Text</span>
+                  </button>
+                  {cleanResultDelta !== null && (
+                    <span className="replace-count-badge">
+                      Cleaned {cleanResultDelta} characters / whitespace
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {(utilityId === 'find-replace' || utilityId === 'edit-text') && (
                 <div className="find-replace-bar">
                   <input
                     type="text"
@@ -870,7 +1027,7 @@ export const DocumentsWorkspaceView: React.FC<DocumentsWorkspaceViewProps> = ({
                 placeholder="Start drafting or editing your document here..."
               />
 
-              {groupId === 'doc-export' && (
+              {(groupId === 'doc-export' || utilityId === 'edit-text') && (
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     className="tool-btn primary"

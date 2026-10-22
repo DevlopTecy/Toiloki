@@ -1,10 +1,102 @@
-# Toiloki (Desktop Utility Suite)
+# Toiloki
 
-> **Toiloki** is a high-performance, local-first desktop utility suite for Windows designed for everyday digital tasks across 8 core workspaces. It is completely offline, privacy-first, free of AI/cloud dependencies, and engineered with a modular **Workspace → Utility → Feature → Engine** hierarchy.
+> A high-performance, local-first desktop utility suite designed for everyday digital tasks. 100% offline, privacy-focused, and free of cloud dependencies or telemetry.
 
 ---
 
-## 🏛️ Core Architecture
+## Overview
+
+**Toiloki** provides a comprehensive collection of productivity, file manipulation, and developer utilities in a single, cohesive desktop interface. All operations run directly on your machine—no data ever leaves your device.
+
+## Key Features
+
+- **100% Offline & Private**: Zero external network requests, zero telemetry, zero analytics.
+- **Fast & Responsive**: Built with React, TypeScript, and modern desktop runtimes (Tauri / Electron).
+- **Dark & Light Mode**: Accessible, high-contrast design system adhering to WCAG standards.
+- **Extensive Toolset**: Organized into focused workspaces for streamlined workflows.
+
+---
+
+## Workspaces & Capabilities
+
+- **PDF**: Merge, split, extract, rotate, reorder, compress, and convert images to PDF.
+- **Documents**: Convert document formats, inspect and clean text, and compare revisions.
+- **Images**: Resize, crop, rotate, convert formats (PNG, JPEG, WebP, SVG), compress, and adjust color properties.
+- **Audio & Video**: Media inspection, waveform visualization, format conversion, and clipping.
+- **Files & Archives**: Batch renamer, duplicate file finder (SHA-256 hash), and archive compression/extraction (ZIP, TAR, GZ).
+- **Data**: CSV, JSON, YAML, and XML viewers, converters, formatters, and validators.
+- **Text**: Case conversion, whitespace cleaning, line sorting, deduplication, word counters, and diff viewer.
+- **Developer**: Code formatters, encoders/decoders (Base64, URL, HTML), JWT inspector, UUID generator, and Regex tester.
+- **Calculator & Converters**: Scientific expression evaluator and multi-unit conversions (length, mass, temperature, data storage).
+- **Security & Privacy**: Hash generation (MD5, SHA-1, SHA-256, SHA-512), checksum verification, and password generation.
+- **Network & Web**: URL parser, query string builder, DNS lookup helpers, and HTTP request inspector.
+- **Color & Design**: Color picker, palette generator, format conversion (HEX, RGB, HSL), and contrast checker.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js**: `v20` or higher
+- **npm**: `v10` or higher
+- *(Optional for Tauri native builds)*: [Rust](https://rustup.rs/)
+
+### Installation
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/DevlopTecy/Toiloki.git
+cd Toiloki
+npm install
+```
+
+### Running Locally
+
+Run the web interface development server:
+```bash
+npm run dev
+```
+
+Run as a desktop application via Electron:
+```bash
+npm run dev:electron
+```
+
+Or run via Tauri:
+```bash
+npm run dev:tauri
+```
+
+### Building for Production
+
+Compile the web application:
+```bash
+npm run build
+```
+
+Build the native desktop installers:
+```bash
+# Package with Electron (NSIS installer & portable)
+npm run electron:dist
+
+# Or build with Tauri
+npm run build:tauri
+```
+
+### Running Tests
+
+Execute the automated test suite:
+```bash
+npm test
+```
+
+---
+
+## Architecture
+
+Toiloki is built around a modular architecture:
 
 ```
 App
@@ -14,74 +106,21 @@ App
                 └── Engine
 ```
 
-- **Workspace**: User's broad goal/domain.
-- **Utility**: Group of related operations.
-- **Feature**: Specific user-facing capability.
-- **Engine**: Reusable, UI-independent technical implementation.
+- **Workspace**: Top-level functional domain (e.g., PDF, Data, Images).
+- **Utility**: Group of related actions or tools.
+- **Feature**: Specific user-facing task or view.
+- **Engine**: Headless, reusable core logic isolated from UI components.
 
 ---
 
-## 🔒 The 8 Locked Workspaces
+## Privacy Guarantee
 
-1. **PDF**: Page Organizer (Merge, Split, Extract, Rotate), PDF Converter (Images → PDF), PDF Optimizer, PDF Security, PDF Information.
-2. **Documents**: Converter (DOCX → HTML/Text), Document Diff / Comparison, Text Cleanup.
-3. **Images**: Transformer (Resize, Rotate, Flip), Format Converter (PNG, JPEG, WebP), Optimizer (Quality Compression), Adjustments (Brightness, Contrast, Saturation, Grayscale), Image → PDF.
-4. **Data**: Viewer, Converter (CSV ↔ JSON, JSON ↔ YAML, CSV ↔ XLSX), Formatter & Validator (JSON pretty/minify, XML).
-5. **Text**: Transformer (Case conversion, Sort, Deduplicate), Cleaner (Whitespace, line endings), Analyzer (Word count, read time), Compare (Diff).
-6. **Developer**: Code Formatter, Encode/Decode (Base64, URL), JWT Inspector, UUID v4 Generator, Live Regex Tester.
-7. **Calculator & Converters**: Scientific Math Expression Evaluator, Multi-Unit Converter (Length, Mass, Temperature, Data size).
-8. **Files & Archives**: Batch File Renamer (prefix, suffix, find & replace, numbering), Hash-based Duplicate Finder (SHA-256), Archive Manager.
+- All file processing happens locally in memory or temporary local workspace directories.
+- No accounts, subscriptions, or login required.
+- No background network connections or telemetry.
 
 ---
 
-## 🚀 Getting Started
+## License
 
-### Prerequisites (for Rust & Tauri Desktop Backend)
-To run or build the native Rust backend:
-```bash
-# Install Rust via Windows Package Manager
-winget install Rustlang.Rustup
-
-# Restart terminal or reload environment, then verify:
-cargo --version
-rustc --version
-```
-
-### Development
-```bash
-# Start frontend dev server
-npm run dev
-
-# Start Tauri desktop app (Rust backend + React frontend)
-npm run dev:tauri
-
-# Start legacy Electron desktop app (optional fallback)
-npm run dev:electron
-```
-
-### Production Build
-```bash
-# Build React + Vite bundle
-npm run build
-
-# Build Tauri native Windows executable (installer & portable binary)
-npm run build:tauri
-
-# Or package legacy Electron executable
-npm run electron:dist
-```
-
-### Test Suite
-```bash
-# Run all automated verification tests (including Tauri & Rust architecture checks)
-npm test
-```
-
-
----
-
-## 🛡️ Privacy Guarantee
-- 100% offline local processing
-- Zero network requests or telemetry
-- All file manipulations occur directly on your local machine
-- Isolated temporary file session directory with automatic cleanup on exit
+This project is licensed under the [MIT License](LICENSE).

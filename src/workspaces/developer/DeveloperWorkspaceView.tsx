@@ -14,10 +14,16 @@ import {
   Trash2,
   Code,
   Layers,
+  Camera,
+  Upload,
+  ShieldCheck,
+  Plus,
 } from 'lucide-react';
 import { HistoryService } from '../../core/services/history.service';
 import { SplitEditor } from '../../components/common/SplitEditor';
 import { plural } from '../../core/utils/plural';
+import { generateCode128Svg, generateCode39Svg } from '../../core/utils/barcode';
+import jsQR from 'jsqr';
 import './DeveloperWorkspaceView.css';
 
 interface DeveloperWorkspaceViewProps {
@@ -757,9 +763,33 @@ export const DeveloperWorkspaceView: React.FC<DeveloperWorkspaceViewProps> = ({
         )}
 
         {/* QR Code Generator */}
-        {(utilityId === 'dev-qr-generator' || utilityId === 'dev-barcode-generator') && (
+        {utilityId === 'dev-qr-generator' && (
           <QRGeneratorView utilityId={utilityId} />
         )}
+
+        {/* 1D Barcode Generator */}
+        {utilityId === 'dev-barcode-generator' && <BarcodeGeneratorView />}
+
+        {/* QR Scanner */}
+        {utilityId === 'dev-qr-scanner' && <QRScannerView />}
+
+        {/* URL Components & Web URL Parser */}
+        {(utilityId === 'dev-url-components' || utilityId === 'web-url-parser') && <UrlComponentsView />}
+
+        {/* Cryptographic Random Number */}
+        {utilityId === 'gen-random-number' && <RandomNumberView />}
+
+        {/* Mock Test Data Generator */}
+        {utilityId === 'gen-test-data' && <TestDataView />}
+
+        {/* HTTP Headers Inspector & Validator */}
+        {utilityId === 'web-http-headers' && <HttpHeadersView />}
+
+        {/* Query String Serializer / Deserializer */}
+        {utilityId === 'web-query-string' && <QueryStringView />}
+
+        {/* Hash & HMAC Keyed Digest */}
+        {utilityId === 'sec-hash-hmac' && <HashHmacView />}
 
         {/* Cron Explainer */}
         {utilityId === 'dev-cron-explainer' && <CronExplainerView />}
@@ -1180,3 +1210,1215 @@ function EnvDiffView() {
     </div>
   );
 }
+
+// ─── URL Components & Web URL Parser ──────────────────────────────────────────
+function UrlComponentsView() {
+  const [urlInput, setUrlInput] = React.useState('https://api.github.com:443/repos/octocat/hello-world/issues?state=open&sort=created&per_page=30#issue-123');
+  const [copiedKey, setCopiedKey] = React.useState<string | null>(null);
+
+  const copyVal = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 1500);
+  };
+
+  const parsed = React.useMemo(() => {
+    try {
+      const u = new URL(urlInput.trim());
+      const params: Array<{ key: string; value: string }> = [];
+      u.searchParams.forEach((val, k) => {
+        params.push({ key: k, value: val });
+      });
+      return {
+        valid: true,
+        protocol: u.protocol,
+        username: u.username,
+        password: u.password,
+        hostname: u.hostname,
+        port: u.port || (u.protocol === 'https:' ? '443' : '80'),
+        pathname: u.pathname,
+        search: u.search,
+        hash: u.hash,
+        origin: u.origin,
+        params,
+      };
+    } catch {
+      return { valid: false };
+    }
+  }, [urlInput]);
+
+  const updateParam = (index: number, newKey: string, newVal: string) => {
+    try {
+      const u = new URL(urlInput.trim());
+      const currentKeys: string[] = [];
+      u.searchParams.forEach((_, k) => currentKeys.push(k));
+      const entries: [string, string][] = [];
+      let i = 0;
+      u.searchParams.forEach((v, k) => {
+        if (i === index) {
+          if (newKey) entries.push([newKey, newVal]);
+        } else {
+          entries.push([k, v]);
+        }
+        i++;
+      });
+      u.search = '';
+      entries.forEach(([k, v]) => u.searchParams.append(k, v));
+      setUrlInput(u.toString());
+    } catch {}
+  };
+
+  const deleteParam = (index: number) => {
+    try {
+      const u = new URL(urlInput.trim());
+      const entries: [string, string][] = [];
+      let i = 0;
+      u.searchParams.forEach((v, k) => {
+        if (i !== index) entries.push([k, v]);
+        i++;
+      });
+      u.search = '';
+      entries.forEach(([k, v]) => u.searchParams.append(k, v));
+      setUrlInput(u.toString());
+    } catch {}
+  };
+
+  const addParam = () => {
+    try {
+      const u = new URL(urlInput.trim());
+      u.searchParams.append('new_key', 'value');
+      setUrlInput(u.toString());
+    } catch {}
+  };
+
+  return (
+    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div className="control-group">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <label className="control-label">URL to Inspect & Edit:</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              className="tool-btn secondary small-btn"
+              onClick={() => setUrlInput('https://api.github.com:443/repos/octocat/hello-world/issues?state=open&sort=created&per_page=30#issue-123')}
+              type="button"
+            >
+              API Sample
+            </button>
+            <button
+              className="tool-btn secondary small-btn"
+              onClick={() => setUrlInput('https://example.com/search?q=developer+tools&category=utilities&page=2')}
+              type="button"
+            >
+              Search Sample
+            </button>
+          </div>
+        </div>
+        <input
+          type="text"
+          className="control-input"
+          value={urlInput}
+          onChange={(e) => setUrlInput(e.target.value)}
+          style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}
+        />
+      </div>
+
+      {parsed.valid ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+            {[
+              ['Protocol', parsed.protocol, 'protocol'],
+              ['Hostname', parsed.hostname, 'hostname'],
+              ['Port', parsed.port, 'port'],
+              ['Origin', parsed.origin, 'origin'],
+              ['Pathname', parsed.pathname, 'pathname'],
+              ['Hash / Anchor', parsed.hash || '(none)', 'hash'],
+            ].map(([label, val, key]) => (
+              <div key={label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{label}</span>
+                  {val && val !== '(none)' && (
+                    <button
+                      className="copy-mini-btn"
+                      onClick={() => copyVal(val as string, key as string)}
+                      type="button"
+                      title="Copy"
+                    >
+                      {copiedKey === key ? <Check size={11} color="var(--success)" /> : <Copy size={11} />}
+                    </button>
+                  )}
+                </div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text)', wordBreak: 'break-all' }}>
+                  {val}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Query Parameters Table */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Query Parameters</span>
+                <span style={{ fontSize: 11, background: 'var(--border)', padding: '2px 8px', borderRadius: 10, color: 'var(--text-muted)' }}>
+                  {parsed.params?.length || 0}
+                </span>
+              </div>
+              <button className="tool-btn secondary small-btn" onClick={addParam} type="button">
+                <Plus size={12} />
+                <span>Add Parameter</span>
+              </button>
+            </div>
+
+            {parsed.params && parsed.params.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {parsed.params.map((p, idx) => (
+                  <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      className="control-input"
+                      value={p.key}
+                      onChange={(e) => updateParam(idx, e.target.value, p.value)}
+                      placeholder="key"
+                      style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 12 }}
+                    />
+                    <span style={{ color: 'var(--text-muted)' }}>=</span>
+                    <input
+                      type="text"
+                      className="control-input"
+                      value={p.value}
+                      onChange={(e) => updateParam(idx, p.key, e.target.value)}
+                      placeholder="value"
+                      style={{ flex: 2, fontFamily: 'var(--font-mono)', fontSize: 12 }}
+                    />
+                    <button
+                      className="tool-btn secondary small-btn"
+                      onClick={() => copyVal(`${p.key}=${p.value}`, `param-${idx}`)}
+                      type="button"
+                    >
+                      {copiedKey === `param-${idx}` ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
+                    </button>
+                    <button
+                      className="tool-btn secondary small-btn"
+                      onClick={() => deleteParam(idx)}
+                      type="button"
+                      style={{ color: 'var(--danger)' }}
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ color: 'var(--text-muted)', fontSize: 12, padding: '8px 0' }}>
+                No query parameters in this URL. Click "Add Parameter" to append one.
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div style={{ color: 'var(--danger)', fontSize: 13, padding: 12, background: 'var(--surface)', borderRadius: 6 }}>
+          Invalid URL format. Please enter a valid URL including protocol (e.g., https://...).
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Cryptographic Random Number ──────────────────────────────────────────────
+function RandomNumberView() {
+  const [min, setMin] = React.useState(1);
+  const [max, setMax] = React.useState(100);
+  const [count, setCount] = React.useState(10);
+  const [unique, setUnique] = React.useState(false);
+  const [isFloat, setIsFloat] = React.useState(false);
+  const [decimals, setDecimals] = React.useState(2);
+  const [sortOrder, setSortOrder] = React.useState<'none' | 'asc' | 'desc'>('none');
+  const [numbers, setNumbers] = React.useState<number[]>([]);
+  const [copied, setCopied] = React.useState(false);
+
+  const generate = () => {
+    const range = max - min;
+    if (range < 0) return;
+    const res: number[] = [];
+    const used = new Set<number>();
+    const effectiveCount = unique ? Math.min(count, Math.floor(range) + 1) : count;
+
+    const array = new Uint32Array(effectiveCount * 4 + 20);
+    window.crypto.getRandomValues(array);
+    let ptr = 0;
+
+    while (res.length < effectiveCount && ptr < array.length) {
+      const randNorm = array[ptr] / (0xffffffff + 1);
+      ptr++;
+      let val = min + randNorm * (range + (isFloat ? 0 : 1));
+      if (!isFloat) val = Math.floor(val);
+      else val = parseFloat(val.toFixed(decimals));
+
+      if (unique) {
+        if (!used.has(val)) {
+          used.add(val);
+          res.push(val);
+        }
+      } else {
+        res.push(val);
+      }
+    }
+
+    if (sortOrder === 'asc') res.sort((a, b) => a - b);
+    else if (sortOrder === 'desc') res.sort((a, b) => b - a);
+
+    setNumbers(res);
+  };
+
+  React.useEffect(() => {
+    generate();
+  }, []);
+
+  const stats = React.useMemo(() => {
+    if (numbers.length === 0) return null;
+    const minVal = Math.min(...numbers);
+    const maxVal = Math.max(...numbers);
+    const sum = numbers.reduce((a, b) => a + b, 0);
+    const avg = sum / numbers.length;
+    return { minVal, maxVal, sum, avg: avg.toFixed(2) };
+  }, [numbers]);
+
+  const copyAll = (format: 'comma' | 'newline' | 'json') => {
+    let str = '';
+    if (format === 'comma') str = numbers.join(', ');
+    else if (format === 'newline') str = numbers.join('\n');
+    else str = JSON.stringify(numbers);
+    navigator.clipboard.writeText(str);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
+        <div className="control-group">
+          <label className="control-label">Min Value:</label>
+          <input type="number" className="control-input" value={min} onChange={e => setMin(Number(e.target.value))} />
+        </div>
+        <div className="control-group">
+          <label className="control-label">Max Value:</label>
+          <input type="number" className="control-input" value={max} onChange={e => setMax(Number(e.target.value))} />
+        </div>
+        <div className="control-group">
+          <label className="control-label">Count (1-500):</label>
+          <input type="number" min={1} max={500} className="control-input" value={count} onChange={e => setCount(Math.min(500, Math.max(1, Number(e.target.value))))} />
+        </div>
+        <div className="control-group">
+          <label className="control-label">Sort:</label>
+          <select className="control-input" value={sortOrder} onChange={e => setSortOrder(e.target.value as any)}>
+            <option value="none">None (Random order)</option>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', color: 'var(--text-2)' }}>
+          <input type="checkbox" checked={unique} onChange={e => setUnique(e.target.checked)} />
+          Unique (no duplicates)
+        </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', color: 'var(--text-2)' }}>
+          <input type="checkbox" checked={isFloat} onChange={e => setIsFloat(e.target.checked)} />
+          Decimal (Floats)
+        </label>
+        {isFloat && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Decimals:</span>
+            <input type="number" min={1} max={6} className="control-input" style={{ width: 60 }} value={decimals} onChange={e => setDecimals(Number(e.target.value))} />
+          </div>
+        )}
+        <button className="tool-btn primary small-btn" onClick={generate} type="button" style={{ marginLeft: 'auto' }}>
+          <RefreshCw size={12} />
+          <span>Generate Random Numbers</span>
+        </button>
+      </div>
+
+      {stats && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          {[['COUNT', numbers.length], ['MIN', stats.minVal], ['MAX', stats.maxVal], ['AVERAGE', stats.avg]].map(([lbl, val]) => (
+            <div key={lbl} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 14px' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>{lbl}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>{val}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>Results ({numbers.length})</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="tool-btn secondary small-btn" onClick={() => copyAll('comma')} type="button">
+              {copied ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
+              <span>Copy CSV</span>
+            </button>
+            <button className="tool-btn secondary small-btn" onClick={() => copyAll('newline')} type="button">
+              <span>Copy Lines</span>
+            </button>
+            <button className="tool-btn secondary small-btn" onClick={() => copyAll('json')} type="button">
+              <span>Copy JSON</span>
+            </button>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, maxHeight: 300, overflowY: 'auto', padding: 4 }}>
+          {numbers.map((n, i) => (
+            <span key={i} style={{ background: 'var(--bg)', border: '1px solid var(--border)', padding: '4px 10px', borderRadius: 4, fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--accent)' }}>
+              {n}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Mock Test Data Generator ─────────────────────────────────────────────────
+function TestDataView() {
+  const [type, setType] = React.useState<'users' | 'products' | 'transactions'>('users');
+  const [count, setCount] = React.useState(10);
+  const [format, setFormat] = React.useState<'json' | 'csv' | 'sql'>('json');
+  const [copied, setCopied] = React.useState(false);
+
+  const data = React.useMemo(() => {
+    const res = DevEngine.generateTestData(type, count);
+    return res.success && res.data ? res.data : [];
+  }, [type, count]);
+
+  const outputText = React.useMemo(() => {
+    if (data.length === 0) return '';
+    if (format === 'json') {
+      return JSON.stringify(data, null, 2);
+    } else if (format === 'csv') {
+      const keys = Object.keys(data[0]);
+      const header = keys.join(',');
+      const rows = data.map(item => keys.map(k => JSON.stringify(item[k] ?? '')).join(','));
+      return [header, ...rows].join('\n');
+    } else {
+      const keys = Object.keys(data[0]);
+      const table = type;
+      return data.map(item => {
+        const vals = keys.map(k => {
+          const v = item[k];
+          return typeof v === 'number' ? v : `'${String(v).replace(/'/g, "''")}'`;
+        });
+        return `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${vals.join(', ')});`;
+      }).join('\n');
+    }
+  }, [data, format, type]);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(outputText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const handleDownload = () => {
+    const ext = format === 'json' ? 'json' : format === 'csv' ? 'csv' : 'sql';
+    const blob = new Blob([outputText], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `mock-${type}-${Date.now()}.${ext}`;
+    a.click();
+  };
+
+  return (
+    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label className="control-label" style={{ margin: 0 }}>Category:</label>
+          <select className="control-input" value={type} onChange={e => setType(e.target.value as any)}>
+            <option value="users">User Profiles</option>
+            <option value="products">E-commerce Products</option>
+            <option value="transactions">Financial Transactions</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label className="control-label" style={{ margin: 0 }}>Count:</label>
+          <select className="control-input" value={count} onChange={e => setCount(Number(e.target.value))}>
+            <option value={5}>5 records</option>
+            <option value={10}>10 records</option>
+            <option value={25}>25 records</option>
+            <option value={50}>50 records</option>
+            <option value={100}>100 records</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label className="control-label" style={{ margin: 0 }}>Format:</label>
+          <div className="segmented-chip-row" style={{ display: 'flex', gap: 6 }}>
+            {(['json', 'csv', 'sql'] as const).map(fmt => (
+              <button
+                key={fmt}
+                type="button"
+                className={`segmented-chip-btn ${format === fmt ? 'active' : ''}`}
+                onClick={() => setFormat(fmt)}
+              >
+                {fmt.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          <button className="tool-btn secondary small-btn" onClick={handleCopy} type="button">
+            {copied ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
+            <span>Copy</span>
+          </button>
+          <button className="tool-btn primary small-btn" onClick={handleDownload} type="button">
+            <Download size={12} />
+            <span>Download</span>
+          </button>
+        </div>
+      </div>
+
+      <textarea
+        className="code-editor"
+        readOnly
+        value={outputText}
+        style={{ width: '100%', height: 420, fontFamily: 'var(--font-mono)', fontSize: 12, resize: 'vertical' }}
+      />
+    </div>
+  );
+}
+
+// ─── QR Scanner ───────────────────────────────────────────────────────────────
+function QRScannerView() {
+  const [result, setResult] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+  const [scanning, setScanning] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
+  const videoRef = React.useRef<HTMLVideoElement | null>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const streamRef = React.useRef<MediaStream | null>(null);
+  const animRef = React.useRef<number | null>(null);
+
+  const decodeImageFile = (file: File) => {
+    setError(null);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, img.width, img.height);
+        const code = jsQR(imgData.data, imgData.width, imgData.height);
+        if (code) {
+          setResult(code.data);
+          setError(null);
+        } else {
+          setError('No QR code detected in this image. Try another image or higher resolution.');
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const startCamera = async () => {
+    setError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+        setScanning(true);
+        scanFrame();
+      }
+    } catch (e: any) {
+      setError(`Camera error: ${e.message || 'Unable to access webcam.'}`);
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+    if (animRef.current) {
+      cancelAnimationFrame(animRef.current);
+      animRef.current = null;
+    }
+    setScanning(false);
+  };
+
+  const scanFrame = () => {
+    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+      const canvas = canvasRef.current || document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imgData.data, imgData.width, imgData.height);
+        if (code && code.data) {
+          setResult(code.data);
+          stopCamera();
+          return;
+        }
+      }
+    }
+    animRef.current = requestAnimationFrame(scanFrame);
+  };
+
+  React.useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  const handleCopy = () => {
+    if (!result) return;
+    navigator.clipboard.writeText(result);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const isUrl = result && (result.startsWith('http://') || result.startsWith('https://'));
+
+  return (
+    <div style={{ padding: '24px 32px', display: 'flex', gap: 24 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Upload Zone */}
+        <div
+          onDragOver={e => e.preventDefault()}
+          onDrop={e => {
+            e.preventDefault();
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+              decodeImageFile(e.dataTransfer.files[0]);
+            }
+          }}
+          style={{
+            border: '2px dashed var(--border)',
+            borderRadius: 8,
+            padding: '36px 20px',
+            textAlign: 'center',
+            background: 'var(--surface)',
+            cursor: 'pointer',
+          }}
+          onClick={() => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e: any) => {
+              if (e.target.files && e.target.files[0]) decodeImageFile(e.target.files[0]);
+            };
+            input.click();
+          }}
+        >
+          <Upload size={32} style={{ color: 'var(--accent)', margin: '0 auto 12px' }} />
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
+            Drop QR code image here, or click to browse
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            Supports PNG, JPEG, WebP, GIF
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>or</span>
+          <button
+            className="tool-btn secondary small-btn"
+            onClick={scanning ? stopCamera : startCamera}
+            type="button"
+          >
+            <Camera size={14} />
+            <span>{scanning ? 'Stop Camera' : 'Scan via Webcam'}</span>
+          </button>
+        </div>
+
+        {scanning && (
+          <div style={{ position: 'relative', width: '100%', height: 260, background: '#000', borderRadius: 8, overflow: 'hidden' }}>
+            <video ref={videoRef} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 160, height: 160, border: '2px solid var(--accent)', borderRadius: 8, pointerEvents: 'none' }} />
+          </div>
+        )}
+
+        {error && (
+          <div style={{ color: 'var(--danger)', fontSize: 13, background: 'var(--surface)', padding: 12, borderRadius: 6 }}>
+            {error}
+          </div>
+        )}
+      </div>
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Decoded Content</div>
+        {result ? (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: 'var(--success)', fontWeight: 600 }}>✓ QR CODE DECODED</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {isUrl && (
+                  <a
+                    href={result}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="tool-btn secondary small-btn"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <ExternalLink size={12} />
+                    <span>Open URL</span>
+                  </a>
+                )}
+                <button className="tool-btn primary small-btn" onClick={handleCopy} type="button">
+                  {copied ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
+                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
+            </div>
+            <textarea
+              className="code-editor"
+              readOnly
+              value={result}
+              style={{ width: '100%', height: 180, fontFamily: 'var(--font-mono)', fontSize: 13, resize: 'vertical' }}
+            />
+            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              Length: {result.length} characters
+            </div>
+          </div>
+        ) : (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+            Scan a QR code image or camera stream to view the decoded payload here.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── 1D Barcode Generator ─────────────────────────────────────────────────────
+function BarcodeGeneratorView() {
+  const [text, setText] = React.useState('TOILOKI-128');
+  const [format, setFormat] = React.useState<'CODE128' | 'CODE39'>('CODE128');
+  const [height, setHeight] = React.useState(80);
+  const [barWidth, setBarWidth] = React.useState(2);
+  const [showText, setShowText] = React.useState(true);
+
+  const svgContent = React.useMemo(() => {
+    if (!text.trim()) return '';
+    try {
+      if (format === 'CODE128') {
+        return generateCode128Svg(text, { height, barWidth, showText, color: '#1a1a1a', background: '#ffffff' });
+      } else {
+        return generateCode39Svg(text, { height, barWidth, showText, color: '#1a1a1a', background: '#ffffff' });
+      }
+    } catch {
+      return '';
+    }
+  }, [text, format, height, barWidth, showText]);
+
+  const downloadSvg = () => {
+    if (!svgContent) return;
+    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `barcode-${format.toLowerCase()}-${Date.now()}.svg`;
+    a.click();
+  };
+
+  const downloadPng = () => {
+    if (!svgContent) return;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0);
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `barcode-${format.toLowerCase()}-${Date.now()}.png`;
+      a.click();
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgContent);
+  };
+
+  return (
+    <div style={{ padding: '24px 32px', display: 'flex', gap: 24 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="control-group">
+          <label className="control-label">Value to Encode:</label>
+          <input
+            type="text"
+            className="control-input"
+            value={text}
+            onChange={e => setText(e.target.value)}
+            style={{ fontFamily: 'var(--font-mono)' }}
+          />
+        </div>
+        <div className="control-group">
+          <label className="control-label">Barcode Symbology:</label>
+          <select className="control-input" value={format} onChange={e => setFormat(e.target.value as any)}>
+            <option value="CODE128">Code 128 (High density, full ASCII)</option>
+            <option value="CODE39">Code 39 (Alphanumeric standard)</option>
+          </select>
+        </div>
+        <div className="control-group">
+          <label className="control-label">Bar Height: {height}px</label>
+          <input
+            type="range"
+            min={40}
+            max={140}
+            value={height}
+            onChange={e => setHeight(Number(e.target.value))}
+            className="control-slider"
+          />
+        </div>
+        <div className="control-group">
+          <label className="control-label">Bar Width: {barWidth}px</label>
+          <input
+            type="range"
+            min={1}
+            max={4}
+            value={barWidth}
+            onChange={e => setBarWidth(Number(e.target.value))}
+            className="control-slider"
+          />
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', color: 'var(--text-2)' }}>
+          <input type="checkbox" checked={showText} onChange={e => setShowText(e.target.checked)} />
+          Display Human-Readable Label
+        </label>
+      </div>
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, background: 'var(--surface)', padding: 24, borderRadius: 8, border: '1px solid var(--border)' }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>Barcode Preview</div>
+        {svgContent ? (
+          <div
+            style={{ background: '#fff', padding: 16, borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', maxWidth: '100%', overflowX: 'auto' }}
+            dangerouslySetInnerHTML={{ __html: svgContent }}
+          />
+        ) : (
+          <div style={{ color: 'var(--text-muted)', fontSize: 13, padding: 32 }}>Enter text to render barcode</div>
+        )}
+        {svgContent && (
+          <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 320 }}>
+            <button className="tool-btn secondary small-btn" onClick={downloadSvg} style={{ flex: 1 }} type="button">
+              <Download size={12} />
+              <span>SVG Vector</span>
+            </button>
+            <button className="tool-btn primary small-btn" onClick={downloadPng} style={{ flex: 1 }} type="button">
+              <Download size={12} />
+              <span>PNG Raster</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── HTTP Headers Inspector & Validator ───────────────────────────────────────
+function HttpHeadersView() {
+  const [rawInput, setRawInput] = React.useState(
+`HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: strict-origin-when-cross-origin
+Cache-Control: public, max-age=3600`
+  );
+  const [filter, setFilter] = React.useState('');
+
+  const parsed = React.useMemo(() => {
+    const res = DevEngine.parseHttpHeaders(rawInput);
+    return res.success && res.data ? res.data : {};
+  }, [rawInput]);
+
+  const securityAudit = React.useMemo(() => {
+    const keys = Object.keys(parsed).map(k => k.toLowerCase());
+    const checks = [
+      { name: 'Content-Security-Policy', key: 'content-security-policy', desc: 'Protects against XSS and injection attacks' },
+      { name: 'Strict-Transport-Security (HSTS)', key: 'strict-transport-security', desc: 'Forces encrypted HTTPS connections' },
+      { name: 'X-Content-Type-Options', key: 'x-content-type-options', desc: 'Prevents MIME-type sniffing' },
+      { name: 'X-Frame-Options', key: 'x-frame-options', desc: 'Prevents clickjacking framing attacks' },
+      { name: 'Referrer-Policy', key: 'referrer-policy', desc: 'Controls referrer information leaked in requests' },
+    ];
+    return checks.map(c => ({
+      ...c,
+      present: keys.includes(c.key),
+      value: parsed[Object.keys(parsed).find(k => k.toLowerCase() === c.key) || ''],
+    }));
+  }, [parsed]);
+
+  const addMissingSecurity = () => {
+    const missingHeaders = [
+      ['Content-Security-Policy', "default-src 'self'"],
+      ['Strict-Transport-Security', 'max-age=31536000; includeSubDomains'],
+      ['X-Content-Type-Options', 'nosniff'],
+      ['X-Frame-Options', 'DENY'],
+      ['Referrer-Policy', 'strict-origin-when-cross-origin'],
+    ];
+    let updated = rawInput.trim();
+    missingHeaders.forEach(([header, val]) => {
+      const exists = Object.keys(parsed).some(k => k.toLowerCase() === header.toLowerCase());
+      if (!exists) {
+        updated += `\n${header}: ${val}`;
+      }
+    });
+    setRawInput(updated);
+  };
+
+  return (
+    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <label className="control-label" style={{ margin: 0 }}>Raw HTTP Headers:</label>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                className="tool-btn secondary small-btn"
+                onClick={() => setRawInput('Content-Type: application/json\nCache-Control: no-cache\nAuthorization: Bearer secret_token')}
+                type="button"
+              >
+                Sample API
+              </button>
+              <button className="tool-btn secondary small-btn" onClick={addMissingSecurity} type="button">
+                + Add Security Headers
+              </button>
+            </div>
+          </div>
+          <textarea
+            className="code-editor"
+            value={rawInput}
+            onChange={e => setRawInput(e.target.value)}
+            style={{ height: 260, fontFamily: 'var(--font-mono)', fontSize: 12, resize: 'vertical' }}
+          />
+        </div>
+
+        {/* Security Audit Panel */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <ShieldCheck size={16} color="var(--accent)" />
+            <span>Security Headers Checklist</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {securityAudit.map(c => (
+              <div key={c.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '6px 8px', background: 'var(--bg)', borderRadius: 4 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{c.name}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{c.desc}</div>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: c.present ? 'var(--success)' : 'var(--warning)', padding: '2px 6px', borderRadius: 4, background: c.present ? 'rgba(34,197,94,0.1)' : 'rgba(234,179,8,0.1)' }}>
+                  {c.present ? 'Configured' : 'Missing'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Parsed Headers Table */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+            Parsed Headers ({Object.keys(parsed).length})
+          </div>
+          <input
+            type="text"
+            className="control-input"
+            placeholder="Filter headers..."
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+            style={{ width: 200, fontSize: 12 }}
+          />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 250, overflowY: 'auto' }}>
+          {Object.entries(parsed)
+            .filter(([k, v]) => k.toLowerCase().includes(filter.toLowerCase()) || v.toLowerCase().includes(filter.toLowerCase()))
+            .map(([k, v]) => (
+              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: 'var(--bg)', borderRadius: 4, fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{k}:</span>
+                <span style={{ color: 'var(--text)', wordBreak: 'break-all', marginLeft: 12 }}>{v}</span>
+              </div>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Query String Serializer / Deserializer ───────────────────────────────────
+function QueryStringView() {
+  const [queryString, setQueryString] = React.useState('search=react+desktop&category=developer&limit=50&active=true');
+  const [jsonString, setJsonString] = React.useState('');
+  const [copied, setCopied] = React.useState<'qs' | 'json' | null>(null);
+
+  const handleQueryChange = (val: string) => {
+    setQueryString(val);
+    try {
+      const clean = val.startsWith('?') ? val.slice(1) : val;
+      const params = new URLSearchParams(clean);
+      const obj: Record<string, any> = {};
+      params.forEach((v, k) => {
+        if (v === 'true') obj[k] = true;
+        else if (v === 'false') obj[k] = false;
+        else if (!isNaN(Number(v)) && v.trim() !== '') obj[k] = Number(v);
+        else obj[k] = v;
+      });
+      setJsonString(JSON.stringify(obj, null, 2));
+    } catch {
+      setJsonString('');
+    }
+  };
+
+  const handleJsonChange = (val: string) => {
+    setJsonString(val);
+    try {
+      const obj = JSON.parse(val);
+      const params = new URLSearchParams();
+      Object.entries(obj).forEach(([k, v]) => {
+        params.append(k, String(v));
+      });
+      setQueryString(params.toString());
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    handleQueryChange(queryString);
+  }, []);
+
+  const copyVal = (text: string, type: 'qs' | 'json') => {
+    navigator.clipboard.writeText(text);
+    setCopied(type);
+    setTimeout(() => setCopied(null), 1500);
+  };
+
+  return (
+    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <label className="control-label" style={{ margin: 0 }}>URL Query String:</label>
+            <button className="tool-btn secondary small-btn" onClick={() => copyVal(queryString, 'qs')} type="button">
+              {copied === 'qs' ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
+              <span>Copy Query</span>
+            </button>
+          </div>
+          <textarea
+            className="code-editor"
+            value={queryString}
+            onChange={e => handleQueryChange(e.target.value)}
+            placeholder="key1=value1&key2=value2..."
+            style={{ height: 320, fontFamily: 'var(--font-mono)', fontSize: 13, resize: 'vertical' }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <label className="control-label" style={{ margin: 0 }}>JSON Representation:</label>
+            <button className="tool-btn secondary small-btn" onClick={() => copyVal(jsonString, 'json')} type="button">
+              {copied === 'json' ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
+              <span>Copy JSON</span>
+            </button>
+          </div>
+          <textarea
+            className="code-editor"
+            value={jsonString}
+            onChange={e => handleJsonChange(e.target.value)}
+            placeholder='{\n  "key": "value"\n}'
+            style={{ height: 320, fontFamily: 'var(--font-mono)', fontSize: 13, resize: 'vertical' }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Hash & HMAC Keyed Digest ─────────────────────────────────────────────────
+function HashHmacView() {
+  const [algo, setAlgo] = React.useState<'SHA-256' | 'SHA-512' | 'SHA-1' | 'MD5'>('SHA-256');
+  const [isHmac, setIsHmac] = React.useState(false);
+  const [message, setMessage] = React.useState('Hello Toiloki');
+  const [secretKey, setSecretKey] = React.useState('my-secret-key');
+  const [hashHex, setHashHex] = React.useState('');
+  const [hashBase64, setHashBase64] = React.useState('');
+  const [compareHash, setCompareHash] = React.useState('');
+  const [copied, setCopied] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const compute = async () => {
+      if (!message) {
+        setHashHex('');
+        setHashBase64('');
+        return;
+      }
+      try {
+        const enc = new TextEncoder();
+        const msgBytes = enc.encode(message);
+
+        if (isHmac) {
+          if (algo === 'MD5') {
+            const res = await (await import('../../engines/security/security.engine')).SecurityEngine.hashText(message, 'MD5');
+            if (!cancelled && res.success && res.data) {
+              setHashHex(res.data.hex);
+              setHashBase64(res.data.base64);
+            }
+          } else {
+            const keyBytes = enc.encode(secretKey || '');
+            const cryptoKey = await window.crypto.subtle.importKey(
+              'raw',
+              keyBytes,
+              { name: 'HMAC', hash: algo },
+              false,
+              ['sign']
+            );
+            const sig = await window.crypto.subtle.sign('HMAC', cryptoKey, msgBytes);
+            const bytes = new Uint8Array(sig);
+            const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+            let binary = '';
+            bytes.forEach(b => binary += String.fromCharCode(b));
+            const base64 = btoa(binary);
+            if (!cancelled) {
+              setHashHex(hex);
+              setHashBase64(base64);
+            }
+          }
+        } else {
+          if (algo === 'MD5') {
+            const res = await (await import('../../engines/security/security.engine')).SecurityEngine.hashText(message, 'MD5');
+            if (!cancelled && res.success && res.data) {
+              setHashHex(res.data.hex);
+              setHashBase64(res.data.base64);
+            }
+          } else {
+            const digest = await window.crypto.subtle.digest(algo, msgBytes);
+            const bytes = new Uint8Array(digest);
+            const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+            let binary = '';
+            bytes.forEach(b => binary += String.fromCharCode(b));
+            const base64 = btoa(binary);
+            if (!cancelled) {
+              setHashHex(hex);
+              setHashBase64(base64);
+            }
+          }
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setHashHex('');
+          setHashBase64('');
+        }
+      }
+    };
+    compute();
+    return () => { cancelled = true; };
+  }, [message, secretKey, algo, isHmac]);
+
+  const copyVal = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 1500);
+  };
+
+  const isMatch = compareHash.trim() && (
+    compareHash.trim().toLowerCase() === hashHex.toLowerCase() ||
+    compareHash.trim() === hashBase64
+  );
+
+  return (
+    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label className="control-label" style={{ margin: 0 }}>Algorithm:</label>
+          <select className="control-input" value={algo} onChange={e => setAlgo(e.target.value as any)}>
+            <option value="SHA-256">SHA-256 (NIST Standard)</option>
+            <option value="SHA-512">SHA-512 (High Security)</option>
+            <option value="SHA-1">SHA-1 (Legacy / Git)</option>
+            <option value="MD5">MD5 (Checksum / Fingerprint)</option>
+          </select>
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', color: 'var(--text-2)' }}>
+          <input type="checkbox" checked={isHmac} onChange={e => setIsHmac(e.target.checked)} />
+          HMAC Mode (Keyed Hash)
+        </label>
+      </div>
+
+      <div className="control-group">
+        <label className="control-label">Message Payload:</label>
+        <textarea
+          className="code-editor"
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          rows={3}
+          style={{ resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: 13 }}
+        />
+      </div>
+
+      {isHmac && (
+        <div className="control-group">
+          <label className="control-label">HMAC Secret Key:</label>
+          <input
+            type="text"
+            className="control-input"
+            value={secretKey}
+            onChange={e => setSecretKey(e.target.value)}
+            style={{ fontFamily: 'var(--font-mono)' }}
+          />
+        </div>
+      )}
+
+      {/* Digests Output */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>Calculated Digest</div>
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>HEX:</span>
+            <button className="copy-mini-btn" onClick={() => copyVal(hashHex, 'hex')} type="button">
+              {copied === 'hex' ? <Check size={11} color="var(--success)" /> : <Copy size={11} />}
+            </button>
+          </div>
+          <div style={{ background: 'var(--bg)', padding: '8px 12px', borderRadius: 4, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--accent)', wordBreak: 'break-all' }}>
+            {hashHex || '(empty)'}
+          </div>
+        </div>
+
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>BASE64:</span>
+            <button className="copy-mini-btn" onClick={() => copyVal(hashBase64, 'b64')} type="button">
+              {copied === 'b64' ? <Check size={11} color="var(--success)" /> : <Copy size={11} />}
+            </button>
+          </div>
+          <div style={{ background: 'var(--bg)', padding: '8px 12px', borderRadius: 4, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text)', wordBreak: 'break-all' }}>
+            {hashBase64 || '(empty)'}
+          </div>
+        </div>
+      </div>
+
+      {/* Verify / Compare */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>Verify Against Expected Hash:</div>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <input
+            type="text"
+            className="control-input"
+            placeholder="Paste expected hex or base64 hash to compare..."
+            value={compareHash}
+            onChange={e => setCompareHash(e.target.value)}
+            style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 12 }}
+          />
+          {compareHash.trim() && (
+            <span style={{ fontSize: 12, fontWeight: 600, color: isMatch ? 'var(--success)' : 'var(--danger)', padding: '6px 12px', borderRadius: 4, background: isMatch ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)' }}>
+              {isMatch ? '✓ MATCH' : '✗ MISMATCH'}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
